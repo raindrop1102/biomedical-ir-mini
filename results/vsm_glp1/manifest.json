@@ -1,0 +1,145 @@
+{
+  "generated_at_utc": "2026-10-17T18:47:45+00:00",
+  "corpus": {
+    "file": "abstracts.jsonl",
+    "file_sha256": "be5303d1c8e494320e75b5b2317fa7269be86b934837dae76bba937f0729ebbd",
+    "documents": 2992,
+    "terms": 12025,
+    "texts_sha256": "1be8bca732062b6d22d30cab00dbfd36d47499920e94569037ea76d0eabd6d6a"
+  },
+  "queries": [
+    {
+      "id": "Q01",
+      "query": "semaglutide weight loss",
+      "rule": "Semaglutide AND Weight Loss",
+      "relevant": 37,
+      "grade_2": 19
+    },
+    {
+      "id": "Q02",
+      "query": "liraglutide cardiovascular outcomes",
+      "rule": "Liraglutide AND Cardiovascular Diseases",
+      "relevant": 19,
+      "grade_2": 16
+    },
+    {
+      "id": "Q03",
+      "query": "GLP-1 neuroprotection in Parkinson's disease",
+      "rule": "Parkinson Disease",
+      "relevant": 28,
+      "grade_2": 26
+    },
+    {
+      "id": "Q04",
+      "query": "Alzheimer's disease and cognitive decline",
+      "rule": "Alzheimer Disease",
+      "relevant": 45,
+      "grade_2": 34
+    },
+    {
+      "id": "Q05",
+      "query": "DPP-4 inhibitors such as sitagliptin",
+      "rule": "Dipeptidyl-Peptidase IV Inhibitors",
+      "relevant": 137,
+      "grade_2": 82
+    },
+    {
+      "id": "Q06",
+      "query": "bariatric surgery and gastric bypass",
+      "rule": "(Bariatric Surgery OR Gastric Bypass)",
+      "relevant": 84,
+      "grade_2": 69
+    },
+    {
+      "id": "Q07",
+      "query": "heart failure",
+      "rule": "Heart Failure",
+      "relevant": 34,
+      "grade_2": 30
+    },
+    {
+      "id": "Q08",
+      "query": "type 1 diabetes",
+      "rule": "Diabetes Mellitus, Type 1",
+      "relevant": 45,
+      "grade_2": 38
+    },
+    {
+      "id": "Q09",
+      "query": "gut microbiota",
+      "rule": "Gastrointestinal Microbiome",
+      "relevant": 52,
+      "grade_2": 40
+    },
+    {
+      "id": "Q10",
+      "query": "pancreatic beta cell function",
+      "rule": "Insulin-Secreting Cells",
+      "relevant": 150,
+      "grade_2": 91
+    },
+    {
+      "id": "Q11",
+      "query": "SGLT2 inhibitors",
+      "rule": "Sodium-Glucose Transporter 2 Inhibitors",
+      "relevant": 77,
+      "grade_2": 63
+    },
+    {
+      "id": "Q12",
+      "query": "delayed gastric emptying",
+      "rule": "Gastric Emptying",
+      "relevant": 69,
+      "grade_2": 26
+    },
+    {
+      "id": "Q13",
+      "query": "hypoglycemia risk",
+      "rule": "Hypoglycemia",
+      "relevant": 51,
+      "grade_2": 25
+    },
+    {
+      "id": "Q14",
+      "query": "pancreatic cancer risk",
+      "rule": "Pancreatic Neoplasms",
+      "relevant": 27,
+      "grade_2": 20
+    },
+    {
+      "id": "Q15",
+      "query": "appetite and satiety",
+      "rule": "(Appetite OR Satiation)",
+      "relevant": 77,
+      "grade_2": 38
+    }
+  ],
+  "schemes": {
+    "nnn.nnn": "raw TF only, no normalization",
+    "nnc.nnc": "raw TF only, cosine",
+    "lnc.lnc": "log TF only, cosine",
+    "bnc.bnc": "binary, cosine",
+    "btc.btc": "IDF only (binary × IDF) on both sides, cosine",
+    "bnc.btc": "IDF only, applied once (query side), cosine",
+    "ntn.ntn": "raw TF-IDF, no normalization",
+    "ntc.ntc": "raw TF-IDF, cosine",
+    "ltn.ltn": "log TF-IDF, no normalization",
+    "ltc.ltc": "log TF-IDF, cosine",
+    "atc.atc": "augmented TF-IDF, cosine",
+    "lpc.lpc": "log TF × probabilistic IDF, cosine",
+    "lnc.ltc": "SMART classic: documents log TF cosine, queries log TF-IDF cosine",
+    "bm25": "Okapi BM25 (reference: a modified TF-IDF)"
+  },
+  "metrics": [
+    "P@5",
+    "P@10",
+    "R@10",
+    "R@100",
+    "MRR",
+    "MAP",
+    "nDCG@10"
+  ],
+  "significance": "exact two-sided paired permutation (sign-flip) test over queries",
+  "text_fields": "title + abstract; stop words removed; Porter stems; bag of words",
+  "python": "3.13.15"
+}

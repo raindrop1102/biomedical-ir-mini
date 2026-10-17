@@ -14,6 +14,8 @@ class Document:
     pmid: str
     title: str
     abstract: str
+    mesh: tuple[str, ...] = ()          # MeSH descriptors assigned by NLM indexers (empty if not indexed)
+    mesh_major: tuple[str, ...] = ()    # the subset marked as a major topic of the article
 
 
 def _clean(text) -> str:
@@ -30,9 +32,34 @@ def _section(element) -> str:
     return f"{label}: {text}" if text and label else text
 
 
+def _mesh(citation) -> tuple[tuple[str, ...], tuple[str, ...]]:
+    """(all descriptors, major-topic descriptors). A heading is a major topic when its
+    descriptor or any of its qualifiers carries MajorTopicYN="Y"."""
+    names, major = [], []
+    for heading in citation.findall("MeshHeadingList/MeshHeading"):
+        descriptor = heading.find("DescriptorName")
+        name = _text(descriptor)
+        if not name:
+            continue
+        names.append(name)
+        flags = [descriptor.get("MajorTopicYN")] + [q.get("MajorTopicYN") for q in heading.findall("QualifierName")]
+        if "Y" in flags:
+            major.append(name)
+    return tuple(names), tuple(major)
+
+
+def _terms(value) -> tuple[str, ...]:
+    """MeSH as stored: a JSON list, or "A; B" in a CSV cell."""
+    if isinstance(value, (list, tuple)):
+        return tuple(str(v) for v in value)
+    if isinstance(value, str) and value.strip():
+        return tuple(v.strip() for v in value.split(";") if v.strip())
+    return ()
+
+
 def parse_pubmed_xml(data: bytes) -> list[Document]:
     """PubmedArticleSet (EFetch output) → documents. Structured abstract sections
-    keep their label ("BACKGROUND: ...") and are joined with spaces."""
+    keep their label ("BACKGROUND: ...") and are joined with spaces; MeSH headings are kept."""
     # ElementTree expands internal entities. EFetch output never declares any, so refuse
     # them instead of relying only on expat's (>= 2.4.1) entity-amplification limits.
     if b"<!ENTITY" in data:
@@ -50,7 +77,8 @@ def parse_pubmed_xml(data: bytes) -> list[Document]:
         sections = citation.findall("Article/Abstract/AbstractText")
         abstract = " ".join(filter(None, map(_section, sections)))
         if pmid and abstract:
-            documents.append(Document(pmid, _text(citation.find("Article/ArticleTitle")), abstract))
+            documents.append(Document(pmid, _text(citation.find("Article/ArticleTitle")), abstract,
+                                      *_mesh(citation)))
     return documents
 
 
@@ -100,8 +128,8 @@ def load(path) -> list[Document]:
         with path.open(encoding="utf-8-sig", newline="") as file:
             rows = csv.DictReader(file) if suffix == ".csv" else (json.loads(l) for l in file if l.strip())
             try:
-                documents = [Document(str(r["pmid"]).strip(), _clean(r.get("title")), _clean(r["abstract"]))
-                             for r in rows]
+                documents = [Document(str(r["pmid"]).strip(), _clean(r.get("title")), _clean(r["abstract"]),
+                                      _terms(r.get("mesh")), _terms(r.get("mesh_major"))) for r in rows]
             except KeyError as error:
                 raise ValueError(f"{path.name}: every record needs a {error} field") from None
     else:
@@ -116,4 +144,6 @@ def load(path) -> list[Document]:
 def save_jsonl(documents, path) -> None:
     with Path(path).open("w", encoding="utf-8") as file:
         for document in documents:
-            file.write(json.dumps(asdict(document), ensure_ascii=False) + "\n")
+            # Files without MeSH keep the original three fields.
+            record = {k: v for k, v in asdict(document).items() if v or k in ("pmid", "title", "abstract")}
+            file.write(json.dumps(record, ensure_ascii=False) + "\n")

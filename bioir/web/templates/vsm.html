@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block title %}{% if query %}{{ query }} - {% endif %}向量空間檢索{% endblock %}
+{% block styles %}<link rel="stylesheet" href="{{ url_for('static', filename='embedding.css') }}">{% endblock %}
+{% block body %}
+<header class="site-header"><div class="container"><h1>向量空間檢索</h1><p class="hint">SMART 詞項加權（TF × IDF × 正規化），以查詢與文件向量的內積排序；兩邊都 L2 正規化時即為 cosine similarity。</p></div></header>
+<main class="container">
+{% if error and not vsm %}<section class="panel"><div class="alert warning">{{ error }}</div></section>
+{% else %}
+{% if error %}<div class="alert error" role="alert">{{ error }}</div>{% endif %}
+<section class="panel" id="query">
+<h2>查詢與加權方法</h2>
+<form method="get" action="{{ url_for('vector_space') }}" class="neighbor-form vsm-form">
+  <div class="field"><label for="vsm-query">查詢（自由文字，不支援布林語法）</label><input id="vsm-query" name="query" value="{{ query }}" placeholder="例如 pancreatic cancer risk" maxlength="300" required></div>
+  {% for code in codes %}<div class="field narrow-wide"><label for="scheme-{{ loop.index }}">加權 {{ 'A' if loop.first else 'B' }}</label><select id="scheme-{{ loop.index }}" name="{{ 'a' if loop.first else 'b' }}">{% for key, label in schemes.items() %}<option value="{{ key }}" {% if code == key %}selected{% endif %}>{{ key }} · {{ label }}</option>{% endfor %}</select></div>{% endfor %}
+  <button type="submit">檢索</button>
+</form>
+<p class="hint">語料：<strong>{{ vsm.corpus }}</strong> · {{ '{:,}'.format(vsm.space|length) }} 篇 · {{ '{:,}'.format(vsm.space.postings|length) }} 個詞（標題＋摘要，移除停用詞、Porter 詞幹）。
+SMART 記號 ddd.qqq：TF（n 原始、l 對數、b 二元、a 增廣）· IDF（n 無、t ln(N/df)、p 機率型）· 正規化（n 無、c L2）。</p>
+{% if vsm.queries %}<p class="hint">評估查詢（MeSH 相關性）：{% for q in vsm.queries %}<a href="{{ url_for('vector_space', query=q.text, a=codes[0], b=codes[1]) }}#results">{{ q.id }} {{ q.text }}</a>{{ '、' if not loop.last }}{% endfor %}</p>{% endif %}
+</section>
+
+{% if columns %}
+<section class="panel" id="results">
+<h2>前 10 名</h2>
+{% if evaluation %}<p>這是評估查詢 <strong>{{ evaluation.id }}</strong>：相關文件依 MeSH 規則 <code>{{ evaluation.rule() }}</code>，共 {{ relevant }} 篇。<span class="badge available">★ 相關（主要主題）</span> <span class="badge available">✓ 相關</span></p>{% endif %}
+<div class="table-wrap"><table><thead><tr><th>詞項</th><th>DF</th>{% for column in columns %}<th>查詢權重（{{ column.scheme.code }}）</th>{% endfor %}</tr></thead><tbody>
+{% for term in terms %}<tr><td>{{ term }}</td><td>{{ '{:,}'.format(df[term]) }}</td>{% for column in columns %}<td>{{ '%.3f'|format(column.vector[term]) if term in column.vector else '0' }}</td>{% endfor %}</tr>{% endfor %}
+</tbody></table></div>
+{% if columns[0].unknown %}<p class="hint">語料中沒有的查詢詞：{{ columns[0].unknown|join(', ') }}</p>{% endif %}
+<div class="model-columns">
+{% for column in columns %}<div>
+<h3>{{ column.scheme.code }}</h3><p class="hint">{{ column.scheme.describe() }} · 有分數的文件 {{ '{:,}'.format(column.total) }} 篇</p>
+{% if column.metrics %}<p class="metric-line">{% for name in ['P@10', 'R@10', 'MRR', 'MAP', 'nDCG@10'] %}<span><small>{{ name }}</small> {{ '%.3f'|format(column.metrics[name]) }}</span>{% endfor %}</p>{% endif %}
+<ol class="vsm-hits">
+{% for row in column.hits %}<li>
+  <div class="vsm-title">{% if row.grade == 2 %}<span class="grade" title="相關（主要主題）">★</span>{% elif row.grade == 1 %}<span class="grade" title="相關">✓</span>{% endif %}<a href="https://pubmed.ncbi.nlm.nih.gov/{{ row.hit.pmid }}/" target="_blank" rel="noopener noreferrer">{{ row.doc.title or '（無標題）' }}</a></div>
+  <div class="vsm-meta"><strong>{{ '%.4f'|format(row.hit.score) }}</strong> · PMID {{ row.hit.pmid }} · {{ row.length }} 詞</div>
+  <div class="vsm-parts">{% for term, value in row.parts %}<span>{{ term }} +{{ '%.4f'|format(value) }}</span>{% endfor %}</div>
+</li>{% else %}<li>沒有文件包含這些查詢詞。</li>{% endfor %}
+</ol></div>{% endfor %}
+</div>
+<p class="hint">每篇下方是各查詢詞對分數的貢獻（查詢權重 × 文件權重，正規化後）。分數只在同一種加權內可比較。</p>
+</section>
+{% endif %}
+
+{% if vsm.summary %}<section class="panel" id="experiment">
+<h2>對照實驗結果（{{ vsm.queries|length }} 個查詢）</h2>
+<figure class="projection"><img src="{{ url_for('vsm_chart') }}" alt="各加權方法的 nDCG@10、MAP、P@10、MRR 平均值長條圖" loading="lazy" onerror="this.parentElement.hidden=true"></figure>
+<div class="table-wrap"><table><thead><tr><th>加權</th><th>說明</th><th>P@10</th><th>R@100</th><th>MRR</th><th>MAP</th><th>nDCG@10</th></tr></thead><tbody>
+{% for row in vsm.summary|sort(attribute='nDCG@10', reverse=true) %}<tr><td><a href="{{ url_for('vector_space', query=query or none, a=row.scheme, b=codes[1]) }}">{{ row.scheme }}</a></td><td>{{ row.description }}</td>{% for m in ['P@10', 'R@100', 'MRR', 'MAP', 'nDCG@10'] %}<td>{{ '%.3f'|format(row[m]|float) }}</td>{% endfor %}</tr>{% endfor %}
+</tbody></table></div>
+{% if vsm.comparisons %}<h3>控制變因比較（nDCG@10）</h3>
+<div class="table-wrap"><table><thead><tr><th>問題</th><th>改變</th><th>基準 → 變體</th><th>平均</th><th>變好／變差</th><th>p 值</th></tr></thead><tbody>
+{% for row in vsm.comparisons if row.metric == 'nDCG@10' %}<tr><td>{{ row.question }}</td><td>{{ row.change }}</td><td>{{ row.baseline }} → {{ row.variant }}</td><td>{{ '%.3f'|format(row.baseline_mean|float) }} → {{ '%.3f'|format(row.variant_mean|float) }}</td><td>{{ row.better }}／{{ row.worse }}</td><td>{{ '%.3f'|format(row.p_value|float) }}</td></tr>{% endfor %}
+</tbody></table></div>
+<p class="hint">p 值為 15 個查詢的精確配對置換檢定（雙尾）；查詢少、比較多，p 值只作參考，不宣稱顯著。完整結果見 results/vsm_glp1。</p>{% endif %}
+</section>{% endif %}
+{% endif %}
+</main>
+<footer class="container">只讀模式：語料於伺服器啟動時載入；實驗結果由 python -m bioir vsm evaluate 產生。</footer>
+{% endblock %}

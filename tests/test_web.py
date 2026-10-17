@@ -26,7 +26,14 @@ class WebTest(unittest.TestCase):
         cls.folder = tempfile.TemporaryDirectory()
         corpus = Path(cls.folder.name, "corpus.jsonl")
         save_jsonl(DOCS, corpus)
-        cls.client = create_app(corpus, Path(cls.folder.name, "no-results")).test_client()
+        mesh_corpus = Path(cls.folder.name, "mesh", "abstracts.jsonl")
+        mesh_corpus.parent.mkdir()
+        save_jsonl([Document("11", "Semaglutide weight", "Semaglutide reduced weight.", ("Semaglutide",), ("Semaglutide",)),
+                    Document("12", "Insulin", "Insulin secretion in islets.", ("Insulin",))], mesh_corpus)
+        mesh_corpus.with_name("queries.json").write_text(
+            '{"queries": [{"id": "Q1", "query": "semaglutide weight", "mesh_all": ["Semaglutide"]}]}', encoding="utf-8")
+        cls.client = create_app(corpus, Path(cls.folder.name, "no-results"), mesh_corpus,
+                                Path(cls.folder.name, "no-vsm-results")).test_client()
 
     @classmethod
     def tearDownClass(cls):
@@ -79,6 +86,15 @@ class WebTest(unittest.TestCase):
         page = self.get("/embedding?word=semaglutide")
         self.assertIn("尚未提供詞向量模型", page)
         self.get("/embedding/projections.png", status=404)
+
+    def test_vector_space_page(self):
+        self.assertIn("SMART", self.get("/vsm"))
+        page = self.get("/vsm?query=semaglutide+weight&a=lnc.ltc&b=bm25")
+        self.assertIn("評估查詢 <strong>Q1</strong>", page)
+        self.assertIn("★", page)
+        self.assertIn("nDCG@10", page)
+        self.assertIn("A SCHEME", self.get("/vsm?query=x&a=zzz", status=400).upper())
+        self.get("/vsm/metrics.png", status=404)
 
     def test_health_and_headers(self):
         response = self.client.get("/healthz")

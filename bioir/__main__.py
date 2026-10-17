@@ -1,5 +1,6 @@
 """Command line: `python -m bioir search [QUERY]`, `python -m bioir zipf`,
-`python -m bioir embed (train | similar | compare | project)`, `python -m bioir serve`,
+`python -m bioir embed (train | similar | compare | project)`, `python -m bioir vsm (search | evaluate)`,
+`python -m bioir serve`,
 `python -m bioir fetch (PMID_FILE | --query Q)`."""
 import argparse
 import sys
@@ -13,6 +14,7 @@ from .search import Index, Speller
 from .zipf.stats import CONDITIONS
 
 DEFAULT_CORPUS = Path(__file__).resolve().parents[1] / "data" / "glp1_1000" / "abstracts.jsonl"
+VSM_CORPUS = Path(__file__).resolve().parents[1] / "data" / "glp1_mesh_3000" / "abstracts.jsonl"
 
 
 def snippet(text: str, spans, width: int = 220) -> str:
@@ -197,12 +199,51 @@ def embed_project(args) -> int:
     return 0
 
 
+def vsm_search(args) -> int:
+    from .vsm import Scheme, VectorSpace
+    scheme = Scheme.parse(args.scheme)
+    started = time.perf_counter()
+    space = VectorSpace(load(args.corpus))
+    print(f"已建立 {len(space):,} 篇的向量空間（{len(space.postings):,} 個詞，{time.perf_counter() - started:.1f} 秒）")
+    print(f"加權 {scheme.code}：{scheme.describe()}")
+    query = " ".join(args.query)
+    started = time.perf_counter()
+    ranking = space.search(query, scheme, args.k)
+    elapsed = (time.perf_counter() - started) * 1000
+    vector = "  ".join(f"{t} {w:.3f}" for t, w in ranking.query_weights.items())
+    print(f"查詢向量：{vector or '（空）'}" + (f"；語料中沒有：{', '.join(ranking.unknown)}" if ranking.unknown else ""))
+    print(f"前 {len(ranking.hits)} 名（{elapsed:.1f} ms）")
+    for hit in ranking.hits:
+        doc = space.documents[hit.pmid]
+        print(f"\n{hit.rank:>2}. {hit.score:.4f}  PMID {hit.pmid}  {doc.title}")
+        if args.explain:
+            parts = sorted(hit.contributions.items(), key=lambda item: -item[1])
+            print("    " + "  ".join(f"{t} +{v:.4f}" for t, v in parts))
+    return 0
+
+
+def vsm_evaluate(args) -> int:
+    from .vsm.experiment import SCHEMES, run
+    schemes = [s.strip() for s in args.schemes.split(",")] if args.schemes else list(SCHEMES)
+    documents = load(args.corpus)
+    print(f"{len(documents):,} 篇、查詢檔 {args.queries.name}、{len(schemes)} 種加權")
+    summary = run(documents, args.queries, args.out, schemes, plot=args.plot, corpus=args.corpus,
+                  progress=lambda code: print(f"  {code}", flush=True))
+    print(f"\n{'scheme':<9}{'P@10':>7}{'R@100':>7}{'MRR':>7}{'MAP':>7}{'nDCG@10':>9}")
+    for row in sorted(summary, key=lambda r: -r["nDCG@10"]):
+        print(f"{row['scheme']:<9}{row['P@10']:>7.3f}{row['R@100']:>7.3f}{row['MRR']:>7.3f}{row['MAP']:>7.3f}"
+              f"{row['nDCG@10']:>9.3f}")
+    print(f"\n已輸出到 {args.out}（summary、per_query、comparisons、judgments、idf、tf_example、length_bias、manifest"
+          f"{'、metrics.png' if args.plot else ''}）")
+    return 0
+
+
 def serve(args) -> int:
     try:
         from .web import create_app
     except ImportError as error:
         raise RuntimeError(f"網頁介面需要 flask：python -m pip install flask（{error}）") from None
-    app = create_app(args.corpus, args.results)
+    app = create_app(args.corpus, args.results, args.vsm_corpus, args.vsm_results)
     print(f"網頁介面：http://{args.host}:{args.port}　（Ctrl+C 停止；這是開發用伺服器）", flush=True)
     app.run(host=args.host, port=args.port, debug=False, use_reloader=False)
     return 0
@@ -285,10 +326,30 @@ def main(argv=None) -> int:
     j.add_argument("--plot", action="store_true", help="also draw projections.png (needs matplotlib)")
     j.set_defaults(run=embed_project)
 
+    v = commands.add_parser("vsm", help="vector-space model with SMART term weighting")
+    vsm_commands = v.add_subparsers(dest="vsm_command", required=True)
+    vs = vsm_commands.add_parser("search", help="rank documents by cosine (or inner product)")
+    vs.add_argument("query", nargs="+")
+    vs.add_argument("--corpus", type=Path, default=VSM_CORPUS)
+    vs.add_argument("--scheme", default="lnc.ltc", help="SMART ddd.qqq, e.g. lnc.ltc, ltc.ltc, nnn.nnn; or bm25")
+    vs.add_argument("-k", type=int, default=10)
+    vs.add_argument("--explain", action="store_true", help="show each query term's share of the score")
+    vs.set_defaults(run=vsm_search)
+    ve = vsm_commands.add_parser("evaluate", help="controlled weighting experiment with MeSH relevance")
+    ve.add_argument("--corpus", type=Path, default=VSM_CORPUS)
+    ve.add_argument("--queries", type=Path, default=VSM_CORPUS.with_name("queries.json"))
+    ve.add_argument("--schemes", help="comma-separated subset; default: every scheme in bioir/vsm/experiment.py")
+    ve.add_argument("--out", type=Path, required=True)
+    ve.add_argument("--plot", action="store_true", help="also draw metrics.png (needs matplotlib)")
+    ve.set_defaults(run=vsm_evaluate)
+
     w = commands.add_parser("serve", help="read-only web interface (needs flask)")
     w.add_argument("--corpus", type=Path, default=DEFAULT_CORPUS)
     w.add_argument("--results", type=Path, default=Path(__file__).resolve().parents[1] / "results" / "embed_glp1",
                    help="folder written by `embed compare` (models/, projections.png)")
+    w.add_argument("--vsm-corpus", type=Path, default=VSM_CORPUS, help="corpus with MeSH for the vector-space page")
+    w.add_argument("--vsm-results", type=Path, default=Path(__file__).resolve().parents[1] / "results" / "vsm_glp1",
+                   help="folder written by `vsm evaluate`")
     w.add_argument("--host", default="127.0.0.1")
     w.add_argument("--port", type=int, default=5000)
     w.set_defaults(run=serve)

@@ -1,0 +1,933 @@
+﻿query,text,rule,pmid,grade
+Q01,semaglutide weight loss,Semaglutide AND Weight Loss,30528435,1
+Q01,semaglutide weight loss,Semaglutide AND Weight Loss,34231442,1
+Q01,semaglutide weight loss,Semaglutide AND Weight Loss,38181103,1
+Q01,semaglutide weight loss,Semaglutide AND Weight Loss,38644683,2
+Q01,semaglutide weight loss,Semaglutide AND Weight Loss,38871039,1
+Q01,semaglutide weight loss,Semaglutide AND Weight Loss,39024455,2
+Q01,semaglutide weight loss,Semaglutide AND Weight Loss,39031282,1
+Q01,semaglutide weight loss,Semaglutide AND Weight Loss,39134066,2
+Q01,semaglutide weight loss,Semaglutide AND Weight Loss,39496023,2
+Q01,semaglutide weight loss,Semaglutide AND Weight Loss,39592891,2
+Q01,semaglutide weight loss,Semaglutide AND Weight Loss,39621418,1
+Q01,semaglutide weight loss,Semaglutide AND Weight Loss,39645647,1
+Q01,semaglutide weight loss,Semaglutide AND Weight Loss,39690371,1
+Q01,semaglutide weight loss,Semaglutide AND Weight Loss,39853913,2
+Q01,semaglutide weight loss,Semaglutide AND Weight Loss,40022548,1
+Q01,semaglutide weight loss,Semaglutide AND Weight Loss,40603775,1
+Q01,semaglutide weight loss,Semaglutide AND Weight Loss,40746073,1
+Q01,semaglutide weight loss,Semaglutide AND Weight Loss,40926521,1
+Q01,semaglutide weight loss,Semaglutide AND Weight Loss,41329155,1
+Q01,semaglutide weight loss,Semaglutide AND Weight Loss,41754149,2
+Q01,semaglutide weight loss,Semaglutide AND Weight Loss,41936548,2
+Q01,semaglutide weight loss,Semaglutide AND Weight Loss,41985454,2
+Q01,semaglutide weight loss,Semaglutide AND Weight Loss,41989133,2
+Q01,semaglutide weight loss,Semaglutide AND Weight Loss,42026424,2
+Q01,semaglutide weight loss,Semaglutide AND Weight Loss,42036071,1
+Q01,semaglutide weight loss,Semaglutide AND Weight Loss,42140342,2
+Q01,semaglutide weight loss,Semaglutide AND Weight Loss,42162206,1
+Q01,semaglutide weight loss,Semaglutide AND Weight Loss,42191517,2
+Q01,semaglutide weight loss,Semaglutide AND Weight Loss,42210883,2
+Q01,semaglutide weight loss,Semaglutide AND Weight Loss,42260171,2
+Q01,semaglutide weight loss,Semaglutide AND Weight Loss,42401514,1
+Q01,semaglutide weight loss,Semaglutide AND Weight Loss,42413474,2
+Q01,semaglutide weight loss,Semaglutide AND Weight Loss,42423951,1
+Q01,semaglutide weight loss,Semaglutide AND Weight Loss,42544560,1
+Q01,semaglutide weight loss,Semaglutide AND Weight Loss,42642900,2
+Q01,semaglutide weight loss,Semaglutide AND Weight Loss,42789307,2
+Q01,semaglutide weight loss,Semaglutide AND Weight Loss,42824923,2
+Q02,liraglutide cardiovascular outcomes,Liraglutide AND Cardiovascular Diseases,22496442,2
+Q02,liraglutide cardiovascular outcomes,Liraglutide AND Cardiovascular Diseases,22672960,2
+Q02,liraglutide cardiovascular outcomes,Liraglutide AND Cardiovascular Diseases,23865382,2
+Q02,liraglutide cardiovascular outcomes,Liraglutide AND Cardiovascular Diseases,24500557,2
+Q02,liraglutide cardiovascular outcomes,Liraglutide AND Cardiovascular Diseases,25577244,2
+Q02,liraglutide cardiovascular outcomes,Liraglutide AND Cardiovascular Diseases,27531946,2
+Q02,liraglutide cardiovascular outcomes,Liraglutide AND Cardiovascular Diseases,28102093,1
+Q02,liraglutide cardiovascular outcomes,Liraglutide AND Cardiovascular Diseases,28285800,2
+Q02,liraglutide cardiovascular outcomes,Liraglutide AND Cardiovascular Diseases,29778663,2
+Q02,liraglutide cardiovascular outcomes,Liraglutide AND Cardiovascular Diseases,30115742,1
+Q02,liraglutide cardiovascular outcomes,Liraglutide AND Cardiovascular Diseases,30528435,2
+Q02,liraglutide cardiovascular outcomes,Liraglutide AND Cardiovascular Diseases,35905827,2
+Q02,liraglutide cardiovascular outcomes,Liraglutide AND Cardiovascular Diseases,36044100,2
+Q02,liraglutide cardiovascular outcomes,Liraglutide AND Cardiovascular Diseases,36771035,2
+Q02,liraglutide cardiovascular outcomes,Liraglutide AND Cardiovascular Diseases,37231200,2
+Q02,liraglutide cardiovascular outcomes,Liraglutide AND Cardiovascular Diseases,39496023,2
+Q02,liraglutide cardiovascular outcomes,Liraglutide AND Cardiovascular Diseases,40378625,2
+Q02,liraglutide cardiovascular outcomes,Liraglutide AND Cardiovascular Diseases,42123472,2
+Q02,liraglutide cardiovascular outcomes,Liraglutide AND Cardiovascular Diseases,42654343,1
+Q03,GLP-1 neuroprotection in Parkinson's disease,Parkinson Disease,24473219,2
+Q03,GLP-1 neuroprotection in Parkinson's disease,Parkinson Disease,26851597,2
+Q03,GLP-1 neuroprotection in Parkinson's disease,Parkinson Disease,28927992,2
+Q03,GLP-1 neuroprotection in Parkinson's disease,Parkinson Disease,29329976,1
+Q03,GLP-1 neuroprotection in Parkinson's disease,Parkinson Disease,30511349,2
+Q03,GLP-1 neuroprotection in Parkinson's disease,Parkinson Disease,31654678,2
+Q03,GLP-1 neuroprotection in Parkinson's disease,Parkinson Disease,32412796,2
+Q03,GLP-1 neuroprotection in Parkinson's disease,Parkinson Disease,33900631,2
+Q03,GLP-1 neuroprotection in Parkinson's disease,Parkinson Disease,35584372,2
+Q03,GLP-1 neuroprotection in Parkinson's disease,Parkinson Disease,35633466,2
+Q03,GLP-1 neuroprotection in Parkinson's disease,Parkinson Disease,35805109,2
+Q03,GLP-1 neuroprotection in Parkinson's disease,Parkinson Disease,36372278,2
+Q03,GLP-1 neuroprotection in Parkinson's disease,Parkinson Disease,36432569,2
+Q03,GLP-1 neuroprotection in Parkinson's disease,Parkinson Disease,37657738,2
+Q03,GLP-1 neuroprotection in Parkinson's disease,Parkinson Disease,38612620,2
+Q03,GLP-1 neuroprotection in Parkinson's disease,Parkinson Disease,38677445,2
+Q03,GLP-1 neuroprotection in Parkinson's disease,Parkinson Disease,39182542,2
+Q03,GLP-1 neuroprotection in Parkinson's disease,Parkinson Disease,39864104,2
+Q03,GLP-1 neuroprotection in Parkinson's disease,Parkinson Disease,39964252,2
+Q03,GLP-1 neuroprotection in Parkinson's disease,Parkinson Disease,40220748,2
+Q03,GLP-1 neuroprotection in Parkinson's disease,Parkinson Disease,40449678,2
+Q03,GLP-1 neuroprotection in Parkinson's disease,Parkinson Disease,40835782,2
+Q03,GLP-1 neuroprotection in Parkinson's disease,Parkinson Disease,41356006,2
+Q03,GLP-1 neuroprotection in Parkinson's disease,Parkinson Disease,41444101,1
+Q03,GLP-1 neuroprotection in Parkinson's disease,Parkinson Disease,41465588,2
+Q03,GLP-1 neuroprotection in Parkinson's disease,Parkinson Disease,41995965,2
+Q03,GLP-1 neuroprotection in Parkinson's disease,Parkinson Disease,42121905,2
+Q03,GLP-1 neuroprotection in Parkinson's disease,Parkinson Disease,42641565,2
+Q04,Alzheimer's disease and cognitive decline,Alzheimer Disease,17592527,2
+Q04,Alzheimer's disease and cognitive decline,Alzheimer Disease,17629357,1
+Q04,Alzheimer's disease and cognitive decline,Alzheimer Disease,18930564,2
+Q04,Alzheimer's disease and cognitive decline,Alzheimer Disease,19573562,1
+Q04,Alzheimer's disease and cognitive decline,Alzheimer Disease,21094907,1
+Q04,Alzheimer's disease and cognitive decline,Alzheimer Disease,21749267,2
+Q04,Alzheimer's disease and cognitive decline,Alzheimer Disease,23035082,2
+Q04,Alzheimer's disease and cognitive decline,Alzheimer Disease,24529520,2
+Q04,Alzheimer's disease and cognitive decline,Alzheimer Disease,26666230,2
+Q04,Alzheimer's disease and cognitive decline,Alzheimer Disease,26851597,1
+Q04,Alzheimer's disease and cognitive decline,Alzheimer Disease,27421117,2
+Q04,Alzheimer's disease and cognitive decline,Alzheimer Disease,27715341,2
+Q04,Alzheimer's disease and cognitive decline,Alzheimer Disease,28540646,2
+Q04,Alzheimer's disease and cognitive decline,Alzheimer Disease,28673587,2
+Q04,Alzheimer's disease and cognitive decline,Alzheimer Disease,29223528,2
+Q04,Alzheimer's disease and cognitive decline,Alzheimer Disease,29329976,1
+Q04,Alzheimer's disease and cognitive decline,Alzheimer Disease,29598932,2
+Q04,Alzheimer's disease and cognitive decline,Alzheimer Disease,30020885,2
+Q04,Alzheimer's disease and cognitive decline,Alzheimer Disease,30511349,2
+Q04,Alzheimer's disease and cognitive decline,Alzheimer Disease,31062332,2
+Q04,Alzheimer's disease and cognitive decline,Alzheimer Disease,31082410,2
+Q04,Alzheimer's disease and cognitive decline,Alzheimer Disease,31199957,1
+Q04,Alzheimer's disease and cognitive decline,Alzheimer Disease,33895160,2
+Q04,Alzheimer's disease and cognitive decline,Alzheimer Disease,33900631,2
+Q04,Alzheimer's disease and cognitive decline,Alzheimer Disease,34676939,2
+Q04,Alzheimer's disease and cognitive decline,Alzheimer Disease,35008973,2
+Q04,Alzheimer's disease and cognitive decline,Alzheimer Disease,35805109,2
+Q04,Alzheimer's disease and cognitive decline,Alzheimer Disease,36372278,2
+Q04,Alzheimer's disease and cognitive decline,Alzheimer Disease,38669546,2
+Q04,Alzheimer's disease and cognitive decline,Alzheimer Disease,38677445,2
+Q04,Alzheimer's disease and cognitive decline,Alzheimer Disease,39203005,1
+Q04,Alzheimer's disease and cognitive decline,Alzheimer Disease,39216535,2
+Q04,Alzheimer's disease and cognitive decline,Alzheimer Disease,39577079,2
+Q04,Alzheimer's disease and cognitive decline,Alzheimer Disease,40184808,2
+Q04,Alzheimer's disease and cognitive decline,Alzheimer Disease,40706971,2
+Q04,Alzheimer's disease and cognitive decline,Alzheimer Disease,40898408,2
+Q04,Alzheimer's disease and cognitive decline,Alzheimer Disease,41226780,1
+Q04,Alzheimer's disease and cognitive decline,Alzheimer Disease,41356006,2
+Q04,Alzheimer's disease and cognitive decline,Alzheimer Disease,41444101,1
+Q04,Alzheimer's disease and cognitive decline,Alzheimer Disease,41524953,2
+Q04,Alzheimer's disease and cognitive decline,Alzheimer Disease,41621451,1
+Q04,Alzheimer's disease and cognitive decline,Alzheimer Disease,42095886,1
+Q04,Alzheimer's disease and cognitive decline,Alzheimer Disease,42580680,2
+Q04,Alzheimer's disease and cognitive decline,Alzheimer Disease,42612619,2
+Q04,Alzheimer's disease and cognitive decline,Alzheimer Disease,42841315,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,17076997,1
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,17160910,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,17580730,1
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,17629492,1
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,18068977,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,18173966,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,18220652,1
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,18435775,1
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,18640589,1
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,18670111,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,18697398,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,18806525,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,19520592,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,19595611,1
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,19748065,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,19952301,1
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,20444564,1
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,20594158,1
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,20644202,1
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,20852989,1
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,21048706,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,21130513,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,21389296,1
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,21484567,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,21484979,1
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,21534885,1
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,21664294,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,21747834,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,21898126,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,21913887,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,22204436,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,22284241,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,22284242,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,22613745,1
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,22672960,1
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,22963445,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,23415157,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,23437377,1
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,23479200,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,23522180,1
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,23570814,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,23645885,1
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,23743288,1
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,24238127,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,24500557,1
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,24510630,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,24694879,1
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,25360712,1
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,25446112,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,25456646,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,26072135,1
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,26104180,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,26138513,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,26489970,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,26497774,1
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,26541763,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,26774018,1
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,26847506,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,26953712,1
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,27091697,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,27150301,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,27300579,1
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,27692167,1
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,27800649,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,28249585,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,28285800,1
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,28291655,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,28420649,1
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,28869249,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,29203510,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,29325553,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,29383638,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,29386477,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,29682682,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,30103898,1
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,30142012,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,30303495,1
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,30447331,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,30609277,1
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,30634956,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,30788014,1
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,31199957,1
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,31414143,1
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,31425698,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,31503512,1
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,31809774,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,31858859,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,31982487,1
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,32485206,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,32543789,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,32656265,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,32780214,1
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,32810485,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,32877753,1
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,33001556,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,33502076,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,33722535,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,33935978,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,34205264,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,34258291,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,34370655,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,34826514,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,35065690,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,35226528,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,35438092,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,35945358,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,35968738,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,36642880,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,36740965,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,37154934,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,37373310,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,37535747,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,38388145,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,39264502,1
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,40068523,1
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,40072115,1
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,40108209,1
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,40231506,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,40282969,1
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,40295996,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,40309769,1
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,40427515,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,40473906,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,40725024,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,40806500,1
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,40841345,1
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,40898408,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,40922149,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,41053738,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,41386528,1
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,41493256,1
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,41697744,1
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,41879623,1
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,42000905,1
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,42260272,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,42289317,2
+Q05,DPP-4 inhibitors such as sitagliptin,Dipeptidyl-Peptidase IV Inhibitors,42348985,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),17268838,1
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),17964919,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),19595611,1
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),20835917,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),21130506,1
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),21304061,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),21951387,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),23230996,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),23562866,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),23775764,1
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),23955665,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),24291217,1
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),25411121,1
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),25559155,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),25702097,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),26344355,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),26677057,1
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),26786780,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),27026085,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),27313194,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),27313195,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),27322465,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),27382574,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),27568473,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),27975209,1
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),27994501,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),28003328,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),28242256,1
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),28276830,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),28576430,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),28673587,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),28855269,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),28871519,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),29025878,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),29113813,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),29412834,1
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),29412835,1
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),29993319,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),30726726,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),32500274,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),32654577,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),32833560,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),33397977,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),33611845,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),33759444,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),33771461,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),34228302,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),34304379,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),34370593,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),35044600,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),36478039,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),36765019,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),37011826,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),37530920,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),38032369,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),38225284,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),38644683,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),38715796,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),39127552,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),39134066,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),39325334,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),39635951,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),39690371,1
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),39910018,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),40158762,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),40285863,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),40320319,1
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),40366035,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),40634725,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),40782272,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),40855971,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),41025685,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),41071533,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),41152558,1
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),41205002,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),41313528,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),41329155,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),41733456,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),41854998,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),41887957,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),41965452,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),42191517,2
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),42401514,1
+Q06,bariatric surgery and gastric bypass,(Bariatric Surgery OR Gastric Bypass),42642900,2
+Q07,heart failure,Heart Failure,16305055,2
+Q07,heart failure,Heart Failure,22419668,2
+Q07,heart failure,Heart Failure,26104180,2
+Q07,heart failure,Heart Failure,29464655,2
+Q07,heart failure,Heart Failure,29682682,2
+Q07,heart failure,Heart Failure,31779634,2
+Q07,heart failure,Heart Failure,31882322,1
+Q07,heart failure,Heart Failure,32448716,2
+Q07,heart failure,Heart Failure,32993654,1
+Q07,heart failure,Heart Failure,33269792,2
+Q07,heart failure,Heart Failure,34379224,2
+Q07,heart failure,Heart Failure,35944765,2
+Q07,heart failure,Heart Failure,36682393,2
+Q07,heart failure,Heart Failure,36771035,2
+Q07,heart failure,Heart Failure,38183334,2
+Q07,heart failure,Heart Failure,38252145,2
+Q07,heart failure,Heart Failure,38541083,2
+Q07,heart failure,Heart Failure,38616996,2
+Q07,heart failure,Heart Failure,38673991,2
+Q07,heart failure,Heart Failure,38871039,2
+Q07,heart failure,Heart Failure,39425816,2
+Q07,heart failure,Heart Failure,39457081,1
+Q07,heart failure,Heart Failure,40172656,2
+Q07,heart failure,Heart Failure,40268125,2
+Q07,heart failure,Heart Failure,40289068,2
+Q07,heart failure,Heart Failure,40295996,2
+Q07,heart failure,Heart Failure,40360219,2
+Q07,heart failure,Heart Failure,40366488,2
+Q07,heart failure,Heart Failure,41154632,2
+Q07,heart failure,Heart Failure,41287923,2
+Q07,heart failure,Heart Failure,41388927,2
+Q07,heart failure,Heart Failure,41878820,2
+Q07,heart failure,Heart Failure,42426564,1
+Q07,heart failure,Heart Failure,42654343,2
+Q08,type 1 diabetes,"Diabetes Mellitus, Type 1",11720253,2
+Q08,type 1 diabetes,"Diabetes Mellitus, Type 1",11806463,1
+Q08,type 1 diabetes,"Diabetes Mellitus, Type 1",15140754,2
+Q08,type 1 diabetes,"Diabetes Mellitus, Type 1",16356474,2
+Q08,type 1 diabetes,"Diabetes Mellitus, Type 1",16708716,2
+Q08,type 1 diabetes,"Diabetes Mellitus, Type 1",19026584,1
+Q08,type 1 diabetes,"Diabetes Mellitus, Type 1",19925391,2
+Q08,type 1 diabetes,"Diabetes Mellitus, Type 1",20016875,2
+Q08,type 1 diabetes,"Diabetes Mellitus, Type 1",20590751,2
+Q08,type 1 diabetes,"Diabetes Mellitus, Type 1",21484567,1
+Q08,type 1 diabetes,"Diabetes Mellitus, Type 1",21747829,2
+Q08,type 1 diabetes,"Diabetes Mellitus, Type 1",22015237,2
+Q08,type 1 diabetes,"Diabetes Mellitus, Type 1",23564922,2
+Q08,type 1 diabetes,"Diabetes Mellitus, Type 1",23643354,2
+Q08,type 1 diabetes,"Diabetes Mellitus, Type 1",24510483,2
+Q08,type 1 diabetes,"Diabetes Mellitus, Type 1",24716398,1
+Q08,type 1 diabetes,"Diabetes Mellitus, Type 1",27103371,2
+Q08,type 1 diabetes,"Diabetes Mellitus, Type 1",27252246,2
+Q08,type 1 diabetes,"Diabetes Mellitus, Type 1",27423214,1
+Q08,type 1 diabetes,"Diabetes Mellitus, Type 1",28881290,2
+Q08,type 1 diabetes,"Diabetes Mellitus, Type 1",29412833,2
+Q08,type 1 diabetes,"Diabetes Mellitus, Type 1",29547043,2
+Q08,type 1 diabetes,"Diabetes Mellitus, Type 1",29617641,2
+Q08,type 1 diabetes,"Diabetes Mellitus, Type 1",29728598,2
+Q08,type 1 diabetes,"Diabetes Mellitus, Type 1",30135132,2
+Q08,type 1 diabetes,"Diabetes Mellitus, Type 1",30234389,2
+Q08,type 1 diabetes,"Diabetes Mellitus, Type 1",30449207,2
+Q08,type 1 diabetes,"Diabetes Mellitus, Type 1",31237842,2
+Q08,type 1 diabetes,"Diabetes Mellitus, Type 1",31725337,2
+Q08,type 1 diabetes,"Diabetes Mellitus, Type 1",33722838,2
+Q08,type 1 diabetes,"Diabetes Mellitus, Type 1",34558071,2
+Q08,type 1 diabetes,"Diabetes Mellitus, Type 1",37552238,2
+Q08,type 1 diabetes,"Diabetes Mellitus, Type 1",39084842,1
+Q08,type 1 diabetes,"Diabetes Mellitus, Type 1",39172148,2
+Q08,type 1 diabetes,"Diabetes Mellitus, Type 1",39248433,1
+Q08,type 1 diabetes,"Diabetes Mellitus, Type 1",39411979,2
+Q08,type 1 diabetes,"Diabetes Mellitus, Type 1",40610267,2
+Q08,type 1 diabetes,"Diabetes Mellitus, Type 1",41355396,2
+Q08,type 1 diabetes,"Diabetes Mellitus, Type 1",41380448,2
+Q08,type 1 diabetes,"Diabetes Mellitus, Type 1",41754081,2
+Q08,type 1 diabetes,"Diabetes Mellitus, Type 1",42105869,2
+Q08,type 1 diabetes,"Diabetes Mellitus, Type 1",42123472,2
+Q08,type 1 diabetes,"Diabetes Mellitus, Type 1",42526995,2
+Q08,type 1 diabetes,"Diabetes Mellitus, Type 1",42526996,2
+Q08,type 1 diabetes,"Diabetes Mellitus, Type 1",9840447,2
+Q09,gut microbiota,Gastrointestinal Microbiome,27265206,1
+Q09,gut microbiota,Gastrointestinal Microbiome,27794202,1
+Q09,gut microbiota,Gastrointestinal Microbiome,28467926,2
+Q09,gut microbiota,Gastrointestinal Microbiome,29034596,2
+Q09,gut microbiota,Gastrointestinal Microbiome,30720393,1
+Q09,gut microbiota,Gastrointestinal Microbiome,30851189,2
+Q09,gut microbiota,Gastrointestinal Microbiome,31392745,1
+Q09,gut microbiota,Gastrointestinal Microbiome,31666597,2
+Q09,gut microbiota,Gastrointestinal Microbiome,32035395,2
+Q09,gut microbiota,Gastrointestinal Microbiome,32051237,2
+Q09,gut microbiota,Gastrointestinal Microbiome,32359008,2
+Q09,gut microbiota,Gastrointestinal Microbiome,32531320,2
+Q09,gut microbiota,Gastrointestinal Microbiome,32928871,2
+Q09,gut microbiota,Gastrointestinal Microbiome,33022991,2
+Q09,gut microbiota,Gastrointestinal Microbiome,34038733,2
+Q09,gut microbiota,Gastrointestinal Microbiome,34296287,2
+Q09,gut microbiota,Gastrointestinal Microbiome,34508600,2
+Q09,gut microbiota,Gastrointestinal Microbiome,34648088,2
+Q09,gut microbiota,Gastrointestinal Microbiome,35095773,2
+Q09,gut microbiota,Gastrointestinal Microbiome,35841764,2
+Q09,gut microbiota,Gastrointestinal Microbiome,36528874,2
+Q09,gut microbiota,Gastrointestinal Microbiome,37535747,2
+Q09,gut microbiota,Gastrointestinal Microbiome,37942583,2
+Q09,gut microbiota,Gastrointestinal Microbiome,38055342,2
+Q09,gut microbiota,Gastrointestinal Microbiome,38253022,1
+Q09,gut microbiota,Gastrointestinal Microbiome,38522140,2
+Q09,gut microbiota,Gastrointestinal Microbiome,38583231,2
+Q09,gut microbiota,Gastrointestinal Microbiome,38632312,2
+Q09,gut microbiota,Gastrointestinal Microbiome,38889225,2
+Q09,gut microbiota,Gastrointestinal Microbiome,39030389,2
+Q09,gut microbiota,Gastrointestinal Microbiome,39326237,1
+Q09,gut microbiota,Gastrointestinal Microbiome,39362066,1
+Q09,gut microbiota,Gastrointestinal Microbiome,39752752,2
+Q09,gut microbiota,Gastrointestinal Microbiome,39842590,2
+Q09,gut microbiota,Gastrointestinal Microbiome,39951352,2
+Q09,gut microbiota,Gastrointestinal Microbiome,40078029,2
+Q09,gut microbiota,Gastrointestinal Microbiome,40179178,2
+Q09,gut microbiota,Gastrointestinal Microbiome,40318928,1
+Q09,gut microbiota,Gastrointestinal Microbiome,40366615,2
+Q09,gut microbiota,Gastrointestinal Microbiome,40397806,1
+Q09,gut microbiota,Gastrointestinal Microbiome,40583417,2
+Q09,gut microbiota,Gastrointestinal Microbiome,40996059,1
+Q09,gut microbiota,Gastrointestinal Microbiome,41703894,2
+Q09,gut microbiota,Gastrointestinal Microbiome,41818791,2
+Q09,gut microbiota,Gastrointestinal Microbiome,41861686,1
+Q09,gut microbiota,Gastrointestinal Microbiome,41931049,1
+Q09,gut microbiota,Gastrointestinal Microbiome,42021124,2
+Q09,gut microbiota,Gastrointestinal Microbiome,42165244,2
+Q09,gut microbiota,Gastrointestinal Microbiome,42269582,2
+Q09,gut microbiota,Gastrointestinal Microbiome,42625391,2
+Q09,gut microbiota,Gastrointestinal Microbiome,42854469,2
+Q09,gut microbiota,Gastrointestinal Microbiome,42884709,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,15289644,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,16050949,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,16648370,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,16722815,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,16987706,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,17065392,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,17498508,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,18201204,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,18216022,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,18481942,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,18541709,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,18573514,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,18640588,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,18640589,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,18809381,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,18959599,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,18987435,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,19026584,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,19737540,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,19748063,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,19881341,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,19952301,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,20016875,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,20305008,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,20590751,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,21253359,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,21304061,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,21347622,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,21567300,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,21734192,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,21795304,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,21811909,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,21820006,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,21846600,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,21904107,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,22029751,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,22182839,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,22204436,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,22234371,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,22262216,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,22349073,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,22405268,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,22461567,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,23188390,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,23260869,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,23488782,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,23553680,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,23592482,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,23643354,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,23784442,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,23864651,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,24003936,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,24095602,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,24164718,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,24373234,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,24725840,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,24836562,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,25044020,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,25051441,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,25120793,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,25230237,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,25349901,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,25360712,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,25401335,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,25594741,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,25724479,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,26134028,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,26178446,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,26208278,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,26216970,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,26218441,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,26290048,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,26417688,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,26481165,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,26489970,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,26551045,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,26571393,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,26571400,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,26699764,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,26854076,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,26953712,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,26971825,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,27062006,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,27160799,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,27186360,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,28355570,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,28556815,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,28572610,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,28712893,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,28750064,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,28767692,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,28831150,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,28988756,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,29031718,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,29093273,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,29284659,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,29351476,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,29412835,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,29412836,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,29506910,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,29686402,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,29731416,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,30334409,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,30404557,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,30520247,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,30721719,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,30792230,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,31693486,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,31743041,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,31767182,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,32071395,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,32090124,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,32269764,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,32272193,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,32413586,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,32656265,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,32721233,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,32791189,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,33125843,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,33182425,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,33307381,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,33554958,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,33839290,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,34040588,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,34192748,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,34318874,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,34360682,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,34562330,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,34717897,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,34795324,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,35065096,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,35947949,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,37200193,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,37897727,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,38253022,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,38788902,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,39447679,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,39463434,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,39551849,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,39635951,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,39803714,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,40108209,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,40241252,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,40608311,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,41228539,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,41380448,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,41547115,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,41754081,1
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,41895439,2
+Q10,pancreatic beta cell function,Insulin-Secreting Cells,42277427,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,26307900,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,27350752,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,28291655,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,28708480,1
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,30303495,1
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,30542615,1
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,30753708,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,30788014,1
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,31064213,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,31352613,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,31381891,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,31882322,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,32188813,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,32518100,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,32697112,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,32780214,1
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,32912710,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,32993654,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,33197349,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,33502076,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,33755123,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,34058114,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,34078543,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,34228302,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,34247748,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,34333891,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,34379224,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,34643917,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,34745006,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,34780865,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,35226528,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,35491295,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,35590197,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,36227709,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,36383188,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,36747186,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,36872060,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,37833776,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,38183334,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,38290906,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,38388145,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,39084842,1
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,39142859,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,39235730,1
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,39264502,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,39366717,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,39496174,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,39604324,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,40072115,1
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,40181096,1
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,40253725,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,40295996,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,40360219,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,40367988,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,40692593,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,40841345,1
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,40898408,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,40900212,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,40943127,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,41122783,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,41301540,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,41386528,1
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,41387113,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,41528550,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,41547635,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,41879623,1
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,41902399,1
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,41963153,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,42000905,1
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,42069389,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,42208664,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,42217111,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,42224918,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,42289317,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,42426564,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,42562072,2
+Q11,SGLT2 inhibitors,Sodium-Glucose Transporter 2 Inhibitors,42583965,2
+Q12,delayed gastric emptying,Gastric Emptying,10193877,1
+Q12,delayed gastric emptying,Gastric Emptying,10634963,1
+Q12,delayed gastric emptying,Gastric Emptying,11252407,2
+Q12,delayed gastric emptying,Gastric Emptying,11518688,2
+Q12,delayed gastric emptying,Gastric Emptying,11790437,2
+Q12,delayed gastric emptying,Gastric Emptying,11841992,2
+Q12,delayed gastric emptying,Gastric Emptying,15655715,1
+Q12,delayed gastric emptying,Gastric Emptying,15886226,1
+Q12,delayed gastric emptying,Gastric Emptying,16722815,1
+Q12,delayed gastric emptying,Gastric Emptying,17190759,2
+Q12,delayed gastric emptying,Gastric Emptying,17200910,2
+Q12,delayed gastric emptying,Gastric Emptying,18173966,1
+Q12,delayed gastric emptying,Gastric Emptying,19727071,1
+Q12,delayed gastric emptying,Gastric Emptying,19920800,1
+Q12,delayed gastric emptying,Gastric Emptying,21547512,1
+Q12,delayed gastric emptying,Gastric Emptying,23599045,1
+Q12,delayed gastric emptying,Gastric Emptying,23617798,1
+Q12,delayed gastric emptying,Gastric Emptying,23992745,2
+Q12,delayed gastric emptying,Gastric Emptying,24089511,2
+Q12,delayed gastric emptying,Gastric Emptying,24368666,2
+Q12,delayed gastric emptying,Gastric Emptying,24582673,1
+Q12,delayed gastric emptying,Gastric Emptying,24694879,1
+Q12,delayed gastric emptying,Gastric Emptying,24716398,1
+Q12,delayed gastric emptying,Gastric Emptying,24811133,1
+Q12,delayed gastric emptying,Gastric Emptying,26371721,1
+Q12,delayed gastric emptying,Gastric Emptying,26428031,1
+Q12,delayed gastric emptying,Gastric Emptying,26470787,1
+Q12,delayed gastric emptying,Gastric Emptying,26500045,1
+Q12,delayed gastric emptying,Gastric Emptying,27185177,2
+Q12,delayed gastric emptying,Gastric Emptying,28374974,1
+Q12,delayed gastric emptying,Gastric Emptying,28463898,1
+Q12,delayed gastric emptying,Gastric Emptying,29728598,1
+Q12,delayed gastric emptying,Gastric Emptying,29731416,2
+Q12,delayed gastric emptying,Gastric Emptying,29874560,1
+Q12,delayed gastric emptying,Gastric Emptying,31189118,2
+Q12,delayed gastric emptying,Gastric Emptying,31691451,2
+Q12,delayed gastric emptying,Gastric Emptying,32519795,1
+Q12,delayed gastric emptying,Gastric Emptying,32833560,2
+Q12,delayed gastric emptying,Gastric Emptying,32944747,2
+Q12,delayed gastric emptying,Gastric Emptying,34791325,1
+Q12,delayed gastric emptying,Gastric Emptying,36893852,1
+Q12,delayed gastric emptying,Gastric Emptying,37616174,2
+Q12,delayed gastric emptying,Gastric Emptying,38290907,1
+Q12,delayed gastric emptying,Gastric Emptying,38692518,2
+Q12,delayed gastric emptying,Gastric Emptying,38890501,2
+Q12,delayed gastric emptying,Gastric Emptying,39096914,2
+Q12,delayed gastric emptying,Gastric Emptying,39418085,2
+Q12,delayed gastric emptying,Gastric Emptying,39443044,1
+Q12,delayed gastric emptying,Gastric Emptying,39543983,1
+Q12,delayed gastric emptying,Gastric Emptying,39568409,1
+Q12,delayed gastric emptying,Gastric Emptying,39761379,2
+Q12,delayed gastric emptying,Gastric Emptying,40378603,1
+Q12,delayed gastric emptying,Gastric Emptying,40622491,1
+Q12,delayed gastric emptying,Gastric Emptying,40657828,1
+Q12,delayed gastric emptying,Gastric Emptying,40811820,1
+Q12,delayed gastric emptying,Gastric Emptying,41071533,1
+Q12,delayed gastric emptying,Gastric Emptying,41162256,1
+Q12,delayed gastric emptying,Gastric Emptying,41931049,1
+Q12,delayed gastric emptying,Gastric Emptying,42128379,2
+Q12,delayed gastric emptying,Gastric Emptying,42334885,1
+Q12,delayed gastric emptying,Gastric Emptying,42529794,1
+Q12,delayed gastric emptying,Gastric Emptying,42641565,2
+Q12,delayed gastric emptying,Gastric Emptying,8319842,1
+Q12,delayed gastric emptying,Gastric Emptying,8544764,2
+Q12,delayed gastric emptying,Gastric Emptying,8894501,1
+Q12,delayed gastric emptying,Gastric Emptying,9357836,2
+Q12,delayed gastric emptying,Gastric Emptying,9790467,2
+Q12,delayed gastric emptying,Gastric Emptying,9794105,1
+Q12,delayed gastric emptying,Gastric Emptying,9840447,1
+Q13,hypoglycemia risk,Hypoglycemia,11351275,1
+Q13,hypoglycemia risk,Hypoglycemia,12200764,1
+Q13,hypoglycemia risk,Hypoglycemia,12547550,1
+Q13,hypoglycemia risk,Hypoglycemia,19591659,1
+Q13,hypoglycemia risk,Hypoglycemia,19952301,1
+Q13,hypoglycemia risk,Hypoglycemia,20122751,1
+Q13,hypoglycemia risk,Hypoglycemia,20590751,2
+Q13,hypoglycemia risk,Hypoglycemia,20716148,1
+Q13,hypoglycemia risk,Hypoglycemia,20835917,2
+Q13,hypoglycemia risk,Hypoglycemia,21484979,1
+Q13,hypoglycemia risk,Hypoglycemia,21680696,1
+Q13,hypoglycemia risk,Hypoglycemia,22015237,2
+Q13,hypoglycemia risk,Hypoglycemia,22530845,1
+Q13,hypoglycemia risk,Hypoglycemia,22774207,2
+Q13,hypoglycemia risk,Hypoglycemia,23564922,2
+Q13,hypoglycemia risk,Hypoglycemia,23711193,2
+Q13,hypoglycemia risk,Hypoglycemia,25382096,2
+Q13,hypoglycemia risk,Hypoglycemia,25456646,2
+Q13,hypoglycemia risk,Hypoglycemia,25785276,1
+Q13,hypoglycemia risk,Hypoglycemia,26321136,2
+Q13,hypoglycemia risk,Hypoglycemia,27252246,1
+Q13,hypoglycemia risk,Hypoglycemia,27568473,1
+Q13,hypoglycemia risk,Hypoglycemia,27800649,2
+Q13,hypoglycemia risk,Hypoglycemia,27975209,2
+Q13,hypoglycemia risk,Hypoglycemia,27990751,1
+Q13,hypoglycemia risk,Hypoglycemia,28062192,1
+Q13,hypoglycemia risk,Hypoglycemia,28249585,1
+Q13,hypoglycemia risk,Hypoglycemia,28304141,1
+Q13,hypoglycemia risk,Hypoglycemia,28855269,2
+Q13,hypoglycemia risk,Hypoglycemia,29547043,2
+Q13,hypoglycemia risk,Hypoglycemia,29731416,2
+Q13,hypoglycemia risk,Hypoglycemia,29912996,1
+Q13,hypoglycemia risk,Hypoglycemia,29912998,1
+Q13,hypoglycemia risk,Hypoglycemia,30499733,1
+Q13,hypoglycemia risk,Hypoglycemia,33620694,2
+Q13,hypoglycemia risk,Hypoglycemia,33926305,2
+Q13,hypoglycemia risk,Hypoglycemia,35914933,2
+Q13,hypoglycemia risk,Hypoglycemia,36965656,2
+Q13,hypoglycemia risk,Hypoglycemia,37530920,2
+Q13,hypoglycemia risk,Hypoglycemia,38169925,2
+Q13,hypoglycemia risk,Hypoglycemia,38470137,2
+Q13,hypoglycemia risk,Hypoglycemia,39232188,1
+Q13,hypoglycemia risk,Hypoglycemia,40261091,1
+Q13,hypoglycemia risk,Hypoglycemia,40269635,1
+Q13,hypoglycemia risk,Hypoglycemia,40366035,2
+Q13,hypoglycemia risk,Hypoglycemia,41071533,1
+Q13,hypoglycemia risk,Hypoglycemia,41692324,2
+Q13,hypoglycemia risk,Hypoglycemia,41973537,2
+Q13,hypoglycemia risk,Hypoglycemia,42105869,1
+Q13,hypoglycemia risk,Hypoglycemia,9663453,1
+Q13,hypoglycemia risk,Hypoglycemia,9794105,2
+Q14,pancreatic cancer risk,Pancreatic Neoplasms,10580424,1
+Q14,pancreatic cancer risk,Pancreatic Neoplasms,11976797,2
+Q14,pancreatic cancer risk,Pancreatic Neoplasms,1313374,2
+Q14,pancreatic cancer risk,Pancreatic Neoplasms,20122751,2
+Q14,pancreatic cancer risk,Pancreatic Neoplasms,20835917,1
+Q14,pancreatic cancer risk,Pancreatic Neoplasms,22262216,2
+Q14,pancreatic cancer risk,Pancreatic Neoplasms,22774207,2
+Q14,pancreatic cancer risk,Pancreatic Neoplasms,23652208,2
+Q14,pancreatic cancer risk,Pancreatic Neoplasms,24326362,2
+Q14,pancreatic cancer risk,Pancreatic Neoplasms,25594741,1
+Q14,pancreatic cancer risk,Pancreatic Neoplasms,25719487,2
+Q14,pancreatic cancer risk,Pancreatic Neoplasms,28164753,2
+Q14,pancreatic cancer risk,Pancreatic Neoplasms,28244632,1
+Q14,pancreatic cancer risk,Pancreatic Neoplasms,2832504,2
+Q14,pancreatic cancer risk,Pancreatic Neoplasms,29399966,2
+Q14,pancreatic cancer risk,Pancreatic Neoplasms,29800682,2
+Q14,pancreatic cancer risk,Pancreatic Neoplasms,32720500,2
+Q14,pancreatic cancer risk,Pancreatic Neoplasms,34863032,2
+Q14,pancreatic cancer risk,Pancreatic Neoplasms,36507990,2
+Q14,pancreatic cancer risk,Pancreatic Neoplasms,39665969,2
+Q14,pancreatic cancer risk,Pancreatic Neoplasms,41100817,2
+Q14,pancreatic cancer risk,Pancreatic Neoplasms,41609941,2
+Q14,pancreatic cancer risk,Pancreatic Neoplasms,7835211,2
+Q14,pancreatic cancer risk,Pancreatic Neoplasms,8838146,1
+Q14,pancreatic cancer risk,Pancreatic Neoplasms,8839251,2
+Q14,pancreatic cancer risk,Pancreatic Neoplasms,9299498,1
+Q14,pancreatic cancer risk,Pancreatic Neoplasms,9781671,1
+Q15,appetite and satiety,(Appetite OR Satiation),10193877,2
+Q15,appetite and satiety,(Appetite OR Satiation),10465505,2
+Q15,appetite and satiety,(Appetite OR Satiation),11841992,1
+Q15,appetite and satiety,(Appetite OR Satiation),15105167,2
+Q15,appetite and satiety,(Appetite OR Satiation),15155141,1
+Q15,appetite and satiety,(Appetite OR Satiation),15695321,2
+Q15,appetite and satiety,(Appetite OR Satiation),17268838,2
+Q15,appetite and satiety,(Appetite OR Satiation),17317222,2
+Q15,appetite and satiety,(Appetite OR Satiation),19727071,1
+Q15,appetite and satiety,(Appetite OR Satiation),19748063,1
+Q15,appetite and satiety,(Appetite OR Satiation),21371486,2
+Q15,appetite and satiety,(Appetite OR Satiation),22000927,2
+Q15,appetite and satiety,(Appetite OR Satiation),22621425,2
+Q15,appetite and satiety,(Appetite OR Satiation),23136915,2
+Q15,appetite and satiety,(Appetite OR Satiation),23295502,1
+Q15,appetite and satiety,(Appetite OR Satiation),23332584,2
+Q15,appetite and satiety,(Appetite OR Satiation),23337772,2
+Q15,appetite and satiety,(Appetite OR Satiation),23408760,1
+Q15,appetite and satiety,(Appetite OR Satiation),23617798,1
+Q15,appetite and satiety,(Appetite OR Satiation),24289070,2
+Q15,appetite and satiety,(Appetite OR Satiation),24323912,2
+Q15,appetite and satiety,(Appetite OR Satiation),24582673,2
+Q15,appetite and satiety,(Appetite OR Satiation),24590464,1
+Q15,appetite and satiety,(Appetite OR Satiation),24811133,2
+Q15,appetite and satiety,(Appetite OR Satiation),25049134,2
+Q15,appetite and satiety,(Appetite OR Satiation),25260877,1
+Q15,appetite and satiety,(Appetite OR Satiation),25833771,1
+Q15,appetite and satiety,(Appetite OR Satiation),26094857,1
+Q15,appetite and satiety,(Appetite OR Satiation),26315842,2
+Q15,appetite and satiety,(Appetite OR Satiation),26336928,1
+Q15,appetite and satiety,(Appetite OR Satiation),26344355,1
+Q15,appetite and satiety,(Appetite OR Satiation),26530935,1
+Q15,appetite and satiety,(Appetite OR Satiation),26677057,2
+Q15,appetite and satiety,(Appetite OR Satiation),26857762,1
+Q15,appetite and satiety,(Appetite OR Satiation),26866508,2
+Q15,appetite and satiety,(Appetite OR Satiation),27186360,1
+Q15,appetite and satiety,(Appetite OR Satiation),27620647,1
+Q15,appetite and satiety,(Appetite OR Satiation),28237410,1
+Q15,appetite and satiety,(Appetite OR Satiation),28276830,1
+Q15,appetite and satiety,(Appetite OR Satiation),28463898,1
+Q15,appetite and satiety,(Appetite OR Satiation),28506816,1
+Q15,appetite and satiety,(Appetite OR Satiation),28647503,1
+Q15,appetite and satiety,(Appetite OR Satiation),28669754,2
+Q15,appetite and satiety,(Appetite OR Satiation),29025878,1
+Q15,appetite and satiety,(Appetite OR Satiation),29484303,2
+Q15,appetite and satiety,(Appetite OR Satiation),29790260,1
+Q15,appetite and satiety,(Appetite OR Satiation),29861388,1
+Q15,appetite and satiety,(Appetite OR Satiation),30396073,2
+Q15,appetite and satiety,(Appetite OR Satiation),30720393,1
+Q15,appetite and satiety,(Appetite OR Satiation),31665455,2
+Q15,appetite and satiety,(Appetite OR Satiation),33460676,1
+Q15,appetite and satiety,(Appetite OR Satiation),33868172,1
+Q15,appetite and satiety,(Appetite OR Satiation),34153172,2
+Q15,appetite and satiety,(Appetite OR Satiation),34168616,1
+Q15,appetite and satiety,(Appetite OR Satiation),34176783,2
+Q15,appetite and satiety,(Appetite OR Satiation),34189834,1
+Q15,appetite and satiety,(Appetite OR Satiation),34658116,1
+Q15,appetite and satiety,(Appetite OR Satiation),35635627,1
+Q15,appetite and satiety,(Appetite OR Satiation),35662413,2
+Q15,appetite and satiety,(Appetite OR Satiation),38095168,2
+Q15,appetite and satiety,(Appetite OR Satiation),38402919,1
+Q15,appetite and satiety,(Appetite OR Satiation),38417041,1
+Q15,appetite and satiety,(Appetite OR Satiation),38644683,1
+Q15,appetite and satiety,(Appetite OR Satiation),38890501,1
+Q15,appetite and satiety,(Appetite OR Satiation),38935778,2
+Q15,appetite and satiety,(Appetite OR Satiation),39855409,2
+Q15,appetite and satiety,(Appetite OR Satiation),39892489,2
+Q15,appetite and satiety,(Appetite OR Satiation),39951352,2
+Q15,appetite and satiety,(Appetite OR Satiation),40367985,2
+Q15,appetite and satiety,(Appetite OR Satiation),40442388,2
+Q15,appetite and satiety,(Appetite OR Satiation),40576074,1
+Q15,appetite and satiety,(Appetite OR Satiation),41786245,2
+Q15,appetite and satiety,(Appetite OR Satiation),41925981,2
+Q15,appetite and satiety,(Appetite OR Satiation),41991393,1
+Q15,appetite and satiety,(Appetite OR Satiation),42349741,2
+Q15,appetite and satiety,(Appetite OR Satiation),8538742,1
+Q15,appetite and satiety,(Appetite OR Satiation),9449682,2

@@ -1,0 +1,61 @@
+﻿question,change,baseline,variant,metric,baseline_mean,variant_mean,difference,better,worse,p_value
+RQ1,raw → log TF (no IDF),nnc.nnc,lnc.lnc,P@10,0.6667,0.6467,-0.02,5,5,0.7617
+RQ1,raw → log TF (no IDF),nnc.nnc,lnc.lnc,MAP,0.43,0.4884,0.0584,14,1,0.0391
+RQ1,raw → log TF (no IDF),nnc.nnc,lnc.lnc,nDCG@10,0.6313,0.6318,0.0004,10,5,0.9923
+RQ1,raw → log TF (no IDF),nnc.nnc,lnc.lnc,MRR,0.9556,0.9667,0.0111,1,1,1.0
+RQ1,raw → log TF (with IDF),ntc.ntc,ltc.ltc,P@10,0.66,0.62,-0.04,2,5,0.2656
+RQ1,raw → log TF (with IDF),ntc.ntc,ltc.ltc,MAP,0.463,0.4762,0.0132,9,6,0.3314
+RQ1,raw → log TF (with IDF),ntc.ntc,ltc.ltc,nDCG@10,0.599,0.5534,-0.0456,4,9,0.2498
+RQ1,raw → log TF (with IDF),ntc.ntc,ltc.ltc,MRR,0.8389,0.7833,-0.0556,1,3,0.5
+RQ2,add IDF once (query side),lnc.lnc,lnc.ltc,P@10,0.6467,0.68,0.0333,5,2,0.375
+RQ2,add IDF once (query side),lnc.lnc,lnc.ltc,MAP,0.4884,0.5133,0.0248,7,8,0.2784
+RQ2,add IDF once (query side),lnc.lnc,lnc.ltc,nDCG@10,0.6318,0.6555,0.0238,6,6,0.397
+RQ2,add IDF once (query side),lnc.lnc,lnc.ltc,MRR,0.9667,0.9222,-0.0444,0,2,0.5
+RQ2,IDF once → IDF on both sides (IDF²),lnc.ltc,ltc.ltc,P@10,0.68,0.62,-0.06,2,9,0.1094
+RQ2,IDF once → IDF on both sides (IDF²),lnc.ltc,ltc.ltc,MAP,0.5133,0.4762,-0.0371,2,13,0.0009
+RQ2,IDF once → IDF on both sides (IDF²),lnc.ltc,ltc.ltc,nDCG@10,0.6555,0.5534,-0.1022,2,11,0.0022
+RQ2,IDF once → IDF on both sides (IDF²),lnc.ltc,ltc.ltc,MRR,0.9222,0.7833,-0.1389,1,4,0.1875
+RQ2,add IDF to log TF on both sides,lnc.lnc,ltc.ltc,P@10,0.6467,0.62,-0.0267,4,8,0.6079
+RQ2,add IDF to log TF on both sides,lnc.lnc,ltc.ltc,MAP,0.4884,0.4762,-0.0122,5,10,0.6653
+RQ2,add IDF to log TF on both sides,lnc.lnc,ltc.ltc,nDCG@10,0.6318,0.5534,-0.0784,4,10,0.0842
+RQ2,add IDF to log TF on both sides,lnc.lnc,ltc.ltc,MRR,0.9667,0.7833,-0.1833,0,4,0.125
+RQ2,add IDF to raw TF,nnc.nnc,ntc.ntc,P@10,0.6667,0.66,-0.0067,4,6,1.0
+RQ2,add IDF to raw TF,nnc.nnc,ntc.ntc,MAP,0.43,0.463,0.0329,7,8,0.5335
+RQ2,add IDF to raw TF,nnc.nnc,ntc.ntc,nDCG@10,0.6313,0.599,-0.0324,5,10,0.478
+RQ2,add IDF to raw TF,nnc.nnc,ntc.ntc,MRR,0.9556,0.8389,-0.1167,1,3,0.25
+RQ3,TF only → TF-IDF (IDF once),lnc.lnc,lnc.ltc,P@10,0.6467,0.68,0.0333,5,2,0.375
+RQ3,TF only → TF-IDF (IDF once),lnc.lnc,lnc.ltc,MAP,0.4884,0.5133,0.0248,7,8,0.2784
+RQ3,TF only → TF-IDF (IDF once),lnc.lnc,lnc.ltc,nDCG@10,0.6318,0.6555,0.0238,6,6,0.397
+RQ3,TF only → TF-IDF (IDF once),lnc.lnc,lnc.ltc,MRR,0.9667,0.9222,-0.0444,0,2,0.5
+RQ3,IDF only → TF-IDF (IDF once),bnc.btc,lnc.ltc,P@10,0.4867,0.68,0.1933,12,0,0.0005
+RQ3,IDF only → TF-IDF (IDF once),bnc.btc,lnc.ltc,MAP,0.4095,0.5133,0.1038,14,1,0.0001
+RQ3,IDF only → TF-IDF (IDF once),bnc.btc,lnc.ltc,nDCG@10,0.4489,0.6555,0.2066,12,2,0.0007
+RQ3,IDF only → TF-IDF (IDF once),bnc.btc,lnc.ltc,MRR,0.718,0.9222,0.2042,6,0,0.0312
+RQ3,TF only → TF-IDF (IDF²),lnc.lnc,ltc.ltc,P@10,0.6467,0.62,-0.0267,4,8,0.6079
+RQ3,TF only → TF-IDF (IDF²),lnc.lnc,ltc.ltc,MAP,0.4884,0.4762,-0.0122,5,10,0.6653
+RQ3,TF only → TF-IDF (IDF²),lnc.lnc,ltc.ltc,nDCG@10,0.6318,0.5534,-0.0784,4,10,0.0842
+RQ3,TF only → TF-IDF (IDF²),lnc.lnc,ltc.ltc,MRR,0.9667,0.7833,-0.1833,0,4,0.125
+RQ3,IDF only → TF-IDF,btc.btc,ltc.ltc,P@10,0.4533,0.62,0.1667,11,1,0.0029
+RQ3,IDF only → TF-IDF,btc.btc,ltc.ltc,MAP,0.3867,0.4762,0.0895,14,1,0.0002
+RQ3,IDF only → TF-IDF,btc.btc,ltc.ltc,nDCG@10,0.3977,0.5534,0.1557,11,3,0.0134
+RQ3,IDF only → TF-IDF,btc.btc,ltc.ltc,MRR,0.6696,0.7833,0.1138,6,2,0.375
+RQ3,TF only → IDF only,lnc.lnc,btc.btc,P@10,0.6467,0.4533,-0.1933,1,11,0.0024
+RQ3,TF only → IDF only,lnc.lnc,btc.btc,MAP,0.4884,0.3867,-0.1017,3,12,0.0016
+RQ3,TF only → IDF only,lnc.lnc,btc.btc,nDCG@10,0.6318,0.3977,-0.2341,0,14,0.0001
+RQ3,TF only → IDF only,lnc.lnc,btc.btc,MRR,0.9667,0.6696,-0.2971,0,7,0.0156
+RQ4,add L2 normalization (log TF-IDF),ltn.ltn,ltc.ltc,P@10,0.6467,0.62,-0.0267,4,7,0.5459
+RQ4,add L2 normalization (log TF-IDF),ltn.ltn,ltc.ltc,MAP,0.5015,0.4762,-0.0253,3,12,0.0839
+RQ4,add L2 normalization (log TF-IDF),ltn.ltn,ltc.ltc,nDCG@10,0.6135,0.5534,-0.0601,4,10,0.1947
+RQ4,add L2 normalization (log TF-IDF),ltn.ltn,ltc.ltc,MRR,0.9,0.7833,-0.1167,1,4,0.25
+RQ4,add L2 normalization (raw TF-IDF),ntn.ntn,ntc.ntc,P@10,0.6267,0.66,0.0333,5,2,0.2812
+RQ4,add L2 normalization (raw TF-IDF),ntn.ntn,ntc.ntc,MAP,0.4675,0.463,-0.0045,7,8,0.7188
+RQ4,add L2 normalization (raw TF-IDF),ntn.ntn,ntc.ntc,nDCG@10,0.5934,0.599,0.0056,9,5,0.8557
+RQ4,add L2 normalization (raw TF-IDF),ntn.ntn,ntc.ntc,MRR,0.8095,0.8389,0.0294,2,2,0.625
+RQ4,add L2 normalization (raw TF only),nnn.nnn,nnc.nnc,P@10,0.58,0.6667,0.0867,9,1,0.0156
+RQ4,add L2 normalization (raw TF only),nnn.nnn,nnc.nnc,MAP,0.3691,0.43,0.0609,12,3,0.0068
+RQ4,add L2 normalization (raw TF only),nnn.nnn,nnc.nnc,nDCG@10,0.5443,0.6313,0.0871,11,4,0.0447
+RQ4,add L2 normalization (raw TF only),nnn.nnn,nnc.nnc,MRR,0.8177,0.9556,0.1378,4,1,0.25
+RQ5,best vector-space scheme → BM25,lnc.ltc,bm25,P@10,0.68,0.6933,0.0133,5,1,0.8438
+RQ5,best vector-space scheme → BM25,lnc.ltc,bm25,MAP,0.5133,0.5195,0.0062,9,6,0.5002
+RQ5,best vector-space scheme → BM25,lnc.ltc,bm25,nDCG@10,0.6555,0.6619,0.0064,7,7,0.8245
+RQ5,best vector-space scheme → BM25,lnc.ltc,bm25,MRR,0.9222,0.9333,0.0111,1,1,1.0

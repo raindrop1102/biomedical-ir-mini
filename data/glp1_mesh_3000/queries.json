@@ -1,0 +1,20 @@
+{
+  "description": "Evaluation queries for the GLP-1 MeSH corpus. A document is relevant when NLM indexers assigned every descriptor in mesh_all and, if given, at least one in mesh_any (qualifiers ignored). Grade 2 when one of those descriptors is a major topic of the article, otherwise 1. Queries were written before any run was scored and use everyday wording, not the MeSH heading itself.",
+  "queries": [
+    {"id": "Q01", "query": "semaglutide weight loss", "mesh_all": ["Semaglutide", "Weight Loss"]},
+    {"id": "Q02", "query": "liraglutide cardiovascular outcomes", "mesh_all": ["Liraglutide", "Cardiovascular Diseases"]},
+    {"id": "Q03", "query": "GLP-1 neuroprotection in Parkinson's disease", "mesh_all": ["Parkinson Disease"]},
+    {"id": "Q04", "query": "Alzheimer's disease and cognitive decline", "mesh_all": ["Alzheimer Disease"]},
+    {"id": "Q05", "query": "DPP-4 inhibitors such as sitagliptin", "mesh_all": ["Dipeptidyl-Peptidase IV Inhibitors"]},
+    {"id": "Q06", "query": "bariatric surgery and gastric bypass", "mesh_any": ["Bariatric Surgery", "Gastric Bypass"]},
+    {"id": "Q07", "query": "heart failure", "mesh_all": ["Heart Failure"]},
+    {"id": "Q08", "query": "type 1 diabetes", "mesh_all": ["Diabetes Mellitus, Type 1"]},
+    {"id": "Q09", "query": "gut microbiota", "mesh_all": ["Gastrointestinal Microbiome"]},
+    {"id": "Q10", "query": "pancreatic beta cell function", "mesh_all": ["Insulin-Secreting Cells"]},
+    {"id": "Q11", "query": "SGLT2 inhibitors", "mesh_all": ["Sodium-Glucose Transporter 2 Inhibitors"]},
+    {"id": "Q12", "query": "delayed gastric emptying", "mesh_all": ["Gastric Emptying"]},
+    {"id": "Q13", "query": "hypoglycemia risk", "mesh_all": ["Hypoglycemia"]},
+    {"id": "Q14", "query": "pancreatic cancer risk", "mesh_all": ["Pancreatic Neoplasms"]},
+    {"id": "Q15", "query": "appetite and satiety", "mesh_any": ["Appetite", "Satiation"]}
+  ]
+}

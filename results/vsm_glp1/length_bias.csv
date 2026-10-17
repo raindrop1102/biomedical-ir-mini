@@ -1,0 +1,15 @@
+﻿scheme,corpus_mean_terms,top10_mean_terms,top10_share_in_longest_quarter
+nnn.nnn,158.4,200.5,0.54
+nnc.nnc,158.4,144.4,0.187
+lnc.lnc,158.4,123.2,0.087
+bnc.bnc,158.4,94.8,0.013
+btc.btc,158.4,102.9,0.02
+bnc.btc,158.4,98.6,0.02
+ntn.ntn,158.4,187.2,0.407
+ntc.ntc,158.4,143.4,0.16
+ltn.ltn,158.4,179.1,0.353
+ltc.ltc,158.4,128.2,0.1
+atc.atc,158.4,110.4,0.033
+lpc.lpc,158.4,129.6,0.1
+lnc.ltc,158.4,131.2,0.133
+bm25,158.4,148.7,0.187

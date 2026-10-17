@@ -22,3 +22,18 @@ html[data-theme="dark"] .zipf-options input, html[data-theme="dark"] .zipf-optio
   .model-columns { grid-template-columns: minmax(0, 1fr); }
   .neighbor-form .narrow { flex-basis: auto; }
 }
+
+/* Vector-space page */
+.vsm-form .narrow-wide { flex: 0 1 230px; }
+.metric-line { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 4px 0 12px; font-variant-numeric: tabular-nums; }
+.metric-line small { color: var(--muted); }
+.vsm-hits { padding-left: 26px; margin: 0; }
+.vsm-hits li { padding: 10px 0; border-bottom: 1px solid var(--border); }
+.vsm-title { font-weight: 600; line-height: 1.4; overflow-wrap: anywhere; }
+.vsm-title a { text-decoration: none; }
+.vsm-meta { font-size: 13px; color: var(--muted); margin-top: 3px; }
+.vsm-meta strong { color: var(--navy); }
+.vsm-parts { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; color: var(--muted); margin-top: 3px; }
+.grade { display: inline-block; width: 1.4em; color: #2f7d52; }
+html[data-theme="dark"] .grade { color: #8fd6ac; }
+@media (max-width: 700px) { .vsm-form .narrow-wide { flex-basis: auto; } }

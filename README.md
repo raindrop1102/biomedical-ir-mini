@@ -1,7 +1,8 @@
 # BiomedicalIR-mini
 
 PubMed 摘要搜尋引擎的最小可執行版本：位置倒排索引、布林查詢（AND / OR / NOT / 括號 / 片語）、BM25 排序、拼字建議，
-A–D 四種前處理條件的 Zipf 分析，以及從零訓練的 CBOW / Skip-gram 詞向量。
+A–D 四種前處理條件的 Zipf 分析、從零訓練的 CBOW / Skip-gram 詞向量，以及 SMART 詞項加權的
+向量空間模型與 MeSH 相關性評估（作業 3）。
 檢索與 Zipf 統計只用 Python 3.10+ 標準函式庫；Zipf 畫圖（`--plot`）需要 matplotlib，詞向量（`embed`）需要 numpy，
 網頁介面（`serve`）需要 flask。
 
@@ -24,7 +25,9 @@ python -m bioir embed train --arch skipgram -o sg.npz
 python -m bioir embed similar cbow.npz semaglutide insulin GLP-1
 python -m bioir embed compare --out embed_results --plot # 6 個模型：架構 × window × seed，約 10 分鐘
 python -m bioir embed project cbow.npz sg.npz --out proj --plot   # PCA / t-SNE 投影圖
-python -m bioir serve                                    # 網頁介面 http://127.0.0.1:5000（搜尋、Zipf、詞向量）
+python -m bioir vsm search pancreatic cancer risk --scheme lnc.ltc --explain   # 向量空間前 10 名＋各詞貢獻
+python -m bioir vsm evaluate --out results/vsm_glp1 --plot   # 14 種加權 × 15 個查詢的對照實驗（約 10 秒）
+python -m bioir serve                                    # 網頁介面 http://127.0.0.1:5000（搜尋、Zipf、詞向量、向量空間）
 python -m bioir fetch pmids.txt --email you@example.com -o abstracts.jsonl
 python -m bioir fetch --query '"GLP-1"[tiab] AND hasabstract' -n 1000 --email you@example.com
 python -m unittest discover tests
@@ -62,6 +65,12 @@ for score, doc in results.hits:
 連回 `https://pubmed.ncbi.nlm.nih.gov/<PMID>/`。若要自行取得同一批資料，可用
 `python -m bioir fetch data/glp1_1000/pmids.txt --email 你的email -o abstracts.jsonl` 重新下載。
 
+`data/glp1_mesh_3000/` 是作業 3 的語料：以
+`("GLP-1"[Title/Abstract] OR "glucagon-like peptide-1"[Title/Abstract] OR "GLP1"[Title/Abstract]) AND hasabstract AND medline[sb] AND english[lang]`
+依 PubMed relevance 取前 3,000 筆（實得 2,992 篇，8 篇沒有內容），只收已完成 MEDLINE 索引的文章，
+所以每篇都有 NLM 標註的 MeSH 主題詞（`mesh`）與主要主題（`mesh_major`）。`abstracts.manifest.json` 記錄查詢、
+PubMed 的轉譯、時間與 SHA-256；`queries.json` 是 15 個評估查詢與對應的 MeSH 規則。
+
 `results/embed_glp1/` 是 `python -m bioir embed compare --out results/embed_glp1 --plot` 的完整輸出
 （六個模型、CSV、投影圖、manifest），可直接給網頁的詞向量頁使用。
 
@@ -73,8 +82,9 @@ bioir/
   search/  index.py  query.py  spelling.py     檢索
   zipf/    stats.py  plot.py                   Zipf 分析（plot.py 才需要 matplotlib）
   embed/   train.py  model.py  evaluate.py     詞向量（需要 numpy）
+  vsm/     weighting.py  engine.py  evaluate.py  experiment.py  plot.py   向量空間模型（只用標準函式庫）
   web/     app.py  templates/  static/         網頁介面（需要 flask）
-  __main__.py                                  命令列：search / zipf / embed / serve / fetch
+  __main__.py                                  命令列：search / zipf / embed / vsm / serve / fetch
 ```
 
 依賴只能單向：`search`、`zipf`、`embed` 都只 import 共用基礎，彼此不互相 import；`web` 是唯一同時使用三者的
@@ -97,6 +107,10 @@ bioir/
 | `bioir/embed/evaluate.py` | 隨機詞對 cosine 健全性檢查、近鄰／詞對表、top-5 重疊、六模型比較實驗、manifest |
 | `bioir/embed/projection.py` | PCA、exact t-SNE、trustworthiness（NumPy，不需 scikit-learn） |
 | `bioir/embed/plot.py` | 投影圖：依預先指定的詞組上色，標籤自動避開其他標籤與點 |
+| `bioir/vsm/weighting.py` | SMART 記號：TF（n／l／b／a）、IDF（n／t／p）、正規化（n／c）；`bm25` 參考方案 |
+| `bioir/vsm/engine.py` | 文件與查詢向量、依詞累加的內積／cosine 排名、每個詞的分數貢獻 |
+| `bioir/vsm/evaluate.py` | MeSH 相關性判斷（分級）、P@k、R@k、MRR、MAP、nDCG@10、精確配對置換檢定 |
+| `bioir/vsm/experiment.py` | 14 種加權的控制變因實驗與 RQ1–RQ5 的輔助表 |
 | `bioir/__main__.py` | 命令列介面 |
 
 ## Zipf 分析
@@ -209,6 +223,70 @@ trustworthiness（k = 5）與 scikit-learn 的實作在測試資料上數值相�
 `projections.csv`、`projection_quality.csv`、`projections.png`、`manifest.json`（語料 SHA-256、共同設定、
 固定詞表、Python / NumPy 版本）與 `models/*.npz`（六個模型，可用 `embed similar` 直接查詢）。
 
+## 作業 3：詞項加權與向量空間（vsm）
+
+**系統**：文件（標題＋摘要）與查詢都用檢索的前處理（移除停用詞、Porter 詞幹）轉成詞袋，依 SMART 記號
+`ddd.qqq` 加權——TF：n 原始、l 1+ln tf、b 二元、a 0.5+0.5·tf/max tf；IDF：n 無、t ln(N/df)、p max(0, ln((N−df)/df))；
+正規化：n 無、c L2。分數是查詢向量與文件向量的內積，兩邊都 L2 正規化時就是 cosine similarity。
+以倒排索引逐詞累加，只碰到含查詢詞的文件；每種加權的文件向量長度算一次後快取。另附 Okapi BM25 作為「修改版 TF-IDF」的參考。
+查詢約 2–6 ms（某加權第一次使用時需約 0.1 秒計算文件向量長度）。
+
+**相關性判斷**：`data/glp1_mesh_3000/queries.json` 的 15 個查詢（日常用語，不直接寫 MeSH 名稱）各對應 MeSH 規則；
+文件被 NLM 標上規則中的主題詞即為相關，該主題詞若是文章的主要主題則等級 2，否則 1（nDCG 用等級，其餘指標二元）。
+每個查詢有 19–150 篇相關文件（共 15 題，見 `results/vsm_glp1/manifest.json` 與 `judgments.csv`）。
+指標：P@5、P@10、R@10、R@100、MRR、MAP、nDCG@10；兩種加權的差異以 15 個查詢的**精確配對置換檢定**
+（2¹⁵ 種正負號組合）計算雙尾 p 值。
+
+**結果**（`results/vsm_glp1/`，14 種加權 × 15 個查詢的平均；完整數字在 `summary.csv`、`per_query.csv`、`comparisons.csv`）：
+
+| 加權 | 說明 | P@10 | MRR | MAP | nDCG@10 |
+|---|---|---|---|---|---|
+| bm25 | Okapi BM25（參考） | 0.693 | 0.933 | 0.519 | 0.662 |
+| lnc.ltc | 文件 log TF＋cosine；查詢 log TF·IDF＋cosine | 0.680 | 0.922 | 0.513 | 0.655 |
+| lnc.lnc | 只有 log TF | 0.647 | 0.967 | 0.488 | 0.632 |
+| nnc.nnc | 只有原始 TF | 0.667 | 0.956 | 0.430 | 0.631 |
+| ltn.ltn | log TF·IDF，不正規化 | 0.647 | 0.900 | 0.501 | 0.614 |
+| ntc.ntc | 原始 TF·IDF | 0.660 | 0.839 | 0.463 | 0.599 |
+| ltc.ltc | log TF·IDF，兩邊都乘 IDF | 0.620 | 0.783 | 0.476 | 0.553 |
+| nnn.nnn | 原始 TF，不正規化 | 0.580 | 0.818 | 0.369 | 0.544 |
+| bnc.btc | 只有 IDF（乘一次） | 0.487 | 0.718 | 0.409 | 0.449 |
+| btc.btc | 只有 IDF（兩邊都乘） | 0.453 | 0.670 | 0.387 | 0.398 |
+
+（另有 bnc.bnc、atc.atc、lpc.lpc、ntn.ntn，見 `summary.csv` 與 `metrics.png`。）
+
+**RQ1 原始 TF 與 Log TF**：log TF 壓縮重複出現的詞。`tf_example.csv` 的 PMID 26971825 中，`il` 出現 24 次、`glucos` 6 次：
+原始 TF 下兩者權重相差 4 倍，`il` 佔正規化向量 0.46；log TF 下只差 1.5 倍（4.18 vs 2.79），`il` 佔 0.22。
+檢索上，不含 IDF 時 raw → log 的 MAP 由 0.430 升到 0.488（15 題中 14 題變好，p = 0.039），R@100 由 0.552 升到 0.647；
+P@10 與 nDCG@10 幾乎不變。也就是說，log TF 主要讓排名較後面的相關文件上來，避免單一詞反覆出現的文件獨佔前段。
+
+**RQ2 IDF 的作用**：在這個以 GLP-1 為主題的語料裡，`glp`、`1` 出現在 2,991／2,992 篇，IDF 只有 0.0003；`glucagon` 0.028、
+`receptor` 0.41、`diabet` 0.60；而 `sitagliptin` 4.22、`parkinson` 4.01、`microbiota` 3.89（`idf.csv`）。主題詞自動被降到近乎 0，
+有區辨力的詞得到高權重。把 IDF **乘一次**（lnc.lnc → lnc.ltc）時 nDCG@10 由 0.632 升到 0.655、MAP 由 0.488 升到 0.513，
+但只有 6 題變好、6 題變差，不顯著。若**文件與查詢都乘 IDF**（lnc.ltc → ltc.ltc，等於 IDF²），nDCG@10 反而由 0.655 降到 0.553
+（2 題變好、11 題變差，p = 0.002）：IDF² 讓單一罕見詞壓過其他查詢詞，例如 Q14「pancreatic cancer risk」中 `cancer`
+（IDF² ≈ 14.7）遠大於 `pancreat`（≈ 4.0），前幾名變成泛論癌症的文章，nDCG@10 只剩 0.10。
+
+**RQ3 TF-IDF 是否優於只用 TF 或只用 IDF**：TF-IDF（lnc.ltc，nDCG@10 0.655）明顯優於只用 IDF（bnc.btc，0.449；15 題中 12 題變好，p < 0.001），
+但與只用 log TF（lnc.lnc，0.632）的差距不顯著。原因是在單一主題的語料中，使用者輸入的查詢詞多半本身就有區辨力；
+只用 IDF 則完全忽略文件中出現幾次，無法區分「提到一次」與「整篇在談」。結論：TF 提供主要訊號，IDF 適合當作修正，乘一次比乘兩次好。
+
+**RQ4 L2 正規化**：不正規化時，長文件因含有較多詞而占優勢：nnn.nnn 前 10 名平均 200.5 個詞（語料平均 158.4），
+54% 來自最長的四分之一文件；加上 L2（nnc.nnc）後降到 144.4 個詞、18.7%，nDCG@10 由 0.544 升到 0.631（p = 0.045）、
+MAP 由 0.369 升到 0.430（p = 0.007）。但對 log TF·IDF，L2（ltn → ltc）反而讓 nDCG@10 由 0.614 降到 0.553（不顯著），
+前 10 名平均只剩 128 個詞、最長四分之一僅占 10%——cosine 對長文件**過度矯正**。BM25 只做部分長度正規化（b = 0.75），
+前 10 名平均 148.7 個詞、18.7%，指標也最好；這也是 pivoted normalization 的動機。正規化需要，但完全的 cosine 不一定最佳。
+
+**RQ5 不同指標的影響**：最佳的 BM25（0.662）與 lnc.ltc（0.655）差距不顯著（p = 0.82）；最差的是兩邊都乘 IDF 的 btc.btc（0.398）。
+指標會改變結論：MRR 最高的是 lnc.lnc（0.967）——幾乎每題的第一筆都相關，因此 MRR 對加權方法不敏感；
+nDCG@10 與 MAP 則偏好 lnc.ltc 與 BM25。查詢之間差異也大：Q06「bariatric surgery and gastric bypass」各方法 nDCG@10 都在 0.80–1.0；
+Q08「type 1 diabetes」則從 0（只用 IDF 的三種方法）到 0.78（nnc.nnc）都有，lnc.ltc 只有 0.26：`1` 出現在幾乎每篇
+（GLP-1 被切成 glp、1），IDF≈0，用 IDF 的方法等於只查 type diabetes，詞袋又不看詞序，很難區分第一型與第二型
+（布林搜尋的片語查詢 `"type 1 diabetes"` 可以）。
+
+**限制**：MeSH 是主題標記，不等於使用者判斷的「相關」；標記者可能遺漏主題，文章也可能提到某主題卻沒被標上。
+只有 15 個查詢且做了多組比較，p 值未做多重比較校正，僅供參考。查詢由本專案撰寫；語料是單一主題、依 PubMed relevance 取樣，
+結論不一定能推廣到其他領域。前處理（停用詞、Porter）在所有方案中固定，未納入比較。
+
 ## 網頁介面（web）
 
 `python -m bioir serve`（`--corpus`、`--results`、`--host`、`--port`）啟動 Flask 開發伺服器，三個頁面：
@@ -217,6 +295,7 @@ trustworthiness（k = 5）與 scikit-learn 的實作在測試資料上數值相�
 |---|---|
 | 文獻搜尋 `/` | 單一查詢框（AND / OR / NOT / 括號 / 片語）、BM25 排名、命中片語高亮（摘錄＋完整摘要）、拼字建議、分頁、跳至文章側欄 |
 | Zipf 分析 `/zipf` | 基準條件、`--no-numbers`、`--compound` 與加入詞的表單；A–D 總表、10/80/10 分區、前 50 名、CF/DF/IDF 對照、三格圖；CSV 下載 |
+| 向量空間 `/vsm` | 自由文字查詢，兩種 SMART 加權並排的前 10 名、查詢向量、各詞貢獻；評估查詢會標出 MeSH 相關文件並即時計算指標；對照實驗結果表、控制變因比較與圖 |
 | 詞向量 `/embedding` | 模型健全性、CBOW 與 Skip-gram 近鄰並排（可調近鄰最少出現次數）、兩詞相似度與 z 值、投影圖與 trustworthiness、比較實驗摘要 |
 
 **設計**：

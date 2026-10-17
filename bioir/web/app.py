@@ -23,6 +23,8 @@ from ..zipf.stats import REGION_FIELDS, SUMMARY_FIELDS, TERM_FIELDS, region_row,
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_CORPUS = ROOT / "data" / "glp1_1000" / "abstracts.jsonl"
 DEFAULT_RESULTS = ROOT / "results" / "embed_glp1"
+DEFAULT_VSM_CORPUS = ROOT / "data" / "glp1_mesh_3000" / "abstracts.jsonl"
+DEFAULT_VSM_RESULTS = ROOT / "results" / "vsm_glp1"
 EMBED_MODELS = {"cbow_w5_s42": "CBOW", "skipgram_w5_s42": "Skip-gram"}
 PAGE_SIZES = (10, 20, 50)
 SNIPPET_CHARS, SNIPPET_LEAD = 260, 40
@@ -96,7 +98,25 @@ def _read_csv(path: Path) -> list[dict]:
         return list(csv.DictReader(file))
 
 
-def create_app(corpus=DEFAULT_CORPUS, results=DEFAULT_RESULTS) -> Flask:
+def _load_vsm(corpus: Path, results: Path):
+    """The vector space over the MeSH corpus, its evaluation queries with judgments, and the
+    experiment's saved results — or an explanation of what is missing."""
+    if not corpus.exists():
+        return None, f"找不到向量空間語料 {corpus}"
+    from ..vsm import VectorSpace
+    from ..vsm.evaluate import judgments, load_queries
+    documents = load(corpus)
+    space = VectorSpace(documents)
+    queries_file = corpus.with_name("queries.json")
+    queries = load_queries(queries_file) if queries_file.exists() else []
+    return {"space": space, "corpus": corpus.name, "queries": queries,
+            "judgments": {q.id: judgments(documents, q) for q in queries},
+            "summary": _read_csv(results / "summary.csv"), "comparisons": _read_csv(results / "comparisons.csv"),
+            "chart": results / "metrics.png"}, None
+
+
+def create_app(corpus=DEFAULT_CORPUS, results=DEFAULT_RESULTS, vsm_corpus=DEFAULT_VSM_CORPUS,
+               vsm_results=DEFAULT_VSM_RESULTS) -> Flask:
     corpus, results = Path(corpus), Path(results)
     app = Flask(__name__)
     started = time.perf_counter()
@@ -104,6 +124,7 @@ def create_app(corpus=DEFAULT_CORPUS, results=DEFAULT_RESULTS) -> Flask:
     index = Index(documents)
     speller = Speller(index)
     embeddings, embed_error = _load_embeddings(results)
+    vsm, vsm_error = _load_vsm(Path(vsm_corpus), Path(vsm_results))
     site = {"corpus": corpus.name, "documents": len(documents), "vocabulary": len(index.postings),
             "seconds": time.perf_counter() - started}
     plot_lock = threading.Lock()
@@ -239,6 +260,44 @@ def create_app(corpus=DEFAULT_CORPUS, results=DEFAULT_RESULTS) -> Flask:
         if not path.exists():
             abort(404)
         return send_file(path, mimetype="image/png", max_age=3600)
+
+    @app.get("/vsm")
+    def vector_space():
+        from ..vsm import Scheme
+        from ..vsm.evaluate import score
+        from ..vsm.experiment import SCHEMES
+        query = request.args.get("query", "").strip()[:300]
+        codes = [request.args.get("a", "lnc.ltc"), request.args.get("b", "ltc.ltc")]
+        context = {"error": vsm_error, "vsm": vsm, "query": query, "schemes": SCHEMES, "codes": codes,
+                   "columns": [], "evaluation": None}
+        if vsm_error or not query:
+            return render_template("vsm.html", **context)
+        space = vsm["space"]
+        evaluation = next((q for q in vsm["queries"] if q.text.lower() == query.lower()), None)
+        grades = vsm["judgments"][evaluation.id] if evaluation else {}
+        for code in dict.fromkeys(codes):
+            try:
+                scheme = Scheme.parse(code)
+            except ValueError as error:
+                context["error"] = str(error)
+                return render_template("vsm.html", **context), 400
+            ranking = space.search(query, scheme)
+            hits = [{"hit": h, "doc": space.documents[h.pmid], "length": space.lengths[h.pmid],
+                     "grade": grades.get(h.pmid, 0),
+                     "parts": sorted(h.contributions.items(), key=lambda item: -item[1])} for h in ranking.hits[:10]]
+            metrics = score([h.pmid for h in ranking.hits], grades).values if evaluation else None
+            context["columns"].append({"scheme": scheme, "hits": hits, "metrics": metrics, "total": len(ranking.hits),
+                                       "vector": ranking.query_weights, "unknown": ranking.unknown})
+        terms = list(dict.fromkeys(t for c in context["columns"] for t in c["vector"]))
+        context.update(evaluation=evaluation, relevant=len(grades), terms=terms,
+                       df={t: space.df(t) for t in terms})
+        return render_template("vsm.html", **context)
+
+    @app.get("/vsm/metrics.png")
+    def vsm_chart():
+        if not vsm or not vsm["chart"].exists():
+            abort(404)
+        return send_file(vsm["chart"], mimetype="image/png", max_age=3600)
 
     @app.get("/healthz")
     def health():
