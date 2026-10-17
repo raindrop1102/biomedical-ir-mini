@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% block title %}Zipf 詞頻與前處理分析{% endblock %}
+{% block styles %}<link rel="stylesheet" href="{{ url_for('static', filename='zipf.css') }}">{% endblock %}
+{% block body_class %}analysis-page{% endblock %}
+{% macro fit_cells(fit) -%}
+{%- if fit -%}<td>{{ '%.3f'|format(fit.exponent) }}</td><td>{{ '%.3f'|format(fit.r2) if fit.r2 is not none else '無法定義' }}</td><td>{{ '%.3f'|format(fit.rmse) }}</td>
+{%- else -%}<td>無法定義</td><td>無法定義</td><td>無法定義</td>{%- endif -%}
+{%- endmacro %}
+{% block body %}
+<header><div class="wrap"><p class="eyebrow">BIOMEDICAL INFORMATION RETRIEVAL · ZIPF</p><h1>Zipf 詞頻與前處理分析</h1><p>比較四種累加的前處理如何改變詞彙量與 rank–frequency 分布。</p>
+<nav><a href="#settings">設定</a><a href="#comparison">A–D 比較</a><a href="#regions">分區擬合</a><a href="#terms">詞彙明細</a><a href="#cfdf">CF／DF／IDF</a><a href="#plots">圖表</a></nav></div></header>
+<main class="wrap">
+<section id="settings"><h2>語料與分析設定</h2>
+<div class="cards"><div><small>文獻（N）</small><strong>{{ '{:,}'.format(base.documents) }}</strong></div><div><small>斷詞</small><strong>{{ '保留複合詞' if options.compound else '字母／數字分開' }}</strong></div><div><small>純數字</small><strong>{{ '保留' if options.numbers else '排除' }}</strong></div><div><small>基準條件</small><strong>{{ options.baseline }}</strong></div></div>
+<form method="get" action="{{ url_for('zipf') }}" class="zipf-options">
+  <div class="field"><label for="baseline">基準條件</label><select id="baseline" name="baseline">{% for key, label in conditions.items() %}<option value="{{ key }}" {% if options.baseline == key %}selected{% endif %}>{{ key }} · {{ label }}</option>{% endfor %}</select></div>
+  <div class="field"><label for="extra-terms">CF／DF／IDF 表加入的詞（逗號分隔）</label><input id="extra-terms" name="terms" value="{{ terms }}" placeholder="例如 semaglutide, insulin, Patients" maxlength="300"></div>
+  <label class="check"><input type="checkbox" name="no_numbers" value="1" {% if not options.numbers %}checked{% endif %}>排除純數字</label>
+  <label class="check"><input type="checkbox" name="compound" value="1" {% if options.compound %}checked{% endif %}>保留連字號複合詞（同原專案）</label>
+  <button type="submit">重新分析</button>
+</form>
+<div class="table-wrap"><table><thead><tr><th>條件</th><th>累加處理</th></tr></thead><tbody>
+<tr><td><b>A</b></td><td>轉小寫，以空白切分（標點仍黏在字上）</td></tr>
+<tr><td><b>B</b></td><td>A ＋ 斷詞器（{{ '保留 glp-1ras 這類複合詞' if options.compound else 'glp-1ras → glp · 1 · ras' }}）</td></tr>
+<tr><td><b>C</b></td><td>B ＋ 移除停用詞</td></tr>
+<tr><td><b>D</b></td><td>C ＋ Porter 詞幹化：與搜尋索引使用的詞完全相同</td></tr></tbody></table></div>
+<p class="note">只分析摘要；依 CF 由大到小排名，同頻時依字母序。log10(CF) = intercept + slope × log10(rank) 以最小平方法擬合全部排名，exponent = −slope，RMSE 單位為 log10(CF)。</p></section>
+
+<section id="comparison"><div class="section-head"><h2>A–D 比較總表</h2><a href="{{ url_for('zipf_csv', name='summary', **link) }}">下載 CSV</a></div>
+<div class="table-wrap"><table><thead><tr><th>條件</th><th>Tokens</th><th>詞彙量</th><th>平均／篇</th><th>只出現一次</th><th>Exponent</th><th>R²</th><th>RMSE</th></tr></thead><tbody>
+{% for key, stats in results.items() %}<tr><td><b>{{ key }}</b></td><td>{{ '{:,}'.format(stats.tokens) }}</td><td>{{ '{:,}'.format(stats.vocabulary) }}</td><td>{{ '%.1f'|format(stats.average_tokens) }}</td><td>{{ '{:,}'.format(stats.hapax) }}</td>{{ fit_cells(stats.fit) }}</tr>{% endfor %}
+</tbody></table></div></section>
+
+<section id="regions"><div class="section-head"><h2>條件 {{ options.baseline }} 的分區擬合</h2><a href="{{ url_for('zipf_csv', name='regions', **link) }}">下載全部條件 CSV</a></div>
+<p>排名分成前 10%、中間 80%、後 10%，保留原始 rank 各自回歸。「不同 CF 值」很少代表階梯狀；只有一種時是平台，斜率為 0、R² 無法定義。</p>
+<div class="table-wrap"><table><thead><tr><th>區段</th><th>Rank 範圍</th><th>詞數</th><th>不同 CF 值</th><th>Exponent</th><th>R²</th><th>RMSE</th></tr></thead><tbody>
+{% for region in base.regions %}<tr><td>{{ {'head': '頭部', 'middle': '中段', 'tail': '尾端'}[region.name] }}</td><td>{{ '{:,}'.format(region.rank_start) }}–{{ '{:,}'.format(region.rank_end) }}</td><td>{{ '{:,}'.format(region.terms) }}</td><td>{{ '{:,}'.format(region.distinct_frequencies) }}</td>{{ fit_cells(region.fit) }}</tr>{% endfor %}
+</tbody></table></div>
+<p class="note">高 R² 支持對數線性近似，不能單獨證明符合 Zipf’s Law；請一起看下方的殘差圖。</p></section>
+
+<section id="terms"><h2>詞彙明細</h2>
+<div class="tabs" role="group" aria-label="選擇前處理條件">{% for key in results %}<button type="button" class="condition-tab" data-condition="{{ key }}" aria-pressed="{{ 'true' if key == options.baseline else 'false' }}">條件 {{ key }}</button>{% endfor %}</div>
+{% for key, stats in results.items() %}<div class="term-panel" id="terms-{{ key }}" {% if key != options.baseline %}hidden{% endif %}>
+<div class="section-head"><h3>條件 {{ key }} 前 50 名</h3><a href="{{ url_for('zipf_csv', name='terms_' ~ key, **link) }}">下載完整詞彙 CSV</a></div>
+<div class="table-wrap term-scroll"><table><thead><tr><th>Rank</th><th>Term</th><th>CF</th><th>DF</th><th>CF／DF</th><th>IDF</th></tr></thead><tbody>
+{% for t in stats.terms[:50] %}<tr><td>{{ t.rank }}</td><td>{{ t.term }}</td><td>{{ '{:,}'.format(t.cf) }}</td><td>{{ '{:,}'.format(t.df) }}</td><td>{{ '%.2f'|format(t.cf_per_df) }}</td><td>{{ '%.4f'|format(t.idf) }}</td></tr>{% endfor %}
+</tbody></table></div></div>{% endfor %}</section>
+
+<section id="cfdf"><h2>CF／DF／IDF 對照（條件 {{ options.baseline }}）</h2>
+<p>條件 {{ options.baseline }} 出現次數最多的 10 個詞，加上上方輸入的詞；輸入的詞會照同一條件前處理（例如條件 D 下 Patients → patient）。IDF = ln(N／DF)。</p>
+<div class="table-wrap"><table><thead><tr><th>輸入</th><th>詞項</th><th>Rank</th><th>CF</th><th>DF</th><th>CF／DF</th><th>IDF</th></tr></thead><tbody>
+{% for row in comparison %}<tr><td>{{ row.word }}</td><td>{{ row.term or '（停用詞或純數字）' }}</td>{% if row.cf is none %}<td colspan="5">不在語料中</td>{% else %}<td>{{ '{:,}'.format(row.rank) }}</td><td>{{ '{:,}'.format(row.cf) }}</td><td>{{ '{:,}'.format(row.df) }}</td><td>{{ '%.2f'|format(row.cf_per_df) }}</td><td>{{ '%.4f'|format(row.idf) }}</td>{% endif %}</tr>{% endfor %}
+</tbody></table></div>
+<p class="note">CF 高但 DF 低的詞集中在少數文件反覆出現；IDF 只由 DF 決定，所以 CF 高不一定 IDF 低。</p></section>
+
+<section id="plots"><h2>Rank–Frequency、擬合與殘差</h2>
+<figure><img src="{{ url_for('zipf_image', **link) }}" alt="A 到 D 的 log-log rank-frequency 疊圖、基準條件的擬合線與殘差圖" onerror="this.parentElement.hidden=true;document.getElementById('no-plot').hidden=false">
+<figcaption>左：A–D 疊圖與 k = 1 參考線（通過基準條件第 1 名的頻率）；中：基準條件與全域 OLS；右：殘差，灰線為分區邊界。</figcaption></figure>
+<p id="no-plot" class="note" hidden>伺服器沒有安裝 matplotlib，無法繪圖：python -m pip install matplotlib</p></section>
+</main>
+<footer class="wrap">分析結果在伺服器上快取；改變選項只重新計算一次。</footer>
+{% endblock %}
+{% block scripts %}<script>document.querySelectorAll('.condition-tab').forEach(button=>button.addEventListener('click',()=>{document.querySelectorAll('.condition-tab').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));document.querySelectorAll('.term-panel').forEach(p=>p.hidden=p.id!=='terms-'+button.dataset.condition);}));</script>{% endblock %}

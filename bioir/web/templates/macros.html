@@ -1,0 +1,7 @@
+{% macro pager(p, label, anchor, extra_class='') -%}
+{% if p.pages > 1 %}<nav class="pagination {{ extra_class }}" aria-label="{{ label }}">
+{% if p.previous %}<a href="{{ p.previous }}#{{ anchor }}">上一頁</a>{% endif %}
+{% set ns = namespace(previous=0) %}{% for number, link in p.links %}{% if ns.previous and number > ns.previous+1 %}<span>…</span>{% endif %}<a href="{{ link }}#{{ anchor }}" {% if number==p.page %}aria-current="page"{% endif %}>{{ number }}</a>{% set ns.previous=number %}{% endfor %}
+{% if p.next %}<a href="{{ p.next }}#{{ anchor }}">下一頁</a>{% endif %}<span>{{ p.page }} / {{ p.pages }}</span>
+</nav>{% endif %}
+{%- endmacro %}

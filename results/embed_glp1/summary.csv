@@ -1,0 +1,7 @@
+﻿model,architecture,window,seed,vocabulary,final_loss,seconds,random_pair_mean,random_pair_p95,sanity_passed
+cbow_w2_s42,cbow,2,42,6324,1.414,64.9,0.2074,0.5446,True
+cbow_w5_s42,cbow,5,42,6324,1.5589,101.1,0.1235,0.5227,True
+cbow_w5_s7,cbow,5,7,6324,1.5609,88.3,0.1238,0.5209,True
+skipgram_w2_s42,skipgram,2,42,6324,1.6284,98.0,0.301,0.5422,True
+skipgram_w5_s42,skipgram,5,42,6324,1.8475,185.7,0.2479,0.4632,True
+skipgram_w5_s7,skipgram,5,7,6324,1.8478,189.6,0.2476,0.464,True

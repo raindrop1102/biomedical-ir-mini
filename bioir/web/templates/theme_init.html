@@ -1,0 +1,9 @@
+  <script>
+    // Apply the saved theme before painting to avoid a bright flash on navigation.
+    (() => {
+      let saved;
+      try { saved = localStorage.getItem('biomedicalir-theme'); } catch (_) {}
+      document.documentElement.dataset.theme = ['light', 'dark'].includes(saved)
+        ? saved : 'light';
+    })();
+  </script>

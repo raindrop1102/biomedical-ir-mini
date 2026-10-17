@@ -1,0 +1,139 @@
+{
+  "generated_at_utc": "2026-10-17T15:46:54+00:00",
+  "corpus": {
+    "file": "abstracts.jsonl",
+    "file_sha256": "5b4c127d2e53ffc9e95c9d3c9c4ede9837a068a58bfc3f518ffd5068a9fa9f35",
+    "documents": 1000,
+    "abstracts_sha256": "87e93d0de618c3ffd46183226bb92d0bf969151093d0c7a400fe4c91dbfed0e1"
+  },
+  "runs": [
+    {
+      "architecture": "cbow",
+      "window": 2,
+      "seed": 42
+    },
+    {
+      "architecture": "cbow",
+      "window": 5,
+      "seed": 42
+    },
+    {
+      "architecture": "cbow",
+      "window": 5,
+      "seed": 7
+    },
+    {
+      "architecture": "skipgram",
+      "window": 2,
+      "seed": 42
+    },
+    {
+      "architecture": "skipgram",
+      "window": 5,
+      "seed": 42
+    },
+    {
+      "architecture": "skipgram",
+      "window": 5,
+      "seed": 7
+    }
+  ],
+  "shared_settings": {
+    "dimensions": 100,
+    "epochs": 20,
+    "min_count": 3,
+    "negatives": 5,
+    "learning_rate": 0.025,
+    "subsample": 0.001,
+    "batch_size": 256,
+    "compound": true
+  },
+  "query_words": [
+    "glp-1",
+    "semaglutide",
+    "liraglutide",
+    "insulin",
+    "glucose",
+    "diabetes",
+    "obesity",
+    "weight",
+    "receptor",
+    "agonist"
+  ],
+  "related_pairs": [
+    [
+      "semaglutide",
+      "liraglutide"
+    ],
+    [
+      "insulin",
+      "glucose"
+    ],
+    [
+      "diabetes",
+      "obesity"
+    ],
+    [
+      "obesity",
+      "weight"
+    ],
+    [
+      "receptor",
+      "agonist"
+    ]
+  ],
+  "rare_words": [
+    "tumor",
+    "diagnosis",
+    "neuropathy",
+    "retinopathy",
+    "gastroparesis",
+    "nephropathy",
+    "cardiomyopathy"
+  ],
+  "projection_groups": {
+    "GLP-1 drugs": [
+      "semaglutide",
+      "liraglutide",
+      "exenatide",
+      "dulaglutide",
+      "tirzepatide"
+    ],
+    "receptor": [
+      "glp-1",
+      "receptor",
+      "agonist",
+      "agonists",
+      "glucagon"
+    ],
+    "glycaemia": [
+      "insulin",
+      "glucose",
+      "glycemic",
+      "diabetes",
+      "secretion",
+      "pancreatic"
+    ],
+    "weight & appetite": [
+      "obesity",
+      "weight",
+      "body",
+      "loss",
+      "appetite",
+      "gastric",
+      "emptying"
+    ]
+  },
+  "projected_models": [
+    "cbow_w5_s42",
+    "skipgram_w5_s42"
+  ],
+  "sanity_limit": 0.5,
+  "python": "3.13.15",
+  "numpy": "2.5.2",
+  "notes": [
+    "Cosines and top-5 overlaps describe the vectors, not semantic accuracy.",
+    "Each projection panel is fitted separately; coordinates are not comparable across panels.",
+    "Training is deterministic for a given seed, numpy version and platform."
+  ]
+}

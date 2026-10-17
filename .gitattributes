@@ -1,0 +1,6 @@
+* text=auto eol=lf
+*.png binary
+*.npz binary
+# Data and results keep their exact bytes, so the SHA-256 values in their manifests stay valid.
+data/** -text
+results/** -text

@@ -1,0 +1,5 @@
+﻿model,method,words,explained_variance,kl_divergence,trustworthiness,perplexity
+cbow_w5_s42,PCA,23,0.3713,,0.8777,
+cbow_w5_s42,t-SNE,23,,0.173,0.8742,7.33
+skipgram_w5_s42,PCA,23,0.2864,,0.8968,
+skipgram_w5_s42,t-SNE,23,,0.169,0.8794,7.33

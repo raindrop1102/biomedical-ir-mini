@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% from 'macros.html' import pager %}
+{% block title %}{% if query %}{{ query }} - {% endif %}BiomedicalIR 生醫文獻檢索{% endblock %}
+{% block body_class %}{{ 'is-search has-collection' if query else 'landing' }}{{ ' has-results' if results }}{% endblock %}
+{% block body %}
+<header class="site-header">
+  <div class="container">
+    <h1><a href="{{ url_for('search') }}" aria-label="BiomedicalIR 首頁">Biomedical<span>IR</span></a></h1>
+  </div>
+</header>
+<main class="container">
+  {% if error %}<div class="alert error" role="alert"><strong>查詢無法執行</strong><p>{{ error }}</p></div>{% endif %}
+
+  <section class="search-panel" aria-labelledby="search-heading">
+    <h2 id="search-heading">搜尋 PubMed 摘要</h2>
+    <form action="{{ url_for('search') }}" method="get" role="search">
+      {% if per_page != 20 %}<input type="hidden" name="per_page" value="{{ per_page }}">{% endif %}
+      <div class="search-row">
+        <div class="field query-field"><label for="query">查詢</label><input id="query" name="query" type="search" value="{{ query }}" placeholder='例如：GLP-1 obesity 或 "type 2 diabetes" NOT mice' maxlength="500" enterkeyhint="search" required></div>
+        <button type="submit">搜尋</button>
+      </div>
+    </form>
+    <p class="corpus-status">語料：<strong>{{ site.corpus }}</strong> · {{ '{:,}'.format(site.documents) }} 篇 · {{ '{:,}'.format(site.vocabulary) }} 個索引詞</p>
+    {% if suggestion %}<div class="spelling-suggestions" role="status"><p>您是不是要找：（點選後才會套用修正）</p><a href="{{ url_for('search', query=suggestion, per_page=per_page if per_page != 20 else none) }}">{{ suggestion }}</a></div>{% endif %}
+  </section>
+
+  {% if not query %}
+  <section class="panel">
+    <h2>查詢語法</h2>
+    <ul>
+      <li>相鄰的詞預設為 AND；也可以寫 <code>OR</code>、<code>NOT</code> 與括號（運算子須大寫）。</li>
+      <li>雙引號表示片語：<code>"type 2 diabetes"</code> 只比對相鄰出現。</li>
+      <li><code>GLP-1</code>、<code>GLP1</code>、<code>GLP-1RAs</code> 會找到相同的文獻：字母與數字分開後依位置比對。</li>
+      <li>排序使用 BM25；拼錯的詞會提供編輯距離建議。</li>
+    </ul>
+    <p class="hint">試試看：{% for example in examples %}<a href="{{ url_for('search', query=example) }}">{{ example }}</a>{{ '、' if not loop.last }}{% endfor %}</p>
+  </section>
+  {% elif results is not none %}
+  <section id="search-results" aria-labelledby="results-heading">
+    <h2 id="results-heading">搜尋結果</h2>
+    <p class="results-count">找到 {{ '{:,}'.format(total) }} 篇 · 耗時 {{ '%.1f'|format(elapsed) }} 毫秒</p>
+    <details class="panel processing">
+      <summary>查詢處理過程</summary>
+      <dl class="query-summary">
+        <div><dt>原始查詢</dt><dd>{{ query }}</dd></div>
+        <div><dt>用於排序的詞項</dt><dd>{{ terms|join(', ') or '（無）' }}</dd></div>
+        <div><dt>符合文件數</dt><dd>{{ '{:,}'.format(total) }}</dd></div>
+      </dl>
+      <p class="hint">轉小寫 → 字母與數字分開斷詞 → 移除停用詞（保留位置）→ Porter 詞幹化。布林條件先篩選文件，再以 BM25（k1 = 1.2、b = 0.75）排序；NOT 內的詞不計分。</p>
+    </details>
+    {% if not results %}<div class="empty-state">沒有文獻符合這個查詢。可以減少關鍵字、改用 OR，或檢查拼字。</div>{% endif %}
+    {% if total %}
+    <div class="pagination-settings">
+      <p>第 {{ pagination.start }}–{{ pagination.end }} 篇，共 {{ '{:,}'.format(total) }} 篇</p>
+      <form method="get" action="{{ url_for('search') }}">
+        <input type="hidden" name="query" value="{{ query }}">
+        <label for="per-page">每頁</label><select id="per-page" name="per_page">{% for size in page_sizes %}<option value="{{ size }}" {% if per_page == size %}selected{% endif %}>{{ size }} 篇</option>{% endfor %}</select><button type="submit">套用</button>
+      </form>
+    </div>
+    {{ pager(pagination, "結果分頁（上方）", "search-results", "pagination-top") }}
+    {% endif %}
+    {% if results %}
+    <div class="results-layout">
+      <nav class="result-navigation" aria-labelledby="result-navigation-heading">
+        <details id="result-navigation-toggle" open>
+        <summary><h3 id="result-navigation-heading">跳至文章 <span class="count">{{ results|length }}</span></h3></summary>
+        <ol start="{{ pagination.start }}">
+          {% for result in results %}
+          <li><a href="#result-{{ result.doc.pmid }}"><span class="navigation-title">{{ result.doc.title or '（無標題）' }}</span><span class="navigation-pmid">PMID：{{ result.doc.pmid }}</span></a></li>
+          {% endfor %}
+        </ol>
+        </details>
+      </nav>
+      <script>
+        // Collapse before first paint on phones; the list would push results off-screen.
+        if (window.matchMedia('(max-width: 767px)').matches) document.getElementById('result-navigation-toggle').open = false;
+      </script>
+      <div class="result-list">
+      {% for result in results %}
+      <article class="panel result-card" id="result-{{ result.doc.pmid }}" tabindex="-1" aria-labelledby="result-title-{{ result.doc.pmid }}">
+        <div class="result-heading"><span class="rank">#{{ result.rank }}</span><h3 id="result-title-{{ result.doc.pmid }}">{{ result.title }}</h3></div>
+        <div class="result-meta"><span>PMID：<a href="https://pubmed.ncbi.nlm.nih.gov/{{ result.doc.pmid }}/" target="_blank" rel="noopener noreferrer">{{ result.doc.pmid }}</a></span><strong>BM25 分數：{{ '%.3f'|format(result.score) }}</strong></div>
+        <p class="snippet">{{ result.snippet }}</p>
+        {% if not result.whole %}<div class="result-more"><details class="more abstract-full"><summary>完整摘要</summary><p class="abstract">{{ result.abstract }}</p></details></div>{% endif %}
+      </article>
+      {% endfor %}
+      </div>
+    </div>
+    {{ pager(pagination, "結果分頁（下方）", "search-results") }}
+    {% endif %}
+  </section>
+  {% endif %}
+</main>
+<footer class="container">只讀模式：語料於伺服器啟動時載入；更換語料、下載 PubMed 與訓練模型請使用命令列。</footer>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='search.js') }}"></script>{% endblock %}

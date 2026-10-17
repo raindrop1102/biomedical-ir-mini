@@ -1,0 +1,69 @@
+﻿architecture,change,group,word,overlap,shared
+cbow,window 2 → 5,query,glp-1,0.8,"glp, glp1, melanocortin-4, non-glp-1"
+cbow,window 2 → 5,query,semaglutide,1.0,"dulaglutide, liraglutide, orforglipron, retatrutide, tirzepatide"
+cbow,window 2 → 5,query,liraglutide,0.8,"dapagliflozin, dulaglutide, exenatide, tirzepatide"
+cbow,window 2 → 5,query,insulin,0.4,"diuretic, training"
+cbow,window 2 → 5,query,glucose,0.4,"fasting, postprandial"
+cbow,window 2 → 5,query,diabetes,0.6,"ie, t2d, t2dm"
+cbow,window 2 → 5,query,obesity,0.4,"t2d, t2dm"
+cbow,window 2 → 5,query,weight,0.4,"5-10, hearing"
+cbow,window 2 → 5,query,receptor,0.2,glp-1r
+cbow,window 2 → 5,query,agonist,0.6,"agonism, agonists, analogue"
+cbow,window 2 → 5,rare,tumor,0.0,
+cbow,window 2 → 5,rare,diagnosis,0.4,"history, onset"
+cbow,window 2 → 5,rare,neuropathy,0.6,"anterior, ischemic, optic"
+cbow,window 2 → 5,rare,retinopathy,0.4,"foot, neuropathy"
+cbow,window 2 → 5,rare,gastroparesis,0.0,
+cbow,window 2 → 5,rare,nephropathy,0.0,
+cbow,window 2 → 5,rare,cardiomyopathy,0.2,dcm
+cbow,seed 42 → 7,query,glp-1,0.6,"glp, glp1, melanocortin-4"
+cbow,seed 42 → 7,query,semaglutide,1.0,"dulaglutide, liraglutide, orforglipron, retatrutide, tirzepatide"
+cbow,seed 42 → 7,query,liraglutide,0.8,"dapagliflozin, dulaglutide, exenatide, tirzepatide"
+cbow,seed 42 → 7,query,insulin,0.8,"aerobic, diuretic, glucose, training"
+cbow,seed 42 → 7,query,glucose,0.8,"excursions, fasting, hunger, postprandial"
+cbow,seed 42 → 7,query,diabetes,0.8,"ie, t1d, t2d, t2dm"
+cbow,seed 42 → 7,query,obesity,1.0,"dm, mellitus, t2d, t2dm, type"
+cbow,seed 42 → 7,query,weight,0.6,"5-10, contouring, hearing"
+cbow,seed 42 → 7,query,receptor,0.2,dual
+cbow,seed 42 → 7,query,agonist,0.8,"agonism, agonists, analogue, antagonist"
+cbow,seed 42 → 7,rare,tumor,0.2,enzymatic
+cbow,seed 42 → 7,rare,diagnosis,0.8,"history, hospital, onset, year"
+cbow,seed 42 → 7,rare,neuropathy,1.0,"anterior, ischemic, non-arteritic, nonarteritic, optic"
+cbow,seed 42 → 7,rare,retinopathy,0.4,"foot, neuropathy"
+cbow,seed 42 → 7,rare,gastroparesis,0.6,"cholelithiasis, occlusion, weakness"
+cbow,seed 42 → 7,rare,nephropathy,0.4,"occlusion, rvo"
+cbow,seed 42 → 7,rare,cardiomyopathy,0.4,"colitis, dcm"
+skipgram,window 2 → 5,query,glp-1,0.4,"glp, glp1"
+skipgram,window 2 → 5,query,semaglutide,0.8,"dulaglutide, ecnoglutide, liraglutide, lixisenatide"
+skipgram,window 2 → 5,query,liraglutide,0.6,"exenatide, lira, lixisenatide"
+skipgram,window 2 → 5,query,insulin,0.6,"diuretic, glucagon, resistance"
+skipgram,window 2 → 5,query,glucose,0.6,"fasting, postprandial, sugar"
+skipgram,window 2 → 5,query,diabetes,0.6,"mellitus, t2dm, youth-onset"
+skipgram,window 2 → 5,query,obesity,0.2,pws
+skipgram,window 2 → 5,query,weight,0.4,"5-10, loss"
+skipgram,window 2 → 5,query,receptor,0.2,thr
+skipgram,window 2 → 5,query,agonist,0.2,analogue
+skipgram,window 2 → 5,rare,tumor,0.0,
+skipgram,window 2 → 5,rare,diagnosis,0.0,
+skipgram,window 2 → 5,rare,neuropathy,1.0,"anterior, ischemic, non-arteritic, nonarteritic, optic"
+skipgram,window 2 → 5,rare,retinopathy,0.0,
+skipgram,window 2 → 5,rare,gastroparesis,0.0,
+skipgram,window 2 → 5,rare,nephropathy,0.2,artery
+skipgram,window 2 → 5,rare,cardiomyopathy,0.2,city
+skipgram,seed 42 → 7,query,glp-1,0.8,"glp-1-ras, glp1, glucagon-like-peptide-1, short-acting"
+skipgram,seed 42 → 7,query,semaglutide,1.0,"dulaglutide, ecnoglutide, liraglutide, lixisenatide, tirzepatide"
+skipgram,seed 42 → 7,query,liraglutide,1.0,"dulaglutide, exenatide, lira, lixisenatide, semaglutide"
+skipgram,seed 42 → 7,query,insulin,0.6,"glargine, resistance, secretion"
+skipgram,seed 42 → 7,query,glucose,0.8,"fasting, postprandial, sodium, sugar"
+skipgram,seed 42 → 7,query,diabetes,1.0,"insulin-treated, mellitus, t2dm, type, youth-onset"
+skipgram,seed 42 → 7,query,obesity,0.8,"eot2d, overweight, pws, type-2"
+skipgram,seed 42 → 7,query,weight,0.8,"bodyweight, gain, loss, massive"
+skipgram,seed 42 → 7,query,receptor,0.8,"agonists, melanocortin-4, peptide-1, thr"
+skipgram,seed 42 → 7,query,agonist,0.8,"analogue, glucagon-like-peptide-1, long-acting, short-acting"
+skipgram,seed 42 → 7,rare,tumor,0.6,"immunity, mesolimbic, nutrients"
+skipgram,seed 42 → 7,rare,diagnosis,0.6,"definition, icd-10-cm, minimum"
+skipgram,seed 42 → 7,rare,neuropathy,1.0,"anterior, ischemic, non-arteritic, nonarteritic, optic"
+skipgram,seed 42 → 7,rare,retinopathy,0.6,"edema, proliferative, rvo"
+skipgram,seed 42 → 7,rare,gastroparesis,0.2,cholelithiasis
+skipgram,seed 42 → 7,rare,nephropathy,0.6,"occlusion, pdpn, rvo"
+skipgram,seed 42 → 7,rare,cardiomyopathy,0.8,"aneurysm, city, kansas, questionnaire"

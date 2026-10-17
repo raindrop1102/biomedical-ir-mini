@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block title %}{% if word %}{{ word }} - {% endif %}詞向量{% endblock %}
+{% block styles %}<link rel="stylesheet" href="{{ url_for('static', filename='embedding.css') }}">{% endblock %}
+{% block body %}
+<header class="site-header"><div class="container"><h1>詞向量</h1><p class="hint">CBOW 與 Skip-gram（window 5），以 NumPy 從零訓練；網頁只讀取命令列產生的模型。</p></div></header>
+<main class="container">
+{% if error %}<section class="panel"><h2>尚未提供詞向量模型</h2><div class="alert warning">{{ error }}</div></section>
+{% else %}
+<section class="panel"><h2>模型與健全性檢查</h2>
+<div class="table-wrap"><table><thead><tr><th>模型</th><th>維度</th><th>Window</th><th>輪數</th><th>詞彙</th><th>隨機詞對 cosine（平均／p95）</th><th>檢查</th></tr></thead><tbody>
+{% for label, model in models.items() %}{% set config = model.metadata.config %}{% set check = model.metadata.sanity %}
+<tr><td><b>{{ label }}</b></td><td>{{ config.dimensions }}</td><td>{{ config.window }}</td><td>{{ config.epochs }}</td><td>{{ '{:,}'.format(model|length) }}</td><td>{{ '%.3f'|format(check.random_pair_mean) }}／{{ '%.3f'|format(check.random_pair_p95) }}</td><td><span class="badge {{ 'available' if check.passed else 'unavailable' }}">{{ '通過' if check.passed else '未通過' }}</span></td></tr>{% endfor %}
+</tbody></table></div>
+<p class="hint">隨機抽 2 萬組常見詞對計算 cosine，平均超過 0.5 代表向量擠在同一方向、相似度不可信。下方的 cosine 都要和這個基準比較。</p></section>
+
+<section class="panel" id="neighbors"><h2>查詢相近詞</h2>
+<form method="get" action="{{ url_for('embedding') }}#neighbors" class="neighbor-form">
+  <div class="field"><label for="word">單一詞彙或識別詞</label><input id="word" name="word" value="{{ word }}" placeholder="例如 semaglutide、insulin、glp-1" maxlength="60" required></div>
+  <div class="field narrow"><label for="min-count">近鄰最少出現</label><select id="min-count" name="min_count">{% for n in [1, 5, 10, 20] %}<option value="{{ n }}" {% if min_count == n %}selected{% endif %}>{{ n }} 次</option>{% endfor %}</select></div>
+  <button type="submit">查詢</button>
+</form>
+{% if word %}<div class="model-columns">
+{% for label, result in neighbors.items() %}<div><h3>{{ label }}</h3>
+{% if result.error %}<p class="alert warning">{{ result.error }}</p>
+{% else %}<p class="hint">詞彙表中的形式：<strong>{{ result.term }}</strong></p>
+<div class="table-wrap"><table><thead><tr><th>#</th><th>相近詞</th><th>Cosine</th><th>出現次數</th></tr></thead><tbody>
+{% for term, cosine, count in result.rows %}<tr><td>{{ loop.index }}</td><td><a href="{{ url_for('embedding', word=term, min_count=min_count if min_count != 10 else none) }}#neighbors">{{ term }}</a></td><td>{{ '%.3f'|format(cosine) }}</td><td>{{ '{:,}'.format(count) }}</td></tr>
+{% else %}<tr><td colspan="4">沒有出現至少 {{ min_count }} 次的近鄰。</td></tr>{% endfor %}
+</tbody></table></div>{% endif %}</div>{% endfor %}
+</div>{% endif %}
+<p class="hint">保留停用詞、不做詞幹化，所以結果是完整的字。出現次數少的詞向量不穩定，預設隱藏出現不到 10 次的近鄰。相近詞代表這批摘要中的上下文關聯，不一定是同義詞。</p></section>
+
+<section class="panel" id="pair"><h2>兩個詞的相似度</h2>
+<form method="get" action="{{ url_for('embedding') }}#pair" class="neighbor-form">
+  {% if word %}<input type="hidden" name="word" value="{{ word }}">{% endif %}
+  <div class="field"><label for="a">詞 A</label><input id="a" name="a" value="{{ a }}" placeholder="semaglutide" maxlength="60" required></div>
+  <div class="field"><label for="b">詞 B</label><input id="b" name="b" value="{{ b }}" placeholder="liraglutide" maxlength="60" required></div>
+  <button type="submit">比較</button>
+</form>
+{% if pairs %}<div class="table-wrap"><table><thead><tr><th>模型</th><th>Cosine</th><th>高於隨機詞對（標準差）</th></tr></thead><tbody>
+{% for label, result in pairs.items() %}<tr><td><b>{{ label }}</b></td>{% if result.error %}<td colspan="2">{{ result.error }}</td>{% else %}<td>{{ '%.3f'|format(result.cosine) }}</td><td>{{ '%+.2f'|format(result.z) }}</td>{% endif %}</tr>{% endfor %}
+</tbody></table></div>{% endif %}
+<p class="hint">z = (cosine − 隨機詞對平均) ÷ 隨機詞對標準差；約 2 以上才明顯比隨機兩個詞相近。</p></section>
+
+{% if has_projection %}<section class="panel"><h2>PCA 與 t-SNE 投影</h2>
+<figure class="projection"><img src="{{ url_for('projection_image') }}" alt="CBOW 與 Skip-gram 的 PCA 與 t-SNE 投影圖，依 GLP-1 藥物、受體、血糖、體重與食慾四組上色" loading="lazy"></figure>
+{% if quality %}<div class="table-wrap"><table><thead><tr><th>模型</th><th>方法</th><th>詞數</th><th>解釋變異</th><th>KL</th><th>Trustworthiness</th></tr></thead><tbody>
+{% for row in quality %}<tr><td>{{ row.model }}</td><td>{{ row.method }}</td><td>{{ row.words }}</td><td>{{ '%.0f%%'|format(row.explained_variance|float * 100) if row.explained_variance else '—' }}</td><td>{{ '%.3f'|format(row.kl_divergence|float) if row.kl_divergence else '—' }}</td><td>{{ '%.3f'|format(row.trustworthiness|float) }}</td></tr>{% endfor %}
+</tbody></table></div>{% endif %}
+<p class="hint">向量先 L2 正規化；每格各自擬合，格與格之間的座標軸不能比較。Trustworthiness 為 1 代表圖上每個詞的 5 個最近鄰在原空間也相近。投影只是少數詞的示意，不是模型品質的檢驗。</p></section>{% endif %}
+
+{% if summary %}<section class="panel"><h2>比較實驗摘要</h2>
+<div class="table-wrap"><table><thead><tr><th>模型</th><th>詞彙</th><th>最終 loss</th><th>訓練秒數</th><th>隨機詞對 cosine</th><th>檢查</th></tr></thead><tbody>
+{% for row in summary %}<tr><td>{{ row.model }}</td><td>{{ '{:,}'.format(row.vocabulary|int) }}</td><td>{{ '%.3f'|format(row.final_loss|float) }}</td><td>{{ '%.0f'|format(row.seconds|float) }}</td><td>{{ '%.3f'|format(row.random_pair_mean|float) }}</td><td><span class="badge {{ 'available' if row.sanity_passed == 'True' else 'unavailable' }}">{{ '通過' if row.sanity_passed == 'True' else '未通過' }}</span></td></tr>{% endfor %}
+</tbody></table></div>
+<p class="hint">來自 <code>python -m bioir embed compare</code>：CBOW 與 Skip-gram × (window 2, seed 42)、(5, 42)、(5, 7)。不同架構的 loss 不能互相比較。</p></section>{% endif %}
+{% endif %}
+</main>
+<footer class="container">只讀模式：模型由命令列訓練，網頁不會重新訓練。</footer>
+{% endblock %}

@@ -1,0 +1,40 @@
+{
+  "subject": "GLP-1",
+  "query": "(\"GLP-1\"[Title/Abstract] OR \"glucagon-like peptide-1\"[Title/Abstract] OR \"GLP1\"[Title/Abstract]) AND english[lang] AND hasabstract AND journal article[pt] AND (\"1900/01/01\"[Date - Publication] : \"2026/10/03\"[Date - Publication])",
+  "query_translation": "(\"GLP-1\"[Title/Abstract] OR \"glucagon-like peptide-1\"[Title/Abstract] OR \"GLP1\"[Title/Abstract]) AND \"english\"[Language] AND \"hasabstract\"[All Fields] AND \"journal article\"[Publication Type] AND 1900/01/01:2026/10/03[Date - Publication]",
+  "topic_pattern": "\\bglp[\\s\\u2010-\\u2015-]*1\\b|\\bglucagon[\\s\\u2010-\\u2015-]+like[\\s\\u2010-\\u2015-]+peptide[\\s\\u2010-\\u2015-]*1\\b",
+  "sort": "pub date",
+  "search_total": 30875,
+  "candidate_pool_size": 5000,
+  "random_seed": 20261003,
+  "documents": 1000,
+  "checked_records": 1098,
+  "excluded_records": 98,
+  "started_utc": "2026-10-03T06:49:55.477674+00:00",
+  "completed_utc": "2026-10-03T06:51:43.416404+00:00",
+  "scope": "GLP-1 English PubMed journal abstracts published through 2026-10-03; fixed-seed sample within the latest 5000 matches, not representative of all GLP-1 literature",
+  "validation": "unique PMID, eng language metadata, >=50 whitespace-separated words, explicit GLP-1/GLP1/glucagon-like peptide-1 mention in abstract, unique whitespace-normalized casefolded abstract SHA256",
+  "files_sha256": {
+    "abstracts.csv": "f206bef96b577fa22446cd5a6b78f5d83c72a2f1daca938467649440e6f118ca",
+    "abstracts.jsonl": "5b4c127d2e53ffc9e95c9d3c9c4ede9837a068a58bfc3f518ffd5068a9fa9f35",
+    "collect_corpus.py": "751fe4a4c6b23e0d03fdee65c1a718b73f32e35092635e7f97d4107a34e5e53d",
+    "pmids.txt": "552b8cd6708b3a4e397108da53c3cc027f6a7274c3f227638a32b4a4db991283",
+    "README.md": "b4a95e5890813e9798d1a92b55b531818190dbd1434e213910f5605c8a62673b",
+    "rejected.json": "40920943e289ed34bded502ee99b2c5c854efc76d7a33553df752261bf6e41e4",
+    "validation.json": "ea8177556002f502499d19339d5840feffc68da03fc84cd4da16356da79d6303"
+  },
+  "raw_files_sha256": {
+    "efetch_001.xml": "c422caad4056b74de3b4558e56c0ce03c48bd164b5d4c982f055b94835c90bdf",
+    "efetch_002.xml": "b953afaafee1db935efe873a1335b8b923113db0a280f891c2f3773c61107bc9",
+    "efetch_003.xml": "2a0e8cd2f0dbbf823230cd0b74f83f02f5209af910022c8d7042f639bc5b2547",
+    "efetch_004.xml": "1ad44a065983df94868d862705ccb273a711dd1966800447118bb7cb797be0c7",
+    "efetch_005.xml": "0a2929b27b0987e123470276e59b0117e4facb81e84b19473c8d5ddf0baca580",
+    "efetch_006.xml": "a3a9f2679a816cdd4bae29f109889fc971b2760366c77ca77fc322bb93e41185",
+    "efetch_007.xml": "f7faa5c51b3256388a1b1c77fcb3670ad9c9b206959b934540409d86d922197a",
+    "efetch_008.xml": "686758b15ce81b8530953e322a24e08136be30af67ef397b1723e6f20bcdd931",
+    "efetch_009.xml": "d712b3c7119423638c3a7850b2b204cc1133df20f254126fa54597acf9bbd6cb",
+    "efetch_010.xml": "12efd0a730c07bcfaddbe53c3e95ec34c37f27cbd11a04fbdcc35d1e8b8b69f0",
+    "efetch_011.xml": "4a28a457270d211c3e1d311e1b254a03874b305f428d2320e3138a63de727b38",
+    "esearch.json": "c3493cfec394f329bfa86741fabb559ea06dd15101f3d5141979f18ed22a09b9"
+  }
+}
