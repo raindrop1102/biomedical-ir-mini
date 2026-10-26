@@ -122,6 +122,19 @@ class EngineTest(unittest.TestCase):
         self.assertAlmostEqual(hit.score, expected)
         self.assertLessEqual(max(h.score for h in self.space.search("semaglutide insulin", "ltc.ltc").hits), 1 + 1e-9)
 
+    def test_breakdown_reproduces_every_score(self):
+        for code in ("lnc.ltc", "ltc.ltc", "Lnu.ltc", "lnb.ltc", "atc.atc", "nnn.nnn"):
+            for hit in self.space.search("semaglutide insulin weight", code).hits:
+                query, document = self.space.breakdown("semaglutide insulin weight", code, hit.pmid)
+                with self.subTest(code=code, pmid=hit.pmid):
+                    self.assertEqual([t.term for t in query.terms], [t.term for t in document.terms])
+                    self.assertAlmostEqual(sum(q.weight * d.weight for q, d in zip(query.terms, document.terms)),
+                                           hit.score)
+        query, document = self.space.breakdown("semaglutide weight", "lnc.ltc", "1")
+        self.assertEqual([(t.term, t.tf) for t in document.terms], [("semaglutid", 4), ("weight", 2)])
+        self.assertAlmostEqual(document.terms[0].tf_weight, 1 + math.log10(4))
+        self.assertEqual(document.terms[0].idf, 1.0)                     # n: no IDF on documents
+
     def test_normalization_and_ranking_details(self):
         raw = [h.pmid for h in self.space.search("weight", "ntn.ntn").hits]
         self.assertEqual(raw[0], "2")                                 # three occurrences

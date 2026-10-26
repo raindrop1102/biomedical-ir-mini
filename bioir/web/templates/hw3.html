@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% block title %}{% if query %}{{ query }} - {% endif %}作業 3 互動檢索{% endblock %}
+{% block styles %}<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">{% endblock %}
+{% block body %}
+{% include 'hw3_tabs.html' %}
+<main class="container hw3">
+{% if error and not vsm %}<div class="alert warning">{{ error }}</div>
+{% else %}
+{% if error %}<div class="alert error" role="alert">{{ error }}</div>{% endif %}
+<form method="get" action="{{ url_for('hw3') }}" class="panel hw3-query">
+  <div class="hw3-row">
+    <label class="sr-only" for="hw3-query">查詢</label>
+    <input id="hw3-query" name="query" value="{{ query }}" placeholder="pancreatic cancer risk" maxlength="300" required>
+    {% if examples %}<label class="sr-only" for="hw3-example">評估查詢</label>
+    <select id="hw3-example" onchange="if (this.value) { this.form.query.value = this.value; this.form.submit(); }">
+      <option value="">評估查詢 ▾</option>
+      {% for q in examples %}<option value="{{ q.text }}" {% if evaluation and evaluation.id == q.id %}selected{% endif %}>{{ q.id }} {{ q.text }}</option>{% endfor %}
+    </select>{% endif %}
+  </div>
+  <div class="hw3-row">
+    {% for code in codes %}<label class="hw3-scheme"><span>{{ 'A' if loop.first else 'B' }}</span>
+      <select name="{{ 'a' if loop.first else 'b' }}" aria-label="加權 {{ 'A' if loop.first else 'B' }}">{% for key, label in schemes.items() %}<option value="{{ key }}" title="{{ label }}" {% if code == key %}selected{% endif %}>{{ key }}</option>{% endfor %}</select></label>
+    {% if loop.first %}<span class="hw3-vs">vs</span>{% endif %}{% endfor %}
+    <button type="submit">比較</button>
+  </div>
+  <details class="hw3-legend"><summary>記號說明</summary>
+    <p>SMART 記號寫成 <code>文件.查詢</code>，各三個字母：TF · IDF · 正規化（講義寫成 查詢.文件，順序相反）。log 以 10 為底。</p>
+    <p class="hw3-formula">\[ \text{score}(q,d) = \sum_{t \in q} w_{t,q}\, w_{t,d}, \qquad w_{t} = \text{TF} \times \text{IDF} \times \text{正規化} \]</p>
+    <div class="hw3-smart">
+      <section><h4>TF（詞頻）</h4><dl>
+        <dt>n</dt><dd>\( \mathrm{tf}_{t,d} \)</dd>
+        <dt>l</dt><dd>\( 1 + \log \mathrm{tf}_{t,d} \)</dd>
+        <dt>a</dt><dd>\( 0.5 + \dfrac{0.5 \times \mathrm{tf}_{t,d}}{\max_{t} \mathrm{tf}_{t,d}} \)</dd>
+        <dt>b</dt><dd>\( \begin{cases} 1 & \mathrm{tf}_{t,d} > 0 \\ 0 & \text{otherwise} \end{cases} \)</dd>
+        <dt>L</dt><dd>\( \dfrac{1 + \log \mathrm{tf}_{t,d}}{1 + \log\big(\operatorname{ave}_{t \in d}\, \mathrm{tf}_{t,d}\big)} \)</dd>
+      </dl></section>
+      <section><h4>IDF（文件頻率）</h4><dl>
+        <dt>n</dt><dd>\( 1 \)</dd>
+        <dt>t</dt><dd>\( \log \dfrac{N}{\mathrm{df}_t} \)</dd>
+        <dt>p</dt><dd>\( \max\Big\{0,\ \log \dfrac{N - \mathrm{df}_t}{\mathrm{df}_t}\Big\} \)</dd>
+      </dl></section>
+      <section><h4>正規化</h4><dl>
+        <dt>n</dt><dd>\( 1 \)</dd>
+        <dt>c</dt><dd>\( \dfrac{1}{\sqrt{w_1^2 + w_2^2 + \cdots + w_M^2}} \)</dd>
+        <dt>u</dt><dd>\( \dfrac{1}{0.8\,\overline{u} + 0.2\,u_d} \)<small>\( u_d \)：相異詞數，\( \overline{u} \)：語料平均</small></dd>
+        <dt>b</dt><dd>\( \dfrac{1}{\mathrm{CharLength}^{\alpha}},\ \alpha = 0.375 \)</dd>
+      </dl></section>
+    </div>
+  </details>
+</form>
+
+{% if columns %}
+{% set a, b = columns[0], columns[-1] %}
+{% if evaluation and a.metrics %}
+<section class="hw3-metrics" aria-label="指標">
+{% for name in ['nDCG@10', 'P@10', 'MAP', 'MRR'] %}{% set x, y = a.metrics[name], b.metrics[name] %}
+<div class="hw3-metric"><small>{{ name }}</small>
+  <div><span class="{{ 'win' if x > y }}">{{ '%.2f'|format(x) }}</span> <span class="sep">/</span> <span class="{{ 'win' if y > x }}">{{ '%.2f'|format(y) }}</span></div>
+</div>{% endfor %}
+</section>
+<p class="hw3-note">{{ evaluation.id }}：相關文件 {{ relevant }} 篇（MeSH <code>{{ evaluation.rule() }}</code>）· ★ 主要主題 ✓ 相關 · 數字為 A / B</p>
+{% else %}<p class="hw3-note">自由查詢沒有相關性判斷，只比較排名；從「評估查詢」挑一題可以看到指標。</p>{% endif %}
+
+<section class="model-columns hw3-lists">
+{% for column in columns %}<div class="panel">
+<h2>{{ 'A' if loop.first else 'B' }}（{{ column.scheme.code }}）</h2>
+<ol class="hw3-hits">
+{% set side_b = not loop.first %}{% set shown = column.docs[0].pmid if column.docs else '' %}
+{% for row in column.hits %}{% set pmid = row.hit.pmid %}<li {% if pmid == shown %}class="selected"{% endif %}>
+<div class="hit-line"><span class="grade">{% if row.grade == 2 %}★{% elif row.grade == 1 %}✓{% endif %}</span><a href="{% if side_b %}{{ url_for('hw3', query=query, a=codes[0], b=codes[1], doc=doc_a or none, doc_b=pmid) }}{% else %}{{ url_for('hw3', query=query, a=codes[0], b=codes[1], doc=pmid, doc_b=doc_b or none) }}{% endif %}#steps" title="{{ row.doc.title }}">{{ row.doc.title or '（無標題）' }}</a></div></li>{% else %}<li>沒有文件包含這些查詢詞。</li>{% endfor %}
+</ol></div>{% endfor %}
+</section>
+
+{% if columns[0].docs %}
+<section class="panel" id="steps">
+<h2>加權步驟</h2>
+<p class="hw3-note">在左邊清單點標題換 A 的文章，在右邊清單點標題換 B 的文章。</p>
+<div class="model-columns">
+{% for column in columns %}{% set first = column.docs[0] %}<div>
+<h3>{{ 'A' if loop.first else 'B' }}（{{ column.scheme.code }}）</h3>
+<p class="hw3-doc">{% if first.grade == 2 %}★ {% elif first.grade == 1 %}✓ {% endif %}<a href="https://pubmed.ncbi.nlm.nih.gov/{{ first.pmid }}/" target="_blank" rel="noopener noreferrer">{{ first.doc.title or '（無標題）' }}</a></p>
+<p class="hw3-letters">文件 {% for letter, part, rule in first.document.rules %}<code title="{{ part }}：{{ rule }}">{{ letter }}</code>{% endfor %}
+ · 查詢 {% for letter, part, rule in first.query.rules %}<code title="{{ part }}：{{ rule }}">{{ letter }}</code>{% endfor %}</p>
+{% for entry in column.docs %}
+<div class="table-wrap"><table class="step-table"><thead><tr><th>詞</th><th>tf</th><th>文件</th><th>× 查詢</th><th>= 貢獻</th></tr></thead><tbody>
+{% for d in entry.document.side.terms %}{% set q = entry.query.side.terms[loop.index0] %}
+<tr{% if not (q.weight * d.weight) %} class="zero"{% endif %}><td>{{ d.term }}</td><td>{{ d.tf }}</td>
+<td title="{{ '%.3f'|format(d.tf_weight) }} × {{ '%.3f'|format(d.idf) }} ÷ {{ '%.3f'|format(entry.document.side.divisor) }}">{{ '%.4f'|format(d.weight) }}</td>
+<td title="{{ '%.3f'|format(q.tf_weight) }} × {{ '%.3f'|format(q.idf) }} ÷ {{ '%.3f'|format(entry.query.side.divisor) }}">{{ '%.4f'|format(q.weight) }}</td>
+<td>{{ '%.4f'|format(q.weight * d.weight) }}</td></tr>{% endfor %}
+<tr class="divisor"><td colspan="4">文件除以</td><td>{{ '%.3f'|format(entry.document.side.divisor) }}</td></tr>
+<tr class="total"><td colspan="4">分數 <small>{{ '第 %d 名'|format(entry.rank) if entry.rank else '前 10 名外' }}</small></td><td><strong>{{ '%.4f'|format(entry.score) }}</strong></td></tr>
+</tbody></table></div>{% endfor %}
+<ul class="hw3-rules">{% for letter, part, rule in first.document.rules %}<li>文件 {{ part }} <code>{{ letter }}</code>：{{ rule }}</li>{% endfor %}</ul>
+</div>{% endfor %}
+</div>
+</section>
+{% elif columns[0].hits %}<p class="hw3-note">點一篇標題，看這篇在 A、B 下的加權步驟。</p>{% endif %}
+{% endif %}
+{% endif %}
+</main>
+<footer class="container">語料 {{ vsm.corpus if vsm }} · {{ '{:,}'.format(vsm.space|length) if vsm }} 篇 · 標題＋摘要，移除停用詞、Porter 詞幹 · 分數只在同一種加權內可比較 · <a href="{{ url_for('vector_space') }}">舊版頁面</a></footer>
+{% endblock %}
+{% block scripts %}
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+        onload="var legend = document.querySelector('.hw3-legend'); if (legend) renderMathInElement(legend, {delimiters: [{left: '\\[', right: '\\]', display: true}, {left: '\\(', right: '\\)', display: false}], throwOnError: false})"></script>
+{% endblock %}

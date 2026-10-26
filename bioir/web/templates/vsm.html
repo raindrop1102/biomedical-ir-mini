@@ -34,13 +34,41 @@ SMART 記號 ddd.qqq（log 以 10 為底）：TF（n 原始、l 對數、b 二�
 <ol class="vsm-hits">
 {% for row in column.hits %}<li>
   <div class="vsm-title">{% if row.grade == 2 %}<span class="grade" title="相關（主要主題）">★</span>{% elif row.grade == 1 %}<span class="grade" title="相關">✓</span>{% endif %}<a href="https://pubmed.ncbi.nlm.nih.gov/{{ row.hit.pmid }}/" target="_blank" rel="noopener noreferrer">{{ row.doc.title or '（無標題）' }}</a></div>
-  <div class="vsm-meta"><strong>{{ '%.4f'|format(row.hit.score) }}</strong> · PMID {{ row.hit.pmid }} · {{ row.length }} 詞</div>
+  <div class="vsm-meta"><strong>{{ '%.4f'|format(row.hit.score) }}</strong> · PMID {{ row.hit.pmid }} · {{ row.length }} 詞 · <a href="{{ url_for('vector_space', query=query, a=codes[0], b=codes[1], doc=row.hit.pmid) }}#steps">看加權步驟</a></div>
   <div class="vsm-parts">{% for term, value in row.parts %}<span>{{ term }} +{{ '%.4f'|format(value) }}</span>{% endfor %}</div>
 </li>{% else %}<li>沒有文件包含這些查詢詞。</li>{% endfor %}
 </ol></div>{% endfor %}
 </div>
 <p class="hint">每篇下方是各查詢詞對分數的貢獻（查詢權重 × 文件權重，正規化後）。分數只在同一種加權內可比較。</p>
 </section>
+
+{% if step_doc and columns[0].steps %}
+<section class="panel" id="steps">
+<h2>加權步驟：同一篇文件，兩種加權</h2>
+<p>文件：{% if step_grade == 2 %}<span class="grade" title="相關（主要主題）">★</span>{% elif step_grade == 1 %}<span class="grade" title="相關">✓</span>{% endif %}<strong>{{ step_doc.title or '（無標題）' }}</strong>（PMID {{ step_doc.pmid }}）。
+預設是加權 A 的第 1 名；點前 10 名裡的「看加權步驟」可以換一篇。</p>
+<p class="hint">每個詞依序經過 SMART 的三個字母：<strong>tf</strong> → 第 1 個字母算出 <strong>TF 權重</strong> → 乘上第 2 個字母的 <strong>IDF</strong> → 除以第 3 個字母的<strong>正規化</strong> → 得到向量裡的數字。
+查詢與文件各做一次（記號是 文件.查詢），最後同一個詞的兩個數字相乘、加總就是分數。log 以 10 為底。</p>
+<div class="model-columns">
+{% for column in columns %}<div class="step-column">
+<h3>加權 {{ 'A' if loop.first else 'B' }}（{{ column.scheme.code }}）</h3>
+{% for step in column.steps|reverse %}{% set side = step.side %}{% set is_document = loop.first %}
+<h4>{{ '文件' if is_document else '查詢' }}：<code class="smart">{% for letter, _, _ in step.rules %}<span>{{ letter }}</span>{% endfor %}</code></h4>
+<ul class="step-rules">{% for letter, part, rule in step.rules %}<li><code>{{ letter }}</code> {{ part }}：{{ rule }}</li>{% endfor %}</ul>
+<div class="table-wrap"><table class="step-table"><thead><tr><th>詞</th><th>tf</th><th>TF 權重</th><th>× IDF</th><th>÷ 正規化</th><th>= {{ '文件' if is_document else '查詢' }}權重</th></tr></thead><tbody>
+{% for t in side.terms %}<tr{% if not t.weight %} class="zero"{% endif %}><td>{{ t.term }}</td><td>{{ t.tf }}</td><td>{{ '%.3f'|format(t.tf_weight) }}</td><td>{{ '%.3f'|format(t.idf) }}</td><td>{{ '%.3f'|format(side.divisor) }}</td><td><strong>{{ '%.4f'|format(t.weight) }}</strong></td></tr>{% endfor %}
+</tbody></table></div>
+{% endfor %}
+<h4>分數：查詢權重 × 文件權重</h4>
+<div class="table-wrap"><table class="step-table"><thead><tr><th>詞</th><th>查詢</th><th>×</th><th>文件</th><th>= 貢獻</th></tr></thead><tbody>
+{% for term, q, d, product in column.products %}<tr{% if not product %} class="zero"{% endif %}><td>{{ term }}</td><td>{{ '%.4f'|format(q) }}</td><td>×</td><td>{{ '%.4f'|format(d) }}</td><td>{{ '%.4f'|format(product) }}</td></tr>{% endfor %}
+<tr class="total"><td colspan="4">分數（加總）</td><td><strong>{{ '%.4f'|format(column.steps_score) }}</strong></td></tr>
+</tbody></table></div>
+</div>{% endfor %}
+</div>
+<p class="hint">灰色列是權重為 0 的詞（文件沒有出現，或 IDF ≈ 0）。分數和上方前 10 名列出的分數相同。</p>
+</section>
+{% endif %}
 {% endif %}
 
 {% if vsm.summary %}<section class="panel" id="experiment">

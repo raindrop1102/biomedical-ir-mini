@@ -115,6 +115,66 @@ def _load_vsm(corpus: Path, results: Path):
             "chart": results / "metrics.png"}, None
 
 
+# The homework's research questions: each with its one-line conclusion and the controlled
+# comparisons (baseline, variant) that support it, looked up in comparisons.csv.
+RQ_CARDS = [
+    ("RQ1", "原始 TF 還是 log TF？", "log TF 壓縮重複出現的詞：MAP 上升，但前 10 名的 nDCG@10 沒有變好。",
+     [("nnc.nnc", "lnc.lnc")]),
+    ("RQ2", "IDF 乘一次還是兩次？", "IDF 只乘在查詢那邊最好；兩邊都乘（IDF²）讓罕見詞過重，顯著變差。",
+     [("lnc.ltc", "ltc.ltc")]),
+    ("RQ3", "TF-IDF 比只用 TF 或只用 IDF 好嗎？", "TF-IDF 顯著優於只用 IDF；和只用 TF 的差距不顯著。",
+     [("bnc.btc", "lnc.ltc"), ("lnc.lnc", "lnc.ltc")]),
+    ("RQ4", "長度正規化有幫助嗎？", "需要正規化，但 cosine 過度矯正、偏好短文件；pivoted unique 顯著改善 MAP。",
+     [("nnn.nnn", "nnc.nnc"), ("ltn.ltn", "ltc.ltc"), ("lnc.ltc", "lnu.ltc")]),
+]
+CARD_METRICS = ["nDCG@10", "MAP"]
+
+
+def _rq_cards(vsm) -> list[dict]:
+    rows = {}
+    for row in vsm["comparisons"]:
+        rows.setdefault((row["baseline"], row["variant"], row["metric"]), row)
+    cards = []
+    for rq, question, conclusion, pairs in RQ_CARDS:
+        found = [{"baseline": b, "variant": v, "metrics": [rows[b, v, m] for m in CARD_METRICS if (b, v, m) in rows]}
+                 for b, v in pairs]
+        cards.append({"rq": rq, "question": question, "conclusion": conclusion,
+                      "pairs": [p for p in found if p["metrics"]]})
+    return cards
+
+
+def _best_by_metric(vsm) -> list[tuple[str, str, float]]:
+    """RQ5: which scheme each metric ranks first."""
+    summary = vsm["summary"]
+    if not summary:
+        return []
+    best = []
+    for metric in ["nDCG@10", "MAP", "P@10", "MRR"]:
+        top = max(summary, key=lambda row: float(row[metric]))
+        best.append((metric, top["scheme"], float(top[metric])))
+    return best
+
+
+def _explain_side(side, space) -> dict:
+    """Each SMART letter of one side as the rule it applied, with this text's own inputs."""
+    from ..vsm.weighting import BYTE_SIZE_ALPHA, PIVOT_SLOPE
+    w = side.weighting
+    tf = {"n": "tf 原值",
+          "l": "1 + log tf",
+          "a": f"0.5 + 0.5 × tf ÷ 最大 tf（{side.max_tf}）",
+          "b": "有出現記 1，沒出現記 0",
+          "L": f"(1 + log tf) ÷ (1 + log 平均 tf)，平均 tf = {side.average_tf:.2f}"}[w.tf]
+    idf = {"n": "不乘 IDF（記 1）",
+           "t": f"log(N ÷ df)，N = {len(space):,}",
+           "p": f"max(0, log((N − df) ÷ df))，N = {len(space):,}"}[w.idf]
+    norm = {"n": "不正規化（除以 1）",
+            "c": f"除以向量長度 √(Σ 權重²) = {side.divisor:.3f}（計入全部 {side.distinct} 個詞，不只查詢詞）",
+            "u": (f"除以 {1 - PIVOT_SLOPE:g} × 平均相異詞數 {space.pivot:.1f} + {PIVOT_SLOPE:g} × 相異詞數 {side.distinct}"
+                  f" = {side.divisor:.3f}"),
+            "b": f"除以 字元數 {side.characters:,}^{BYTE_SIZE_ALPHA:g} = {side.divisor:.3f}"}[w.norm]
+    return {"side": side, "rules": [(w.tf, "TF", tf), (w.idf, "IDF", idf), (w.norm, "正規化", norm)]}
+
+
 def create_app(corpus=DEFAULT_CORPUS, results=DEFAULT_RESULTS, vsm_corpus=DEFAULT_VSM_CORPUS,
                vsm_results=DEFAULT_VSM_RESULTS) -> Flask:
     corpus, results = Path(corpus), Path(results)
@@ -261,17 +321,18 @@ def create_app(corpus=DEFAULT_CORPUS, results=DEFAULT_RESULTS, vsm_corpus=DEFAUL
             abort(404)
         return send_file(path, mimetype="image/png", max_age=3600)
 
-    @app.get("/vsm")
-    def vector_space():
+    def vsm_context(default_doc: bool) -> tuple[dict, int]:
+        """Both schemes' rankings, metrics and, for one document, weighting steps for the
+        request's query; default_doc picks scheme A's first hit when no document is chosen."""
         from ..vsm import Scheme
         from ..vsm.evaluate import score
         from ..vsm.experiment import SCHEMES
         query = request.args.get("query", "").strip()[:300]
         codes = [request.args.get("a", "lnc.ltc"), request.args.get("b", "ltc.ltc")]
         context = {"error": vsm_error, "vsm": vsm, "query": query, "schemes": SCHEMES, "codes": codes,
-                   "columns": [], "evaluation": None}
+                   "columns": [], "evaluation": None, "step_doc": None}
         if vsm_error or not query:
-            return render_template("vsm.html", **context)
+            return context, 200
         space = vsm["space"]
         evaluation = next((q for q in vsm["queries"] if q.text.lower() == query.lower()), None)
         grades = vsm["judgments"][evaluation.id] if evaluation else {}
@@ -280,7 +341,7 @@ def create_app(corpus=DEFAULT_CORPUS, results=DEFAULT_RESULTS, vsm_corpus=DEFAUL
                 scheme = Scheme.parse(code)
             except ValueError as error:
                 context["error"] = str(error)
-                return render_template("vsm.html", **context), 400
+                return context, 400
             ranking = space.search(query, scheme)
             hits = [{"hit": h, "doc": space.documents[h.pmid], "length": space.lengths[h.pmid],
                      "grade": grades.get(h.pmid, 0),
@@ -289,9 +350,47 @@ def create_app(corpus=DEFAULT_CORPUS, results=DEFAULT_RESULTS, vsm_corpus=DEFAUL
             context["columns"].append({"scheme": scheme, "hits": hits, "metrics": metrics, "total": len(ranking.hits),
                                        "vector": ranking.query_weights, "unknown": ranking.unknown})
         terms = list(dict.fromkeys(t for c in context["columns"] for t in c["vector"]))
+        top = context["columns"][0]["hits"]
+        pmid = request.args.get("doc", "")              # the article shown under scheme A
+        pmid_b = request.args.get("doc_b", "")          # under scheme B; defaults to A's
+        pmid = pmid if pmid in space.tf else ""
+        pmid_b = pmid_b if pmid_b in space.tf else ""
+        if not pmid:
+            pmid = pmid_b or (top[0]["hit"].pmid if top and default_doc else "")
+        for i, column in enumerate(context["columns"]):
+            p = (pmid_b or pmid) if i else pmid
+            column["docs"] = []
+            if not p:
+                continue
+            ranks = {h["hit"].pmid: h["hit"].rank for h in column["hits"]}
+            query_side, document_side = space.breakdown(query, column["scheme"], p)
+            products = [(q.term, q.weight, d.weight, q.weight * d.weight)
+                        for q, d in zip(query_side.terms, document_side.terms)]
+            entry = {"pmid": p, "doc": space.documents[p], "grade": grades.get(p, 0), "rank": ranks.get(p),
+                     "products": products, "score": sum(item[3] for item in products),
+                     "query": _explain_side(query_side, space), "document": _explain_side(document_side, space)}
+            column["docs"].append(entry)
+            column.update(steps=[entry["query"], entry["document"]], products=products, steps_score=entry["score"])
         context.update(evaluation=evaluation, relevant=len(grades), terms=terms,
-                       df={t: space.df(t) for t in terms})
-        return render_template("vsm.html", **context)
+                       df={t: space.df(t) for t in terms}, step_doc=space.documents.get(pmid),
+                       step_grade=grades.get(pmid, 0), doc_a=pmid, doc_b=pmid_b)
+        return context, 200
+
+    @app.get("/vsm")
+    def vector_space():
+        context, status = vsm_context(default_doc=True)
+        return render_template("vsm.html", **context), status
+
+    @app.get("/hw3")
+    def hw3():
+        context, status = vsm_context(default_doc=False)
+        context["examples"] = vsm["queries"] if vsm else []
+        return render_template("hw3.html", **context), status
+
+    @app.get("/hw3/results")
+    def hw3_results():
+        return render_template("hw3_results.html", vsm=vsm, error=vsm_error,
+                               cards=_rq_cards(vsm) if vsm else [], best=_best_by_metric(vsm) if vsm else [])
 
     @app.get("/vsm/metrics.png")
     def vsm_chart():

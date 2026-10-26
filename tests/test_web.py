@@ -90,11 +90,49 @@ class WebTest(unittest.TestCase):
     def test_vector_space_page(self):
         self.assertIn("SMART", self.get("/vsm"))
         page = self.get("/vsm?query=semaglutide+weight&a=lnc.ltc&b=lnu.ltc")
+        self.assertIn("加權 A（lnc.ltc）", page)                  # the letter-by-letter steps
+        self.assertIn("除以向量長度", page)
+        self.assertIn("平均相異詞數", page)
         self.assertIn("評估查詢 <strong>Q1</strong>", page)
         self.assertIn("★", page)
         self.assertIn("nDCG@10", page)
         self.assertIn("A SCHEME", self.get("/vsm?query=x&a=zzz", status=400).upper())
         self.get("/vsm/metrics.png", status=404)
+
+    def test_homework_3_pages(self):
+        self.assertIn("互動檢索", self.get("/hw3"))
+        page = self.get("/hw3?query=semaglutide+weight&a=lnc.ltc&b=ltc.ltc")
+        self.assertIn("A（lnc.ltc）", page)
+        self.assertIn("nDCG@10", page)                                     # Q1 is an evaluation query
+        self.assertNotIn('id="steps"', page)                               # steps only after picking a document
+        page = self.get("/hw3?query=semaglutide+weight&a=lnc.ltc&b=ltc.ltc&doc=11")
+        self.assertIn('id="steps"', page)
+        self.assertIn("除以向量長度", page)
+        self.assertIn("文件除以", page)
+        page = self.get("/hw3?query=semaglutide+weight&a=lnc.ltc&b=ltc.ltc&doc=11&doc_b=12")
+        self.assertIn("pubmed.ncbi.nlm.nih.gov/11/", page)                 # A shows one article,
+        self.assertIn("pubmed.ncbi.nlm.nih.gov/12/", page)                 # B the one picked from its list
+        self.get("/hw3?query=x&a=zzz", status=400)
+        self.assertIn("還沒有實驗結果", self.get("/hw3/results"))
+
+    def test_homework_3_results_cards(self):
+        from bioir.web import create_app
+        results = Path(self.folder.name, "vsm-results")
+        results.mkdir(exist_ok=True)
+        (results / "summary.csv").write_text(
+            "scheme,description,P@10,R@100,MRR,MAP,nDCG@10\n"
+            "lnc.ltc,classic,0.65,0.69,0.89,0.50,0.62\nltc.ltc,IDF twice,0.59,0.66,0.81,0.45,0.54\n", encoding="utf-8")
+        (results / "comparisons.csv").write_text(
+            "question,change,baseline,variant,metric,baseline_mean,variant_mean,difference,better,worse,p_value\n"
+            "RQ2,IDF twice,lnc.ltc,ltc.ltc,nDCG@10,0.62,0.54,-0.08,3,11,0.0018\n"
+            "RQ2,IDF twice,lnc.ltc,ltc.ltc,MAP,0.50,0.45,-0.04,1,14,0.0002\n", encoding="utf-8")
+        mesh = Path(self.folder.name, "mesh", "abstracts.jsonl")
+        page = create_app(Path(self.folder.name, "corpus.jsonl"), Path(self.folder.name, "no-results"), mesh,
+                          results).test_client().get("/hw3/results").get_data(as_text=True)
+        self.assertIn("IDF 乘一次還是兩次？", page)
+        self.assertIn("sig-down", page)                                    # significantly worse
+        self.assertIn("p &lt; 0.001", page)
+        self.assertIn("最佳 <code>lnc.ltc</code>", page)                    # RQ5: best scheme per metric
 
     def test_health_and_headers(self):
         response = self.client.get("/healthz")

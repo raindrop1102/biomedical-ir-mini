@@ -29,6 +29,28 @@ class Ranking:
     hits: list[Hit]                     # every document with a positive score, best first
 
 
+@dataclass
+class TermWeight:
+    term: str
+    tf: int
+    tf_weight: float                    # the TF letter applied to tf
+    idf: float                          # the IDF letter (1 for n)
+    weight: float                       # tf_weight × idf ÷ the side's divisor
+
+
+@dataclass
+class Side:
+    """How one side — the query or one document — turns raw counts into its vector's
+    entries for the query terms, letter by letter."""
+    weighting: Weighting
+    terms: list[TermWeight]
+    divisor: float                      # what the normalization letter divides by (1 for n)
+    max_tf: int                         # inputs of the a and L TF weights
+    average_tf: float
+    distinct: int                       # inputs of the u and b normalizations
+    characters: int
+
+
 class VectorSpace:
     def __init__(self, documents):
         self.documents = {d.pmid: d for d in documents}
@@ -102,3 +124,27 @@ class VectorSpace:
         hits = [Hit(rank, pmid, score, contributions[pmid])
                 for rank, (score, pmid) in enumerate(scored[:k] if k else scored, 1) if score > 0]
         return Ranking(scheme, vector, unknown, hits)
+
+    def breakdown(self, query: str, scheme, pmid: str) -> tuple[Side, Side]:
+        """The query's and one document's weights for every query term the corpus knows,
+        step by step; the score is the sum over terms of the two sides' weights multiplied."""
+        scheme = Scheme.parse(scheme) if isinstance(scheme, str) else scheme
+        n = len(self)
+        counts = Counter(t for t, _ in analyze(query))
+        counts = {t: c for t, c in counts.items() if t in self.postings}
+        sides = []
+        for is_document, (weighting, tf, max_tf, average_tf, distinct, characters) in enumerate((
+                (scheme.query, counts, max(counts.values(), default=1),
+                 sum(counts.values()) / len(counts) if counts else 1.0, len(counts), len(query)),
+                (scheme.document, self.tf[pmid], self.max_tf[pmid], self.average_tf[pmid],
+                 len(self.tf[pmid]), self.characters[pmid]))):
+            raw = [(t, tf.get(t, 0), weighting.tf_weight(tf.get(t, 0), max_tf, average_tf),
+                    weighting.idf_weight(self.df(t), n)) for t in counts]
+            if is_document:                 # the cached divisor: c needs every term of the document
+                divisor = self.norms(weighting)[pmid] if weighting.norm != "n" else 1.0
+            else:
+                divisor = weighting.divisor((w * i for _, _, w, i in raw), distinct, characters, self.pivot)
+            divisor = divisor or 1.0
+            sides.append(Side(weighting, [TermWeight(t, c, w, i, w * i / divisor) for t, c, w, i in raw],
+                              divisor, max_tf, average_tf, distinct, characters))
+        return sides[0], sides[1]

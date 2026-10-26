@@ -37,3 +37,99 @@ html[data-theme="dark"] .zipf-options input, html[data-theme="dark"] .zipf-optio
 .grade { display: inline-block; width: 1.4em; color: #2f7d52; }
 html[data-theme="dark"] .grade { color: #8fd6ac; }
 @media (max-width: 700px) { .vsm-form .narrow-wide { flex-basis: auto; } }
+
+/* Vector space: letter-by-letter weighting steps */
+.step-column h4 { margin: 14px 0 4px; font-size: 14px; }
+.smart span { display: inline-block; min-width: 1.4em; padding: 0 3px; margin-right: 2px; text-align: center;
+  border: 1px solid var(--border); border-radius: 4px; font-weight: 700; }
+.step-rules { margin: 4px 0 6px; padding-left: 18px; font-size: 13px; color: var(--muted); }
+.step-rules code { font-weight: 700; color: var(--navy); }
+.step-table td, .step-table th { text-align: right; white-space: nowrap; }
+.step-table td:first-child, .step-table th:first-child { text-align: left; }
+.step-table tr.zero td { color: var(--muted); opacity: .6; }
+.step-table tr.total td { border-top: 2px solid var(--border); }
+
+/* Homework 3 pages (/hw3, /hw3/results): one question per page, little prose */
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.hw3-header { padding-bottom: 0; }
+.hw3-header h1 { font-size: 30px; letter-spacing: -0.5px; }
+.hw3-tabs { display: flex; justify-content: center; gap: 4px; margin-top: 16px; }
+.hw3-tabs a { padding: 8px 18px; border-bottom: 3px solid transparent; color: var(--muted); text-decoration: none; font-weight: 600; }
+.hw3-tabs a[aria-current="page"] { color: var(--navy); border-bottom-color: var(--navy); }
+.hw3 { padding-top: 20px; }
+.hw3-query { display: grid; gap: 10px; padding: 16px; }
+.hw3-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.hw3-row input, .hw3-row select { min-height: 42px; border: 1px solid #b9c6d4; border-radius: 6px; padding: 6px 10px; font: inherit; background: #f8fafb; color: var(--ink); }
+.hw3-row input { flex: 1 1 260px; }
+.hw3-row > select { flex: 0 1 260px; }
+.hw3-scheme { display: flex; align-items: center; gap: 6px; font-weight: 700; color: var(--navy); }
+.hw3-scheme select { font-family: Consolas, monospace; }
+.hw3-vs { color: var(--muted); }
+.hw3-row button { margin-left: auto; min-height: 42px; }
+.hw3-legend summary { cursor: pointer; color: var(--muted); font-size: 13px; }
+.hw3-legend p, .hw3-legend table { font-size: 13px; margin: 8px 0 0; }
+.hw3-legend th, .hw3-legend td { padding: 6px 8px; }
+.hw3-metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 6px; }
+.hw3-metric { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; text-align: center; font-variant-numeric: tabular-nums; }
+.hw3-metric small { color: var(--muted); }
+.hw3-metric div { font-size: 22px; font-weight: 650; color: var(--muted); }
+.hw3-metric .win { color: #2f7d52; }
+.hw3-metric .sep { font-weight: 400; }
+.hw3-note { color: var(--muted); font-size: 13px; margin: 6px 0 16px; }
+.hw3-lists { margin-top: 0; }
+.hw3-lists .panel { padding: 16px; margin-bottom: 0; }
+.hw3-lists h2, .hw3-card h2 { font-size: 17px; margin: 0 0 8px; }
+.hw3-hits { margin: 0; padding-left: 26px; font-size: 14px; }
+.hw3-hits li { padding: 6px 0; border-bottom: 1px solid var(--border); margin: 0 !important; }
+.hit-line { display: flex; min-width: 0; }
+.hit-line .grade { flex: none; }
+.hit-line a { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-decoration: none; color: var(--ink); }
+.hit-line a:hover { color: var(--blue); text-decoration: underline; }
+.hw3-hits li.selected { background: rgba(36, 91, 145, .08); }
+#steps { margin-top: 20px; }
+.hw3-letters code { display: inline-block; min-width: 1.5em; margin-left: 2px; text-align: center; border: 1px solid var(--border); border-radius: 4px; font-weight: 700; cursor: help; }
+.hw3-rules { font-size: 12px; color: var(--muted); margin: 8px 0 0; }
+.hw3-rules li + li { margin-top: 2px !important; }
+.hw3-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-bottom: 20px; }
+.hw3-card { margin-bottom: 0; padding: 18px; }
+.hw3-card p { margin: 0 0 10px; }
+.hw3-card .rq { color: var(--muted); margin-right: 4px; }
+.hw3-pair { border-top: 1px solid var(--border); padding-top: 8px; margin-top: 8px; }
+.hw3-pair-head { font-size: 13px; margin-bottom: 2px; }
+.hw3-pair-row { display: grid; grid-template-columns: 4.5em 1fr auto auto; gap: 8px; align-items: center; font-size: 13px; padding: 2px 0; font-variant-numeric: tabular-nums; }
+.hw3-pair-row small { color: var(--muted); }
+.hw3-count { color: var(--muted); }
+.badge.sig-up { background: #e3f3e9; color: #1f6a40; }
+.badge.sig-down { background: #fbe6e6; color: #9b2c2c; }
+.badge.sig-none { background: #eef1f5; color: #5b6b7b; }
+.hw3 details { margin-top: 12px; }
+.hw3 details summary { cursor: pointer; font-weight: 600; color: var(--navy); }
+html[data-theme="dark"] .hw3-row input, html[data-theme="dark"] .hw3-row select { background: #172230; border-color: #52697f; color: var(--ink); }
+html[data-theme="dark"] .hw3-metric { background: #142030; }
+html[data-theme="dark"] .hw3-metric .win { color: #8fd6ac; }
+html[data-theme="dark"] .badge.sig-up { background: #1d3a2a; color: #8fd6ac; }
+html[data-theme="dark"] .badge.sig-down { background: #3d2224; color: #f0a8a8; }
+html[data-theme="dark"] .badge.sig-none { background: #243242; color: #aebdce; }
+@media (max-width: 700px) {
+  .hw3-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .hw3-cards { grid-template-columns: minmax(0, 1fr); }
+  .hw3-row > select, .hw3-scheme { flex: 1 1 100%; }
+  .hw3-scheme select { flex: 1; }
+  .hw3-row button { margin-left: 0; width: 100%; }
+  .hw3-vs { display: none; }
+  /* Five pages no longer fit beside the theme button on a phone: let the links scroll */
+  .app-navigation { min-width: 0; overflow-x: auto; scrollbar-width: none; }
+  .app-toolbar button { flex: none; }
+}
+.hw3-doc { font-size: 14px; margin: 0 0 6px; min-height: 2.8em; }
+.step-table tr.divisor td { color: var(--muted); font-size: 12px; }
+/* Homework 3 legend: the lecture's SMART table as formulas (KaTeX) */
+.hw3-formula { text-align: center; overflow-x: auto; }
+.hw3-smart { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 8px; }
+.hw3-smart section { border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; }
+.hw3-smart h4 { margin: 0 0 6px; font-size: 13px; color: var(--navy); }
+.hw3-smart dl { display: grid; grid-template-columns: 1.6em minmax(0, 1fr); gap: 8px 6px; align-items: center; margin: 0; }
+.hw3-smart dt { font: 700 13px Consolas, monospace; color: var(--navy); text-align: center; border: 1px solid var(--border); border-radius: 4px; }
+.hw3-smart dd { margin: 0; overflow-x: auto; overflow-y: hidden; font-size: 14px; }
+.hw3-smart dd small { display: block; color: var(--muted); font-size: 11px; }
+@media (max-width: 900px) { .hw3-smart { grid-template-columns: minmax(0, 1fr); } }
