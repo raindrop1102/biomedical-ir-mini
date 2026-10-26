@@ -111,9 +111,10 @@ class WebTest(unittest.TestCase):
         self.assertIn("Doc length <strong", page)
         self.assertIn("A（ltc.lnc）", page)                                # lecture order: query.document
         # query: tf-raw 1, tf-wt 1, df 1 of N = 2, idf log10 2, wt; document: tf-raw 2, tf-wt 1 + log10 2, wt
-        self.assertIn('<td class="term">semaglutid</td>\n<td>1</td><td>1.00</td><td>1</td>\n<td class="">0.30</td><td>0.30</td>', page)
-        self.assertIn('<td class="group">2</td><td>1.30</td><td>1.30</td>', page)  # A: lnc, no IDF on documents
-        self.assertIn('<td class="group">2</td><td>1.30</td><td>0.39</td>', page)  # B: ltc, 1.30 × 0.30
+        self.assertIn('title="這篇文章出現 2 次">2</td><td title="l：1 + log 2 = 1.301">1.30</td>'
+                      '<td title="tf-wt × 1（文件不乘 IDF）= 1.301">1.30</td>', page)    # A: lnc, no IDF on documents
+        self.assertIn('<td title="tf-wt × idf = 1.301 × 0.301 = 0.392">0.39</td>', page)       # B: ltc
+        self.assertIn('title="t：log(2 ÷ 1) = 0.301"', page)
         page = self.get("/hw3?query=semaglutide+weight&a=lnc.ltc&b=ltc.ltc&doc=11&doc_b=12")
         self.assertIn("pubmed.ncbi.nlm.nih.gov/11/", page)                 # A shows one article,
         self.assertIn("pubmed.ncbi.nlm.nih.gov/12/", page)                 # B the one picked from its list

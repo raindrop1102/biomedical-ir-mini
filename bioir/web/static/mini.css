@@ -140,3 +140,5 @@ html[data-theme="dark"] .badge.sig-none { background: #243242; color: #aebdce; }
 .step-table.lecture thead tr:first-child th { text-align: center; color: var(--navy); font-size: 13px; }
 .step-table .group { border-left: 2px solid var(--border); }
 .step-table th.term, .step-table td.term { text-align: left; }
+.step-table.lecture td[title], .hw3-letters strong[title] { cursor: help; }
+.step-table.lecture tbody td[title]:hover { background: rgba(36, 91, 145, .08); }

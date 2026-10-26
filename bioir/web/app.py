@@ -162,6 +162,62 @@ def lecture_order(code: str) -> str:
     return f"{query}.{document}" if query else code
 
 
+def _tf_note(w, tf: int, side) -> str:
+    """How a TF letter turned this tf into its weight, with the numbers."""
+    value = w.tf_weight(tf, side.max_tf, side.average_tf)
+    if tf <= 0:
+        return "tf = 0，權重 0"
+    return {"n": f"n：tf = {tf}",
+            "l": f"l：1 + log {tf} = {value:.3f}",
+            "a": f"a：0.5 + 0.5 × {tf} ÷ 最大 tf {side.max_tf} = {value:.3f}",
+            "b": "b：有出現記 1",
+            "L": f"L：(1 + log {tf}) ÷ (1 + log 平均 tf {side.average_tf:.2f}) = {value:.3f}"}[w.tf]
+
+
+def _idf_note(w, df: int, n: int) -> str:
+    from ..vsm.weighting import Weighting
+    reference = Weighting("n", "t", "n").idf_weight(df, n)
+    if w.idf == "t":
+        return f"t：log({n:,} ÷ {df:,}) = {reference:.3f}"
+    if w.idf == "p":
+        return f"p：max(0, log(({n:,} − {df:,}) ÷ {df:,})) = {w.idf_weight(df, n):.3f}"
+    return f"n：查詢不乘 IDF（記 1）；log({n:,} ÷ {df:,}) = {reference:.3f} 只供參考"
+
+
+def _norm_note(w, wt: float, weight: float, divisor: float, name: str) -> str:
+    rule = {"c": f"÷ {name} length（向量長度）", "u": "÷ pivoted unique 除數", "b": "÷ 字元數^0.375"}[w.norm]
+    return f"wt {rule} = {wt:.3f} ÷ {divisor:.3f} = {weight:.4f}"
+
+
+def _step_rows(query_side, document_side, space) -> list[dict]:
+    """One row per query term, laid out like Lecture 3's table, with how each number came about."""
+    n = len(space)
+    qw, dw = query_side.weighting, document_side.weighting
+    rows = []
+    for q, d in zip(query_side.terms, document_side.terms):
+        df = space.df(q.term)
+        idf = q.idf if qw.idf != "n" else qw.__class__("n", "t", "n").idf_weight(df, n)
+        q_wt, d_wt = q.tf_weight * q.idf, d.tf_weight * d.idf
+        rows.append({
+            "term": q.term, "zero": not (q.weight * d.weight),
+            "q_tf": (q.tf, f"查詢中出現 {q.tf} 次"),
+            "q_tfwt": (q.tf_weight, _tf_note(qw, q.tf, query_side)),
+            "df": (df, f"{n:,} 篇中有 {df:,} 篇含 {q.term}"),
+            "idf": (idf, _idf_note(qw, df, n)),
+            "q_wt": (q_wt, f"tf-wt × idf = {q.tf_weight:.3f} × {q.idf:.3f} = {q_wt:.3f}" if qw.idf != "n"
+                     else f"tf-wt × 1（查詢不乘 IDF）= {q_wt:.3f}"),
+            "q_norm": (q.weight, _norm_note(qw, q_wt, q.weight, query_side.divisor, "Query") if qw.norm != "n" else ""),
+            "d_tf": (d.tf, f"這篇文章出現 {d.tf} 次"),
+            "d_tfwt": (d.tf_weight, _tf_note(dw, d.tf, document_side)),
+            "d_wt": (d_wt, f"tf-wt × idf = {d.tf_weight:.3f} × {d.idf:.3f} = {d_wt:.3f}" if dw.idf != "n"
+                     else f"tf-wt × 1（文件不乘 IDF）= {d_wt:.3f}"),
+            "d_norm": (d.weight, _norm_note(dw, d_wt, d.weight, document_side.divisor, "Doc") if dw.norm != "n" else ""),
+            "prod": (q.weight * d.weight, f"Query n'lized × Document n'lized = {q.weight:.4f} × {d.weight:.4f}"
+                                          f" = {q.weight * d.weight:.4f}"),
+        })
+    return rows
+
+
 def _explain_side(side, space) -> dict:
     """Each SMART letter of one side as the rule it applied, with this text's own inputs."""
     from ..vsm.weighting import BYTE_SIZE_ALPHA, PIVOT_SLOPE
@@ -376,6 +432,7 @@ def create_app(corpus=DEFAULT_CORPUS, results=DEFAULT_RESULTS, vsm_corpus=DEFAUL
                         for q, d in zip(query_side.terms, document_side.terms)]
             entry = {"pmid": p, "doc": space.documents[p], "grade": grades.get(p, 0), "rank": ranks.get(p),
                      "products": products, "score": sum(item[3] for item in products),
+                     "rows": _step_rows(query_side, document_side, space),
                      "query": _explain_side(query_side, space), "document": _explain_side(document_side, space)}
             column["docs"].append(entry)
             column.update(steps=[entry["query"], entry["document"]], products=products, steps_score=entry["score"])
