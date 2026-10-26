@@ -67,7 +67,7 @@
 <ol class="hw3-hits">
 {% set side_b = not loop.first %}{% set shown = column.docs[0].pmid if column.docs else '' %}
 {% for row in column.hits %}{% set pmid = row.hit.pmid %}<li {% if pmid == shown %}class="selected"{% endif %}>
-<div class="hit-line"><span class="grade">{% if row.grade == 2 %}★{% elif row.grade == 1 %}✓{% endif %}</span><a href="{% if side_b %}{{ url_for('hw3', query=query, a=codes[0], b=codes[1], doc=doc_a or none, doc_b=pmid) }}{% else %}{{ url_for('hw3', query=query, a=codes[0], b=codes[1], doc=pmid, doc_b=doc_b or none) }}{% endif %}#steps" title="{{ row.doc.title }}">{{ row.doc.title or '（無標題）' }}</a></div></li>{% else %}<li>沒有文件包含這些查詢詞。</li>{% endfor %}
+<div class="hit-line"><span class="grade">{% if row.grade == 2 %}★{% elif row.grade == 1 %}✓{% endif %}</span><a href="{% if side_b %}{{ url_for('hw3', query=query, a=codes[0], b=codes[1], doc=doc_a or none, doc_b=pmid) }}{% else %}{{ url_for('hw3', query=query, a=codes[0], b=codes[1], doc=pmid, doc_b=doc_b or none) }}{% endif %}#steps" title="{{ row.doc.title }}">{{ row.doc.title or '（無標題）' }}</a><span class="hit-score" title="這篇文章在 {{ column.scheme.code|lecture }} 下的分數">{{ '%.4f'|format(row.hit.score) }}</span></div></li>{% else %}<li>沒有文件包含這些查詢詞。</li>{% endfor %}
 </ol></div>{% endfor %}
 </section>
 

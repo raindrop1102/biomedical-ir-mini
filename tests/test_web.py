@@ -105,6 +105,7 @@ class WebTest(unittest.TestCase):
         self.assertIn('<span class="side-tag">A</span>ltc.lnc', page)
         self.assertIn("nDCG@10", page)                                     # Q1 is an evaluation query
         self.assertNotIn('id="steps"', page)                               # steps only after picking a document
+        self.assertIn('class="hit-score"', page)                           # every hit shows its score
         page = self.get("/hw3?query=semaglutide+weight&a=lnc.ltc&b=ltc.ltc&doc=11")
         self.assertIn('id="steps"', page)
         self.assertIn("除以向量長度", page)

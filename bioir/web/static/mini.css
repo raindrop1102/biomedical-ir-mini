@@ -174,3 +174,6 @@ html[data-theme="dark"] .hw3-scheme .side-tag { color: #0f1a26; }
 .step-table.lecture tr.total td { background: var(--tint-p-body); font-weight: 600; }
 .step-table.lecture tr.total strong { font-size: 15px; color: var(--ink-p); }
 .step-table.lecture tbody td[title]:hover { background: var(--side-a-bg); }
+.hit-score { flex: none; margin-left: 12px; font-size: 13px; font-variant-numeric: tabular-nums; color: var(--muted); }
+.hw3-lists .panel:first-child .hit-score { color: var(--side-a); }
+.hw3-lists .panel:last-child .hit-score { color: var(--side-b); }
