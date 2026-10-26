@@ -134,3 +134,4 @@ html[data-theme="dark"] .badge.sig-none { background: #243242; color: #aebdce; }
 .hw3-smart dd { margin: 0; overflow-x: auto; overflow-y: hidden; font-size: 14px; }
 .hw3-smart dd small { display: block; color: var(--muted); font-size: 11px; }
 @media (max-width: 900px) { .hw3-smart { grid-template-columns: minmax(0, 1fr); } }
+.step-table .muted { color: var(--muted); opacity: .55; }

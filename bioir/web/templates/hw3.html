@@ -82,14 +82,13 @@
 <p class="hw3-letters">文件 {% for letter, part, rule in first.document.rules %}<code title="{{ part }}：{{ rule }}">{{ letter }}</code>{% endfor %}
  · 查詢 {% for letter, part, rule in first.query.rules %}<code title="{{ part }}：{{ rule }}">{{ letter }}</code>{% endfor %}</p>
 {% for entry in column.docs %}
-<div class="table-wrap"><table class="step-table"><thead><tr><th>詞</th><th title="這篇文章裡出現幾次">tf</th><th title="含這個詞的文件數">DF</th><th title="log(N ÷ DF)">IDF</th><th title="這個詞在文件向量裡的數字：依文件的三個字母算出">文件權重</th><th title="這個詞在查詢向量裡的數字：依查詢的三個字母算出">× 查詢權重</th><th>= 貢獻</th></tr></thead><tbody>
+<div class="table-wrap"><table class="step-table"><thead><tr><th>詞</th><th title="這篇文章裡出現幾次">tf</th><th title="含這個詞的文件數">DF</th><th title="log(N ÷ DF)；灰字表示文件那邊沒有乘 IDF" class="{{ 'muted' if first.document.side.weighting.idf == 'n' }}">IDF</th><th title="文件正規化時除以的數：c 為向量長度，u、b 見記號說明；n 不除">÷ 長度</th><th title="這個詞在文件向量裡的數字：依文件的三個字母算出">文件權重</th><th title="這個詞在查詢向量裡的數字：依查詢的三個字母算出">× 查詢權重</th><th>= 貢獻</th></tr></thead><tbody>
 {% for d in entry.document.side.terms %}{% set q = entry.query.side.terms[loop.index0] %}
-<tr{% if not (q.weight * d.weight) %} class="zero"{% endif %}><td>{{ d.term }}</td><td>{{ d.tf }}</td><td>{{ '{:,}'.format(df[d.term]) }}</td><td>{{ '%.3f'|format(idf[d.term]) }}</td>
+<tr{% if not (q.weight * d.weight) %} class="zero"{% endif %}><td>{{ d.term }}</td><td>{{ d.tf }}</td><td>{{ '{:,}'.format(df[d.term]) }}</td><td class="{{ 'muted' if entry.document.side.weighting.idf == 'n' }}">{{ '%.3f'|format(idf[d.term]) }}</td><td>{{ '%.3f'|format(entry.document.side.divisor) }}</td>
 <td title="{{ '%.3f'|format(d.tf_weight) }} × {{ '%.3f'|format(d.idf) }} ÷ {{ '%.3f'|format(entry.document.side.divisor) }}">{{ '%.4f'|format(d.weight) }}</td>
 <td title="{{ '%.3f'|format(q.tf_weight) }} × {{ '%.3f'|format(q.idf) }} ÷ {{ '%.3f'|format(entry.query.side.divisor) }}">{{ '%.4f'|format(q.weight) }}</td>
 <td>{{ '%.4f'|format(q.weight * d.weight) }}</td></tr>{% endfor %}
-<tr class="divisor"><td colspan="6">文件除以</td><td>{{ '%.3f'|format(entry.document.side.divisor) }}</td></tr>
-<tr class="total"><td colspan="6">分數 <small>{{ '第 %d 名'|format(entry.rank) if entry.rank else '前 10 名外' }}</small></td><td><strong>{{ '%.4f'|format(entry.score) }}</strong></td></tr>
+<tr class="total"><td colspan="7">分數 <small>{{ '第 %d 名'|format(entry.rank) if entry.rank else '前 10 名外' }}</small></td><td><strong>{{ '%.4f'|format(entry.score) }}</strong></td></tr>
 </tbody></table></div>{% endfor %}
 <ul class="hw3-rules">{% for letter, part, rule in first.document.rules %}<li>文件 {{ part }} <code>{{ letter }}</code>：{{ rule }}</li>{% endfor %}</ul>
 </div>{% endfor %}
