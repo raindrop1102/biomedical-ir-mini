@@ -102,22 +102,24 @@ class WebTest(unittest.TestCase):
     def test_homework_3_pages(self):
         self.assertIn("互動檢索", self.get("/hw3"))
         page = self.get("/hw3?query=semaglutide+weight&a=lnc.ltc&b=ltc.ltc")
-        self.assertIn("A（ltc.lnc）", page)
+        self.assertIn('<span class="side-tag">A</span>ltc.lnc', page)
         self.assertIn("nDCG@10", page)                                     # Q1 is an evaluation query
         self.assertNotIn('id="steps"', page)                               # steps only after picking a document
         page = self.get("/hw3?query=semaglutide+weight&a=lnc.ltc&b=ltc.ltc&doc=11")
         self.assertIn('id="steps"', page)
         self.assertIn("除以向量長度", page)
         self.assertIn("Doc length <strong", page)
-        self.assertIn("A（ltc.lnc）", page)                                # lecture order: query.document
+        self.assertIn('<span class="side-tag">A</span>ltc.lnc', page)                                # lecture order: query.document
         # query: tf-raw 1, tf-wt 1, df 1 of N = 2, idf log10 2, wt; document: tf-raw 2, tf-wt 1 + log10 2, wt
-        self.assertIn('title="這篇文章出現 2 次">2</td><td title="l：1 + log 2 = 1.301">1.30</td>'
-                      '<td title="tf-wt × 1（文件不乘 IDF）= 1.301">1.30</td>', page)    # A: lnc, no IDF on documents
-        self.assertIn('<td title="tf-wt × idf = 1.301 × 0.301 = 0.392">0.39</td>', page)       # B: ltc
+        self.assertIn('title="這篇文章出現 2 次">2</td><td class="d" title="l：1 + log 2 = 1.301">1.30</td>'
+                      '<td class="d" title="tf-wt × 1（文件不乘 IDF）= 1.301">1.30</td>', page)  # A: lnc, no IDF on documents
+        self.assertIn('<td class="d" title="tf-wt × idf = 1.301 × 0.301 = 0.392">0.39</td>', page)  # B: ltc
         self.assertIn('title="t：log(2 ÷ 1) = 0.301"', page)
         page = self.get("/hw3?query=semaglutide+weight&a=lnc.ltc&b=ltc.ltc&doc=11&doc_b=12")
         self.assertIn("pubmed.ncbi.nlm.nih.gov/11/", page)                 # A shows one article,
         self.assertIn("pubmed.ncbi.nlm.nih.gov/12/", page)                 # B the one picked from its list
+        self.assertIn("交換文章", page)                                     # then each with the other's article
+        self.assertEqual(page.count('<table class="step-table lecture">'), 4)
         self.get("/hw3?query=x&a=zzz", status=400)
         self.assertIn("還沒有實驗結果", self.get("/hw3/results"))
 

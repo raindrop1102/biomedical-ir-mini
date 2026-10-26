@@ -18,7 +18,7 @@
     </select>{% endif %}
   </div>
   <div class="hw3-row">
-    {% for code in codes %}<label class="hw3-scheme"><span>{{ 'A' if loop.first else 'B' }}</span>
+    {% for code in codes %}<label class="hw3-scheme"><span class="side-tag {{ 'side-a' if loop.first else 'side-b' }}">{{ 'A' if loop.first else 'B' }}</span>
       <select name="{{ 'a' if loop.first else 'b' }}" aria-label="加權 {{ 'A' if loop.first else 'B' }}">{% for key, label in schemes.items() %}<option value="{{ key }}" title="{{ label }}" {% if code == key %}selected{% endif %}>{{ key|lecture }}</option>{% endfor %}</select></label>
     {% if loop.first %}<span class="hw3-vs">vs</span>{% endif %}{% endfor %}
     <button type="submit">比較</button>
@@ -55,15 +55,15 @@
 <section class="hw3-metrics" aria-label="指標">
 {% for name in ['nDCG@10', 'P@10', 'MAP', 'MRR'] %}{% set x, y = a.metrics[name], b.metrics[name] %}
 <div class="hw3-metric"><small>{{ name }}</small>
-  <div><span class="{{ 'win' if x > y }}">{{ '%.2f'|format(x) }}</span> <span class="sep">/</span> <span class="{{ 'win' if y > x }}">{{ '%.2f'|format(y) }}</span></div>
+  <div><span class="side-a {{ 'win' if x > y else ('lose' if y > x) }}">{{ '%.2f'|format(x) }}</span> <span class="sep">/</span> <span class="side-b {{ 'win' if y > x else ('lose' if x > y) }}">{{ '%.2f'|format(y) }}</span></div>
 </div>{% endfor %}
 </section>
-<p class="hw3-note">{{ evaluation.id }}：相關文件 {{ relevant }} 篇（MeSH <code>{{ evaluation.rule() }}</code>）· ★ 主要主題 ✓ 相關 · 數字為 A / B</p>
+<p class="hw3-note">{{ evaluation.id }}：相關文件 {{ relevant }} 篇（MeSH <code>{{ evaluation.rule() }}</code>）· ★ 主要主題 ✓ 相關 · 數字為 <span class="side-a">A</span> / <span class="side-b">B</span>，粗體為較高者</p>
 {% else %}<p class="hw3-note">自由查詢沒有相關性判斷，只比較排名；從「評估查詢」挑一題可以看到指標。</p>{% endif %}
 
 <section class="model-columns hw3-lists">
 {% for column in columns %}<div class="panel">
-<h2>{{ 'A' if loop.first else 'B' }}（{{ column.scheme.code|lecture }}）</h2>
+<h2 class="side-title {{ 'side-a' if loop.first else 'side-b' }}"><span class="side-tag">{{ 'A' if loop.first else 'B' }}</span>{{ column.scheme.code|lecture }}</h2>
 <ol class="hw3-hits">
 {% set side_b = not loop.first %}{% set shown = column.docs[0].pmid if column.docs else '' %}
 {% for row in column.hits %}{% set pmid = row.hit.pmid %}<li {% if pmid == shown %}class="selected"{% endif %}>
@@ -75,30 +75,33 @@
 <section class="panel" id="steps">
 <h2>加權步驟</h2>
 <p class="hw3-note">在左邊清單點標題換 A 的文章，在右邊清單點標題換 B 的文章。欄位同講義：Query 的權重 × Document 的權重 = Prod，Prod 加總就是分數。滑鼠移到數字上可以看計算過程。</p>
+{% for k in range(columns[0].docs|length) %}
+{% if k %}<p class="hw3-swap">交換文章：A 改看右邊的文章，B 改看左邊的文章</p>{% endif %}
 <div class="model-columns">
-{% for column in columns %}{% set entry = column.docs[0] %}{% set qw, dw = column.scheme.query, column.scheme.document %}
+{% for column in columns %}{% set entry = column.docs[k] %}{% set qw, dw = column.scheme.query, column.scheme.document %}
 {% set q_norm, d_norm = qw.norm != 'n', dw.norm != 'n' %}<div>
-<h3>{{ 'A' if loop.first else 'B' }}（{{ column.scheme.code|lecture }}）</h3>
-<p class="hw3-doc">{% if entry.grade == 2 %}★ {% elif entry.grade == 1 %}✓ {% endif %}<a href="https://pubmed.ncbi.nlm.nih.gov/{{ entry.pmid }}/" target="_blank" rel="noopener noreferrer">{{ entry.doc.title or '（無標題）' }}</a></p>
+<h3 class="side-title {{ 'side-a' if loop.first else 'side-b' }}"><span class="side-tag">{{ 'A' if loop.first else 'B' }}</span>{{ column.scheme.code|lecture }}</h3>
+<p class="hw3-doc" title="{{ entry.doc.title }}">{% if entry.grade == 2 %}★ {% elif entry.grade == 1 %}✓ {% endif %}<a href="https://pubmed.ncbi.nlm.nih.gov/{{ entry.pmid }}/" target="_blank" rel="noopener noreferrer">{{ entry.doc.title or '（無標題）' }}</a></p>
 <p class="hw3-letters">Query {% for letter, part, rule in entry.query.rules %}<code title="{{ part }}：{{ rule }}">{{ letter }}</code>{% endfor %}
  · Document {% for letter, part, rule in entry.document.rules %}<code title="{{ part }}：{{ rule }}">{{ letter }}</code>{% endfor %}
 {% if q_norm %} · Query length <strong title="{{ entry.query.rules[2][2] }}">{{ '%.3f'|format(entry.query.side.divisor) }}</strong>{% endif %}
 {% if d_norm %} · Doc length <strong title="{{ entry.document.rules[2][2] }}">{{ '%.3f'|format(entry.document.side.divisor) }}</strong>{% endif %}</p>
 <div class="table-wrap"><table class="step-table lecture">
-<thead><tr><th rowspan="2" class="term">Term</th><th colspan="{{ 6 if q_norm else 5 }}" class="group">Query</th><th colspan="{{ 4 if d_norm else 3 }}" class="group">Document</th><th rowspan="2" class="group">Prod</th></tr>
-<tr><th class="group">tf-raw</th><th>tf-wt</th><th>df</th><th class="{{ 'muted' if qw.idf == 'n' }}" title="log(N ÷ df)；灰字表示查詢沒有乘 IDF">idf</th><th>wt</th>{% if q_norm %}<th>n'lized</th>{% endif %}
-<th class="group">tf-raw</th><th>tf-wt</th><th title="tf-wt × 文件的 IDF（文件第 2 個字母）">wt</th>{% if d_norm %}<th>n'lized</th>{% endif %}</tr></thead><tbody>
+<thead><tr><th rowspan="2" class="term">Term</th><th colspan="{{ 6 if q_norm else 5 }}" class="group q">Query</th><th colspan="{{ 4 if d_norm else 3 }}" class="group d">Document</th><th rowspan="2" class="group p">Prod</th></tr>
+<tr><th class="group q">tf-raw</th><th class="q">tf-wt</th><th class="q">df</th><th class="q {{ 'muted' if qw.idf == 'n' }}" title="log(N ÷ df)；灰字表示查詢沒有乘 IDF">idf</th><th class="q">wt</th>{% if q_norm %}<th class="q">n'lized</th>{% endif %}
+<th class="group d">tf-raw</th><th class="d">tf-wt</th><th class="d" title="tf-wt × 文件的 IDF（文件第 2 個字母）">wt</th>{% if d_norm %}<th class="d">n'lized</th>{% endif %}</tr></thead><tbody>
 {% for r in entry.rows %}
 <tr{% if r.zero %} class="zero"{% endif %}><td class="term">{{ r.term }}</td>
-<td class="group" title="{{ r.q_tf[1] }}">{{ r.q_tf[0] }}</td><td title="{{ r.q_tfwt[1] }}">{{ '%.2f'|format(r.q_tfwt[0]) }}</td><td title="{{ r.df[1] }}">{{ '{:,}'.format(r.df[0]) }}</td>
-<td class="{{ 'muted' if qw.idf == 'n' }}" title="{{ r.idf[1] }}">{{ '%.2f'|format(r.idf[0]) }}</td><td title="{{ r.q_wt[1] }}">{{ '%.2f'|format(r.q_wt[0]) }}</td>{% if q_norm %}<td title="{{ r.q_norm[1] }}">{{ '%.3f'|format(r.q_norm[0]) }}</td>{% endif %}
-<td class="group" title="{{ r.d_tf[1] }}">{{ r.d_tf[0] }}</td><td title="{{ r.d_tfwt[1] }}">{{ '%.2f'|format(r.d_tfwt[0]) }}</td><td title="{{ r.d_wt[1] }}">{{ '%.2f'|format(r.d_wt[0]) }}</td>{% if d_norm %}<td title="{{ r.d_norm[1] }}">{{ '%.3f'|format(r.d_norm[0]) }}</td>{% endif %}
-<td class="group" title="{{ r.prod[1] }}">{{ '%.4f'|format(r.prod[0]) }}</td></tr>{% endfor %}
-<tr class="total"><td colspan="{{ 1 + (6 if q_norm else 5) + (4 if d_norm else 3) }}">Score <small>{{ '第 %d 名'|format(entry.rank) if entry.rank else '前 10 名外' }}</small></td><td class="group" title="Prod 加總 = {{ entry.rows|map(attribute='prod')|map('first')|map('round', 4)|join(' + ') }} = {{ '%.4f'|format(entry.score) }}"><strong>{{ '%.4f'|format(entry.score) }}</strong></td></tr>
+<td class="group q" title="{{ r.q_tf[1] }}">{{ r.q_tf[0] }}</td><td class="q" title="{{ r.q_tfwt[1] }}">{{ '%.2f'|format(r.q_tfwt[0]) }}</td><td class="q" title="{{ r.df[1] }}">{{ '{:,}'.format(r.df[0]) }}</td>
+<td class="q {{ 'muted' if qw.idf == 'n' }}" title="{{ r.idf[1] }}">{{ '%.2f'|format(r.idf[0]) }}</td><td class="q" title="{{ r.q_wt[1] }}">{{ '%.2f'|format(r.q_wt[0]) }}</td>{% if q_norm %}<td class="q" title="{{ r.q_norm[1] }}">{{ '%.3f'|format(r.q_norm[0]) }}</td>{% endif %}
+<td class="group d" title="{{ r.d_tf[1] }}">{{ r.d_tf[0] }}</td><td class="d" title="{{ r.d_tfwt[1] }}">{{ '%.2f'|format(r.d_tfwt[0]) }}</td><td class="d" title="{{ r.d_wt[1] }}">{{ '%.2f'|format(r.d_wt[0]) }}</td>{% if d_norm %}<td class="d" title="{{ r.d_norm[1] }}">{{ '%.3f'|format(r.d_norm[0]) }}</td>{% endif %}
+<td class="group p" title="{{ r.prod[1] }}">{{ '%.4f'|format(r.prod[0]) }}</td></tr>{% endfor %}
+<tr class="total"><td colspan="{{ 1 + (6 if q_norm else 5) + (4 if d_norm else 3) }}">Score <small>{{ '第 %d 名'|format(entry.rank) if entry.rank else '前 10 名外' }}</small></td><td class="group p" title="Prod 加總 = {{ entry.rows|map(attribute='prod')|map('first')|map('round', 4)|join(' + ') }} = {{ '%.4f'|format(entry.score) }}"><strong>{{ '%.4f'|format(entry.score) }}</strong></td></tr>
 </tbody></table></div>
 <ul class="hw3-rules">{% for letter, part, rule in entry.query.rules %}<li>Query {{ part }} <code>{{ letter }}</code>：{{ rule }}</li>{% endfor %}{% for letter, part, rule in entry.document.rules %}<li>Document {{ part }} <code>{{ letter }}</code>：{{ rule }}</li>{% endfor %}</ul>
 </div>{% endfor %}
 </div>
+{% endfor %}
 </section>
 {% elif columns[0].hits %}<p class="hw3-note">點一篇標題，看這篇在 A、B 下的加權步驟。</p>{% endif %}
 {% endif %}

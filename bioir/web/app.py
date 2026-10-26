@@ -421,21 +421,25 @@ def create_app(corpus=DEFAULT_CORPUS, results=DEFAULT_RESULTS, vsm_corpus=DEFAUL
         pmid_b = pmid_b if pmid_b in space.tf else ""
         if not pmid:
             pmid = pmid_b or (top[0]["hit"].pmid if top and default_doc else "")
+        # Each scheme shows its own article first; when A and B show different articles, each
+        # also shows the other's, so both articles can be compared under both weightings.
+        shown = [(pmid_b or pmid) if i else pmid for i in range(len(context["columns"]))]
         for i, column in enumerate(context["columns"]):
-            p = (pmid_b or pmid) if i else pmid
             column["docs"] = []
-            if not p:
-                continue
             ranks = {h["hit"].pmid: h["hit"].rank for h in column["hits"]}
-            query_side, document_side = space.breakdown(query, column["scheme"], p)
-            products = [(q.term, q.weight, d.weight, q.weight * d.weight)
-                        for q, d in zip(query_side.terms, document_side.terms)]
-            entry = {"pmid": p, "doc": space.documents[p], "grade": grades.get(p, 0), "rank": ranks.get(p),
-                     "products": products, "score": sum(item[3] for item in products),
-                     "rows": _step_rows(query_side, document_side, space),
-                     "query": _explain_side(query_side, space), "document": _explain_side(document_side, space)}
-            column["docs"].append(entry)
-            column.update(steps=[entry["query"], entry["document"]], products=products, steps_score=entry["score"])
+            for p in [p for p in dict.fromkeys([shown[i], *shown]) if p]:
+                query_side, document_side = space.breakdown(query, column["scheme"], p)
+                products = [(q.term, q.weight, d.weight, q.weight * d.weight)
+                            for q, d in zip(query_side.terms, document_side.terms)]
+                column["docs"].append({
+                    "pmid": p, "doc": space.documents[p], "grade": grades.get(p, 0), "rank": ranks.get(p),
+                    "products": products, "score": sum(item[3] for item in products),
+                    "rows": _step_rows(query_side, document_side, space),
+                    "query": _explain_side(query_side, space), "document": _explain_side(document_side, space)})
+            if column["docs"]:              # the original page shows the first document only
+                first = column["docs"][0]
+                column.update(steps=[first["query"], first["document"]], products=first["products"],
+                              steps_score=first["score"])
         context.update(evaluation=evaluation, relevant=len(grades), terms=terms,
                        df={t: space.df(t) for t in terms}, step_doc=space.documents.get(pmid),
                        step_grade=grades.get(pmid, 0), doc_a=pmid, doc_b=pmid_b)

@@ -74,7 +74,6 @@ main.container.hw3, .hw3-header .container, .hw3 ~ footer.container { width: min
 .hw3-metric { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; text-align: center; font-variant-numeric: tabular-nums; }
 .hw3-metric small { color: var(--muted); }
 .hw3-metric div { font-size: 22px; font-weight: 650; color: var(--muted); }
-.hw3-metric .win { color: #2f7d52; }
 .hw3-metric .sep { font-weight: 400; }
 .hw3-note { color: var(--muted); font-size: 13px; margin: 6px 0 16px; }
 .hw3-lists { margin-top: 0; }
@@ -107,7 +106,6 @@ main.container.hw3, .hw3-header .container, .hw3 ~ footer.container { width: min
 .hw3 details summary { cursor: pointer; font-weight: 600; color: var(--navy); }
 html[data-theme="dark"] .hw3-row input, html[data-theme="dark"] .hw3-row select { background: #172230; border-color: #52697f; color: var(--ink); }
 html[data-theme="dark"] .hw3-metric { background: #142030; }
-html[data-theme="dark"] .hw3-metric .win { color: #8fd6ac; }
 html[data-theme="dark"] .badge.sig-up { background: #1d3a2a; color: #8fd6ac; }
 html[data-theme="dark"] .badge.sig-down { background: #3d2224; color: #f0a8a8; }
 html[data-theme="dark"] .badge.sig-none { background: #243242; color: #aebdce; }
@@ -122,7 +120,7 @@ html[data-theme="dark"] .badge.sig-none { background: #243242; color: #aebdce; }
   .app-navigation { min-width: 0; overflow-x: auto; scrollbar-width: none; }
   .app-toolbar button { flex: none; }
 }
-.hw3-doc { font-size: 14px; margin: 0 0 6px; min-height: 2.8em; }
+.hw3-doc { font-size: 14px; margin: 0 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .step-table tr.divisor td { color: var(--muted); font-size: 12px; }
 /* Homework 3 legend: the lecture's SMART table as formulas (KaTeX) */
 .hw3-formula { text-align: center; overflow-x: auto; }
@@ -142,3 +140,37 @@ html[data-theme="dark"] .badge.sig-none { background: #243242; color: #aebdce; }
 .step-table th.term, .step-table td.term { text-align: left; }
 .step-table.lecture td[title], .hw3-letters strong[title] { cursor: help; }
 .step-table.lecture tbody td[title]:hover { background: rgba(36, 91, 145, .08); }
+.hw3-swap { margin: 26px 0 0; padding-top: 14px; border-top: 2px dashed var(--border); color: var(--navy); font-weight: 600; font-size: 14px; }
+
+/* Homework 3 colours, each with one meaning: A blue and B orange wherever the two
+   weightings are compared; the lecture table's Query, Document and Prod groups tinted;
+   the score emphasised. */
+:root { --side-a: #245b91; --side-b: #b8571a; --side-a-bg: #e3edf7; --side-b-bg: #fbeadf;
+  --tint-q: #e2f3f0; --tint-q-body: #f3faf8; --tint-d: #ece9f8; --tint-d-body: #f7f6fc;
+  --tint-p: #fbefd3; --tint-p-body: #fdf8ec; --ink-p: #7a5310; }
+html[data-theme="dark"] { --side-a: #92c5ff; --side-b: #f3a76c; --side-a-bg: #1f3550; --side-b-bg: #46301f;
+  --tint-q: #1d3a36; --tint-q-body: #172b29; --tint-d: #2b2744; --tint-d-body: #211f33;
+  --tint-p: #3d321b; --tint-p-body: #2b2517; --ink-p: #f2cf86; }
+.side-a { color: var(--side-a); }
+.side-b { color: var(--side-b); }
+.side-tag { display: inline-flex; align-items: center; justify-content: center; min-width: 1.6em; padding: 0 5px;
+  border-radius: 4px; font-weight: 700; color: #fff; background: var(--side-a); }
+.side-tag.side-b, .side-b > .side-tag { background: var(--side-b); }
+.side-a > .side-tag { background: var(--side-a); }
+html[data-theme="dark"] .side-tag { color: #0f1a26; }
+.hw3-scheme .side-tag { color: #fff; }
+html[data-theme="dark"] .hw3-scheme .side-tag { color: #0f1a26; }
+.side-title { display: flex; align-items: center; gap: 8px; padding-bottom: 6px; border-bottom: 3px solid currentColor; }
+.side-title .side-tag { font-size: 13px; }
+.hw3-metric .side-a, .hw3-metric .side-b { font-weight: 500; }
+.hw3-metric .win { font-weight: 800; }
+.hw3-metric .lose { opacity: .55; }
+.step-table.lecture th.q { background: var(--tint-q); }
+.step-table.lecture td.q { background: var(--tint-q-body); }
+.step-table.lecture th.d { background: var(--tint-d); }
+.step-table.lecture td.d { background: var(--tint-d-body); }
+.step-table.lecture th.p { background: var(--tint-p); color: var(--ink-p); }
+.step-table.lecture td.p { background: var(--tint-p-body); color: var(--ink-p); font-weight: 600; }
+.step-table.lecture tr.total td { background: var(--tint-p-body); font-weight: 600; }
+.step-table.lecture tr.total strong { font-size: 15px; color: var(--ink-p); }
+.step-table.lecture tbody td[title]:hover { background: var(--side-a-bg); }
