@@ -39,3 +39,10 @@ jobs:
                       /embedding/projections.png "/vsm?query=pancreatic+cancer+risk" /vsm/metrics.png; do
             curl -fsS -o /dev/null -w "%{http_code} %{time_total}s $path\n" "localhost:$PORT$path"
           done
+      - name: Serve with Render's default start command for a hand-made web service
+        env:
+          PORT: 8001
+        run: |
+          gunicorn app:app &
+          for i in $(seq 60); do curl -fs localhost:$PORT/healthz >/dev/null && break; sleep 1; done
+          curl -fsS -o /dev/null -w "%{http_code} /\n" localhost:$PORT/

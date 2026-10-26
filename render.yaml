@@ -7,7 +7,7 @@ services:
     buildCommand: pip install -r requirements.txt
     # One worker keeps memory near 200 MB (the free plan has 512 MB); threads serve requests
     # concurrently, which the read-only app allows. Startup builds every index in about 3 s.
-    startCommand: gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 120 "bioir.web:create_app()"
+    startCommand: gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 120 app:app
     healthCheckPath: /healthz
     envVars:
       - key: MPLBACKEND
