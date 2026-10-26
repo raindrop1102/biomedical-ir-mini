@@ -44,7 +44,7 @@ html[data-theme="dark"] .grade { color: #8fd6ac; }
   border: 1px solid var(--border); border-radius: 4px; font-weight: 700; }
 .step-rules { margin: 4px 0 6px; padding-left: 18px; font-size: 13px; color: var(--muted); }
 .step-rules code { font-weight: 700; color: var(--navy); }
-.step-table td, .step-table th { text-align: right; white-space: nowrap; }
+.step-table td, .step-table th { text-align: right; white-space: nowrap; padding: 10px 12px; }
 .step-table td:first-child, .step-table th:first-child { text-align: left; }
 .step-table tr.zero td { color: var(--muted); opacity: .6; }
 .step-table tr.total td { border-top: 2px solid var(--border); }
@@ -57,6 +57,7 @@ html[data-theme="dark"] .grade { color: #8fd6ac; }
 .hw3-tabs a { padding: 8px 18px; border-bottom: 3px solid transparent; color: var(--muted); text-decoration: none; font-weight: 600; }
 .hw3-tabs a[aria-current="page"] { color: var(--navy); border-bottom-color: var(--navy); }
 .hw3 { padding-top: 20px; }
+main.container.hw3, .hw3-header .container, .hw3 ~ footer.container { width: min(1240px, calc(100% - 48px)); }
 .hw3-query { display: grid; gap: 10px; padding: 16px; }
 .hw3-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .hw3-row input, .hw3-row select { min-height: 42px; border: 1px solid #b9c6d4; border-radius: 6px; padding: 6px 10px; font: inherit; background: #f8fafb; color: var(--ink); }

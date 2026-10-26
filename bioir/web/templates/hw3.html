@@ -74,7 +74,7 @@
 {% if columns[0].docs %}
 <section class="panel" id="steps">
 <h2>加權步驟</h2>
-<p class="hw3-note">在左邊清單點標題換 A 的文章，在右邊清單點標題換 B 的文章。</p>
+<p class="hw3-note">在左邊清單點標題換 A 的文章，在右邊清單點標題換 B 的文章。文件權重 × 查詢權重 = 這個詞對分數的貢獻，貢獻加總就是分數。</p>
 <div class="model-columns">
 {% for column in columns %}{% set first = column.docs[0] %}<div>
 <h3>{{ 'A' if loop.first else 'B' }}（{{ column.scheme.code }}）</h3>
@@ -82,14 +82,14 @@
 <p class="hw3-letters">文件 {% for letter, part, rule in first.document.rules %}<code title="{{ part }}：{{ rule }}">{{ letter }}</code>{% endfor %}
  · 查詢 {% for letter, part, rule in first.query.rules %}<code title="{{ part }}：{{ rule }}">{{ letter }}</code>{% endfor %}</p>
 {% for entry in column.docs %}
-<div class="table-wrap"><table class="step-table"><thead><tr><th>詞</th><th>tf</th><th>文件</th><th>× 查詢</th><th>= 貢獻</th></tr></thead><tbody>
+<div class="table-wrap"><table class="step-table"><thead><tr><th>詞</th><th title="這篇文章裡出現幾次">tf</th><th title="含這個詞的文件數">DF</th><th title="log(N ÷ DF)">IDF</th><th title="這個詞在文件向量裡的數字：依文件的三個字母算出">文件權重</th><th title="這個詞在查詢向量裡的數字：依查詢的三個字母算出">× 查詢權重</th><th>= 貢獻</th></tr></thead><tbody>
 {% for d in entry.document.side.terms %}{% set q = entry.query.side.terms[loop.index0] %}
-<tr{% if not (q.weight * d.weight) %} class="zero"{% endif %}><td>{{ d.term }}</td><td>{{ d.tf }}</td>
+<tr{% if not (q.weight * d.weight) %} class="zero"{% endif %}><td>{{ d.term }}</td><td>{{ d.tf }}</td><td>{{ '{:,}'.format(df[d.term]) }}</td><td>{{ '%.3f'|format(idf[d.term]) }}</td>
 <td title="{{ '%.3f'|format(d.tf_weight) }} × {{ '%.3f'|format(d.idf) }} ÷ {{ '%.3f'|format(entry.document.side.divisor) }}">{{ '%.4f'|format(d.weight) }}</td>
 <td title="{{ '%.3f'|format(q.tf_weight) }} × {{ '%.3f'|format(q.idf) }} ÷ {{ '%.3f'|format(entry.query.side.divisor) }}">{{ '%.4f'|format(q.weight) }}</td>
 <td>{{ '%.4f'|format(q.weight * d.weight) }}</td></tr>{% endfor %}
-<tr class="divisor"><td colspan="4">文件除以</td><td>{{ '%.3f'|format(entry.document.side.divisor) }}</td></tr>
-<tr class="total"><td colspan="4">分數 <small>{{ '第 %d 名'|format(entry.rank) if entry.rank else '前 10 名外' }}</small></td><td><strong>{{ '%.4f'|format(entry.score) }}</strong></td></tr>
+<tr class="divisor"><td colspan="6">文件除以</td><td>{{ '%.3f'|format(entry.document.side.divisor) }}</td></tr>
+<tr class="total"><td colspan="6">分數 <small>{{ '第 %d 名'|format(entry.rank) if entry.rank else '前 10 名外' }}</small></td><td><strong>{{ '%.4f'|format(entry.score) }}</strong></td></tr>
 </tbody></table></div>{% endfor %}
 <ul class="hw3-rules">{% for letter, part, rule in first.document.rules %}<li>文件 {{ part }} <code>{{ letter }}</code>：{{ rule }}</li>{% endfor %}</ul>
 </div>{% endfor %}

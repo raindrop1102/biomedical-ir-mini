@@ -324,7 +324,7 @@ def create_app(corpus=DEFAULT_CORPUS, results=DEFAULT_RESULTS, vsm_corpus=DEFAUL
     def vsm_context(default_doc: bool) -> tuple[dict, int]:
         """Both schemes' rankings, metrics and, for one document, weighting steps for the
         request's query; default_doc picks scheme A's first hit when no document is chosen."""
-        from ..vsm import Scheme
+        from ..vsm import Scheme, Weighting
         from ..vsm.evaluate import score
         from ..vsm.experiment import SCHEMES
         query = request.args.get("query", "").strip()[:300]
@@ -374,6 +374,11 @@ def create_app(corpus=DEFAULT_CORPUS, results=DEFAULT_RESULTS, vsm_corpus=DEFAUL
         context.update(evaluation=evaluation, relevant=len(grades), terms=terms,
                        df={t: space.df(t) for t in terms}, step_doc=space.documents.get(pmid),
                        step_grade=grades.get(pmid, 0), doc_a=pmid, doc_b=pmid_b)
+        # DF and IDF of every term in the weighting steps, whatever IDF letter each scheme uses
+        step_terms = {t.term for c in context["columns"] for e in c["docs"] for t in e["document"]["side"].terms}
+        idf = Weighting("n", "t", "n")
+        context["df"].update({t: space.df(t) for t in step_terms})
+        context["idf"] = {t: idf.idf_weight(space.df(t), len(space)) for t in context["df"]}
         return context, 200
 
     @app.get("/vsm")

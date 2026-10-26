@@ -109,6 +109,8 @@ class WebTest(unittest.TestCase):
         self.assertIn('id="steps"', page)
         self.assertIn("除以向量長度", page)
         self.assertIn("文件除以", page)
+        self.assertIn('<th title="log(N ÷ DF)">IDF</th>', page)
+        self.assertIn("<td>semaglutid</td><td>2</td><td>1</td><td>0.301</td>", page)  # tf 2; df 1 of N = 2
         page = self.get("/hw3?query=semaglutide+weight&a=lnc.ltc&b=ltc.ltc&doc=11&doc_b=12")
         self.assertIn("pubmed.ncbi.nlm.nih.gov/11/", page)                 # A shows one article,
         self.assertIn("pubmed.ncbi.nlm.nih.gov/12/", page)                 # B the one picked from its list
