@@ -327,6 +327,15 @@ Q08「type 1 diabetes」則從 0（只用 IDF 的三種方法）到 0.78（nnc.n
   資料夾不存在或沒有 numpy 時，頁面會說明要執行的指令，其他頁面照常使用。
 - `app.run` 是開發用伺服器；要部署時以 `bioir.web.create_app` 交給 waitress / gunicorn 等 WSGI 伺服器。
 
+### 部署到 Render
+
+`render.yaml`（Blueprint）、`requirements.txt`（版本固定）與 `.python-version`（3.13）已備妥：在 Render 選
+**New → Blueprint**、指定這個儲存庫即可。啟動指令是
+`gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 120 "bioir.web:create_app()"`，健康檢查 `/healthz`。
+一個 worker 約佔 200 MB 記憶體（免費方案上限 512 MB），啟動約 3 秒。免費方案閒置 15 分鐘會休眠，
+下一次開啟需等約 30–60 秒喚醒。GitHub Actions 的 `deploy-smoke` 工作用同一組檔案與同一條啟動指令在 Linux 上
+啟動網站並請求每一頁，部署設定壞掉時會先在那裡失敗（gunicorn 不支援 Windows，本機請用 `python -m bioir serve`）。
+
 ## 與原專案相比的設計決策
 
 1. **生醫識別詞正規化（最重要）**：連續字母、連續數字各自是一個 token，連字號與字母／數字交界都會切開，查詢詞則以片語比對。
