@@ -89,7 +89,7 @@ class WebTest(unittest.TestCase):
 
     def test_vector_space_page(self):
         self.assertIn("SMART", self.get("/vsm"))
-        page = self.get("/vsm?query=semaglutide+weight&a=lnc.ltc&b=bm25")
+        page = self.get("/vsm?query=semaglutide+weight&a=lnc.ltc&b=lnu.ltc")
         self.assertIn("評估查詢 <strong>Q1</strong>", page)
         self.assertIn("★", page)
         self.assertIn("nDCG@10", page)

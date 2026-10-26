@@ -331,7 +331,7 @@ def main(argv=None) -> int:
     vs = vsm_commands.add_parser("search", help="rank documents by cosine (or inner product)")
     vs.add_argument("query", nargs="+")
     vs.add_argument("--corpus", type=Path, default=VSM_CORPUS)
-    vs.add_argument("--scheme", default="lnc.ltc", help="SMART ddd.qqq, e.g. lnc.ltc, ltc.ltc, nnn.nnn; or bm25")
+    vs.add_argument("--scheme", default="lnc.ltc", help="SMART ddd.qqq, e.g. lnc.ltc, ltc.ltc, lnu.ltc")
     vs.add_argument("-k", type=int, default=10)
     vs.add_argument("--explain", action="store_true", help="show each query term's share of the score")
     vs.set_defaults(run=vsm_search)

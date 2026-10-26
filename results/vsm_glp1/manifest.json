@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-10-17T18:47:45+00:00",
+  "generated_at_utc": "2026-10-26T11:50:04+00:00",
   "corpus": {
     "file": "abstracts.jsonl",
     "file_sha256": "be5303d1c8e494320e75b5b2317fa7269be86b934837dae76bba937f0729ebbd",
@@ -128,7 +128,10 @@
     "atc.atc": "augmented TF-IDF, cosine",
     "lpc.lpc": "log TF × probabilistic IDF, cosine",
     "lnc.ltc": "SMART classic: documents log TF cosine, queries log TF-IDF cosine",
-    "bm25": "Okapi BM25 (reference: a modified TF-IDF)"
+    "Lnc.ltc": "lnc.ltc with log average TF on documents (cosine cancels L: same ranking)",
+    "lnu.ltc": "lnc.ltc with pivoted unique normalization on documents",
+    "Lnu.ltc": "log average TF, pivoted unique (Singhal et al.'s Lnu)",
+    "lnb.ltc": "lnc.ltc with byte-size normalization on documents"
   },
   "metrics": [
     "P@5",

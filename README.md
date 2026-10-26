@@ -107,10 +107,10 @@ bioir/
 | `bioir/embed/evaluate.py` | 隨機詞對 cosine 健全性檢查、近鄰／詞對表、top-5 重疊、六模型比較實驗、manifest |
 | `bioir/embed/projection.py` | PCA、exact t-SNE、trustworthiness（NumPy，不需 scikit-learn） |
 | `bioir/embed/plot.py` | 投影圖：依預先指定的詞組上色，標籤自動避開其他標籤與點 |
-| `bioir/vsm/weighting.py` | SMART 記號：TF（n／l／b／a）、IDF（n／t／p）、正規化（n／c）；`bm25` 參考方案 |
+| `bioir/vsm/weighting.py` | SMART 記號：TF（n／l／b／a／L）、IDF（n／t／p）、正規化（n／c／u／b），即講義 SMART 表的全部變體 |
 | `bioir/vsm/engine.py` | 文件與查詢向量、依詞累加的內積／cosine 排名、每個詞的分數貢獻 |
 | `bioir/vsm/evaluate.py` | MeSH 相關性判斷（分級）、P@k、R@k、MRR、MAP、nDCG@10、精確配對置換檢定 |
-| `bioir/vsm/experiment.py` | 14 種加權的控制變因實驗與 RQ1–RQ5 的輔助表 |
+| `bioir/vsm/experiment.py` | 17 種加權的控制變因實驗與 RQ1–RQ5 的輔助表 |
 | `bioir/__main__.py` | 命令列介面 |
 
 ## Zipf 分析
@@ -226,9 +226,13 @@ trustworthiness（k = 5）與 scikit-learn 的實作在測試資料上數值相�
 ## 作業 3：詞項加權與向量空間（vsm）
 
 **系統**：文件（標題＋摘要）與查詢都用檢索的前處理（移除停用詞、Porter 詞幹）轉成詞袋，依 SMART 記號
-`ddd.qqq` 加權——TF：n 原始、l 1+ln tf、b 二元、a 0.5+0.5·tf/max tf；IDF：n 無、t ln(N/df)、p max(0, ln((N−df)/df))；
-正規化：n 無、c L2。分數是查詢向量與文件向量的內積，兩邊都 L2 正規化時就是 cosine similarity。
-以倒排索引逐詞累加，只碰到含查詢詞的文件；每種加權的文件向量長度算一次後快取。另附 Okapi BM25 作為「修改版 TF-IDF」的參考。
+`ddd.qqq` 加權——TF：n 原始、l 1+ln tf、b 二元、a 0.5+0.5·tf/max tf、L (1+ln tf)/(1+ln 平均 tf)；
+IDF：n 無、t ln(N/df)、p max(0, ln((N−df)/df))；正規化：n 無、c L2、u pivoted unique（除以 0.8·pivot＋0.2·相異詞數，
+pivot 為語料平均相異詞數）、b byte size（除以字元數^0.375）。字母區分大小寫（L ≠ l）。
+分數是查詢向量與文件向量的內積，兩邊都 L2 正規化時就是 cosine similarity。
+**注意**：本專案沿用 SMART 傳統與教科書的「文件.查詢」順序；課堂講義寫成「查詢.文件」，所以這裡的 lnc.ltc
+就是講義的 ltc.lnc。講義例題 ltn.lnc（best car insurance，3.08 分）在 `tests/test_vsm.py` 以 log₁₀ 重現。
+以倒排索引逐詞累加，只碰到含查詢詞的文件；每種加權的文件向量長度算一次後快取。比較只用講義 SMART 表上的公式（BM25 只用在作業 1 的搜尋頁）。
 查詢約 2–6 ms（某加權第一次使用時需約 0.1 秒計算文件向量長度）。
 
 **相關性判斷**：`data/glp1_mesh_3000/queries.json` 的 15 個查詢（日常用語，不直接寫 MeSH 名稱）各對應 MeSH 規則；
@@ -237,12 +241,14 @@ trustworthiness（k = 5）與 scikit-learn 的實作在測試資料上數值相�
 指標：P@5、P@10、R@10、R@100、MRR、MAP、nDCG@10；兩種加權的差異以 15 個查詢的**精確配對置換檢定**
 （2¹⁵ 種正負號組合）計算雙尾 p 值。
 
-**結果**（`results/vsm_glp1/`，14 種加權 × 15 個查詢的平均；完整數字在 `summary.csv`、`per_query.csv`、`comparisons.csv`）：
+**結果**（`results/vsm_glp1/`，17 種加權 × 15 個查詢的平均；完整數字在 `summary.csv`、`per_query.csv`、`comparisons.csv`）：
 
 | 加權 | 說明 | P@10 | MRR | MAP | nDCG@10 |
 |---|---|---|---|---|---|
-| bm25 | Okapi BM25（參考） | 0.693 | 0.933 | 0.519 | 0.662 |
+| lnb.ltc | lnc.ltc 改用 byte size 正規化 | 0.687 | 0.967 | 0.522 | 0.660 |
 | lnc.ltc | 文件 log TF＋cosine；查詢 log TF·IDF＋cosine | 0.680 | 0.922 | 0.513 | 0.655 |
+| lnu.ltc | lnc.ltc 改用 pivoted unique 正規化 | 0.680 | 0.967 | 0.520 | 0.644 |
+| Lnu.ltc | log 平均 TF＋pivoted unique（Singhal 等人的 Lnu） | 0.687 | 0.913 | 0.522 | 0.643 |
 | lnc.lnc | 只有 log TF | 0.647 | 0.967 | 0.488 | 0.632 |
 | nnc.nnc | 只有原始 TF | 0.667 | 0.956 | 0.430 | 0.631 |
 | ltn.ltn | log TF·IDF，不正規化 | 0.647 | 0.900 | 0.501 | 0.614 |
@@ -252,12 +258,15 @@ trustworthiness（k = 5）與 scikit-learn 的實作在測試資料上數值相�
 | bnc.btc | 只有 IDF（乘一次） | 0.487 | 0.718 | 0.409 | 0.449 |
 | btc.btc | 只有 IDF（兩邊都乘） | 0.453 | 0.670 | 0.387 | 0.398 |
 
-（另有 bnc.bnc、atc.atc、lpc.lpc、ntn.ntn，見 `summary.csv` 與 `metrics.png`。）
+（另有 bnc.bnc、atc.atc、lpc.lpc、ntn.ntn、Lnc.ltc，見 `summary.csv` 與 `metrics.png`。）
 
 **RQ1 原始 TF 與 Log TF**：log TF 壓縮重複出現的詞。`tf_example.csv` 的 PMID 26971825 中，`il` 出現 24 次、`glucos` 6 次：
 原始 TF 下兩者權重相差 4 倍，`il` 佔正規化向量 0.46；log TF 下只差 1.5 倍（4.18 vs 2.79），`il` 佔 0.22。
 檢索上，不含 IDF 時 raw → log 的 MAP 由 0.430 升到 0.488（15 題中 14 題變好，p = 0.039），R@100 由 0.552 升到 0.647；
 P@10 與 nDCG@10 幾乎不變。也就是說，log TF 主要讓排名較後面的相關文件上來，避免單一詞反覆出現的文件獨佔前段。
+講義的 L（log 平均 TF）把每個詞再除以同一篇的 1+ln(平均 tf)，是整篇文件共用的常數，所以搭配 cosine 時會被消掉：
+Lnc.ltc 與 lnc.ltc 的排名完全相同（有測試確認）。只有在不看權重的正規化下才有作用；lnu.ltc → Lnu.ltc 的
+nDCG@10 為 0.644 → 0.643（7 題變好、7 題變差，p = 0.95），沒有差別。
 
 **RQ2 IDF 的作用**：在這個以 GLP-1 為主題的語料裡，`glp`、`1` 出現在 2,991／2,992 篇，IDF 只有 0.0003；`glucagon` 0.028、
 `receptor` 0.41、`diabet` 0.60；而 `sitagliptin` 4.22、`parkinson` 4.01、`microbiota` 3.89（`idf.csv`）。主題詞自動被降到近乎 0，
@@ -273,12 +282,17 @@ P@10 與 nDCG@10 幾乎不變。也就是說，log TF 主要讓排名較後面�
 **RQ4 L2 正規化**：不正規化時，長文件因含有較多詞而占優勢：nnn.nnn 前 10 名平均 200.5 個詞（語料平均 158.4），
 54% 來自最長的四分之一文件；加上 L2（nnc.nnc）後降到 144.4 個詞、18.7%，nDCG@10 由 0.544 升到 0.631（p = 0.045）、
 MAP 由 0.369 升到 0.430（p = 0.007）。但對 log TF·IDF，L2（ltn → ltc）反而讓 nDCG@10 由 0.614 降到 0.553（不顯著），
-前 10 名平均只剩 128 個詞、最長四分之一僅占 10%——cosine 對長文件**過度矯正**。BM25 只做部分長度正規化（b = 0.75），
-前 10 名平均 148.7 個詞、18.7%，指標也最好；這也是 pivoted normalization 的動機。正規化需要，但完全的 cosine 不一定最佳。
+前 10 名平均只剩 128 個詞、最長四分之一僅占 10%——cosine 對長文件**過度矯正**，這正是 pivoted normalization 的動機。
+講義的另外兩種正規化都朝這個方向修正：pivoted unique（lnu.ltc）前 10 名平均 171.0 個詞、31.3% 來自最長四分之一，
+byte size（lnb.ltc）148.5 個詞、21.3%，都比 cosine（131.2、13.3%）更接近語料平均。但指標差異都不顯著：
+lnb.ltc 的 nDCG@10 0.660、MAP 0.522（相對 lnc.ltc：p = 0.84、0.11）；lnu.ltc 0.644、0.520（p = 0.72、0.48）；
+Lnc.ltc → Lnu.ltc 的 MAP 由 0.513 升到 0.522（p = 0.014），nDCG@10 則略降（p = 0.40）。
+講義只寫 u 為 1/u、b 的 α < 1；pivot 斜率 0.2 取自 Singhal 等人，α = 0.375 為自訂，都沒有調參。
+結論：正規化需要，但完全的 cosine 不一定最佳。
 
-**RQ5 不同指標的影響**：最佳的 BM25（0.662）與 lnc.ltc（0.655）差距不顯著（p = 0.82）；最差的是兩邊都乘 IDF 的 btc.btc（0.398）。
-指標會改變結論：MRR 最高的是 lnc.lnc（0.967）——幾乎每題的第一筆都相關，因此 MRR 對加權方法不敏感；
-nDCG@10 與 MAP 則偏好 lnc.ltc 與 BM25。查詢之間差異也大：Q06「bariatric surgery and gastric bypass」各方法 nDCG@10 都在 0.80–1.0；
+**RQ5 不同指標的影響**：nDCG@10 最佳的 lnb.ltc（0.660）與 lnc.ltc（0.655）差距不顯著（p = 0.84）；最差的是兩邊都乘 IDF 的 btc.btc（0.398）。
+指標會改變結論：MRR 最高的是 lnc.lnc、lnu.ltc、lnb.ltc（都是 0.967）——幾乎每題的第一筆都相關，因此 MRR 對加權方法不敏感；
+lnc.lnc 的 nDCG@10（0.632）與 MAP（0.488）卻明顯落後 lnc.ltc 與 lnb.ltc。查詢之間差異也大：Q06「bariatric surgery and gastric bypass」各方法 nDCG@10 都在 0.80–1.0；
 Q08「type 1 diabetes」則從 0（只用 IDF 的三種方法）到 0.78（nnc.nnc）都有，lnc.ltc 只有 0.26：`1` 出現在幾乎每篇
 （GLP-1 被切成 glp、1），IDF≈0，用 IDF 的方法等於只查 type diabetes，詞袋又不看詞序，很難區分第一型與第二型
 （布林搜尋的片語查詢 `"type 1 diabetes"` 可以）。

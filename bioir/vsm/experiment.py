@@ -40,13 +40,19 @@ SCHEMES = {
     "atc.atc": "augmented TF-IDF, cosine",
     "lpc.lpc": "log TF × probabilistic IDF, cosine",
     "lnc.ltc": "SMART classic: documents log TF cosine, queries log TF-IDF cosine",
-    "bm25": "Okapi BM25 (reference: a modified TF-IDF)",
+    "Lnc.ltc": "lnc.ltc with log average TF on documents (cosine cancels L: same ranking)",
+    "lnu.ltc": "lnc.ltc with pivoted unique normalization on documents",
+    "Lnu.ltc": "log average TF, pivoted unique (Singhal et al.'s Lnu)",
+    "lnb.ltc": "lnc.ltc with byte-size normalization on documents",
 }
 
 # (research question, what changes, baseline, variant)
 COMPARISONS = [
     ("RQ1", "raw → log TF (no IDF)", "nnc.nnc", "lnc.lnc"),
     ("RQ1", "raw → log TF (with IDF)", "ntc.ntc", "ltc.ltc"),
+    # Under cosine L only rescales a document by a constant, so Lnc.ltc ranks exactly like
+    # lnc.ltc; the comparison is meaningful with a normalization that ignores the weights.
+    ("RQ1", "log → log average TF (pivoted unique)", "lnu.ltc", "Lnu.ltc"),
     ("RQ2", "add IDF once (query side)", "lnc.lnc", "lnc.ltc"),
     ("RQ2", "IDF once → IDF on both sides (IDF²)", "lnc.ltc", "ltc.ltc"),
     ("RQ2", "add IDF to log TF on both sides", "lnc.lnc", "ltc.ltc"),
@@ -59,7 +65,9 @@ COMPARISONS = [
     ("RQ4", "add L2 normalization (log TF-IDF)", "ltn.ltn", "ltc.ltc"),
     ("RQ4", "add L2 normalization (raw TF-IDF)", "ntn.ntn", "ntc.ntc"),
     ("RQ4", "add L2 normalization (raw TF only)", "nnn.nnn", "nnc.nnc"),
-    ("RQ5", "best vector-space scheme → BM25", "lnc.ltc", "bm25"),
+    ("RQ4", "cosine → pivoted unique normalization", "lnc.ltc", "lnu.ltc"),
+    ("RQ4", "cosine → pivoted unique, with log average TF", "Lnc.ltc", "Lnu.ltc"),
+    ("RQ4", "cosine → byte-size normalization", "lnc.ltc", "lnb.ltc"),
 ]
 
 COMPARED_METRICS = ["P@10", "MAP", "nDCG@10", "MRR"]

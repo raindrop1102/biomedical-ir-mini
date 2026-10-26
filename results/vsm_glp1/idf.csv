@@ -39,8 +39,8 @@ semaglutid,query term,245,0.0819,2.5024,2.417
 liraglutid,query term,315,0.1053,2.2511,2.1399
 outcom,query term,364,0.1217,2.1065,1.9768
 gastric,query term,385,0.1287,2.0505,1.9127
-inhibitor,query term,403,0.1347,2.0048,1.8601
 pancreat,query term,403,0.1347,2.0048,1.8601
+inhibitor,query term,403,0.1347,2.0048,1.8601
 gut,query term,416,0.139,1.973,1.8233
 cardiovascular,query term,425,0.142,1.9516,1.7984
 risk,query term,520,0.1738,1.7499,1.559

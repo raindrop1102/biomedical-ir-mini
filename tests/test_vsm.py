@@ -32,11 +32,62 @@ class WeightingTest(unittest.TestCase):
         self.assertAlmostEqual(Weighting("n", "p", "n").idf_weight(2, 8), math.log(3))
         self.assertEqual(Weighting("n", "p", "n").idf_weight(5, 8), 0.0)     # df above N/2
 
+    def test_log_average_tf_and_length_divisors(self):
+        L = Weighting("L", "n", "n")
+        self.assertAlmostEqual(L.tf_weight(4, 4, average_tf=2), (1 + math.log(4)) / (1 + math.log(2)))
+        self.assertEqual(L.tf_weight(2, 4, average_tf=2), 1.0)          # a term at the text's average
+        self.assertAlmostEqual(Weighting("l", "n", "c").divisor([3, 4], 2, 99, 50), 5.0)
+        self.assertAlmostEqual(Weighting("l", "n", "u").divisor([3, 4], 100, 99, 50), 0.8 * 50 + 0.2 * 100)
+        self.assertAlmostEqual(Weighting("l", "n", "b").divisor([3, 4], 2, 256, 50), 256 ** 0.375)
+        self.assertEqual(Weighting("l", "n", "n").divisor([3, 4], 2, 99, 50), 1.0)
+
+    def test_lecture_example_ltn_lnc(self):
+        """Lecture 3, "tf-idf example: ltn.lnc" — query "best car insurance", document
+        "car insurance auto insurance", N = 1,000,000, log base 10. The lecture writes
+        query.document; here that is the document scheme lnc with the query scheme ltn."""
+        N = 1_000_000
+        df = {"auto": 5000, "best": 50000, "car": 10000, "insurance": 1000}
+        query_tf = {"best": 1, "car": 1, "insurance": 1}
+        document_tf = {"auto": 1, "car": 1, "insurance": 2}
+        query, document = Weighting("l", "t", "n", base=10), Weighting("l", "n", "c", base=10)
+
+        q = {t: query.tf_weight(tf, 1) * query.idf_weight(df[t], N) for t, tf in query_tf.items()}
+        self.assertEqual([round(q[t], 1) for t in ("best", "car", "insurance")], [1.3, 2.0, 3.0])
+
+        d = {t: document.tf_weight(tf, 2) * document.idf_weight(df[t], N) for t, tf in document_tf.items()}
+        length = document.divisor(d.values(), 3, 0, 0)
+        self.assertAlmostEqual(length, 1.92, places=2)                  # √(1² + 1² + 1.3²)
+        d = {t: w / length for t, w in d.items()}
+        self.assertEqual([round(d[t], 2) for t in ("auto", "car", "insurance")], [0.52, 0.52, 0.68])
+
+        self.assertAlmostEqual(sum(q[t] * d.get(t, 0) for t in q), 3.08, delta=0.01)
+        # The lecture's 3.08 adds the rounded products 1.04 + 2.04; unrounded it is 3.07.
+        self.assertAlmostEqual(sum(round(q[t], 1) * round(d.get(t, 0), 2) for t in q), 3.08)
+
+    def test_idf_log_base_does_not_change_cosine(self):
+        """Lecture 3: "Why is the base of the log in idf immaterial?" — it rescales every IDF
+        by one constant, which L2 normalization cancels."""
+        space = VectorSpace(DOCS)
+        rankings = [[(h.pmid, round(h.score, 12)) for h in space.search("semaglutide insulin weight",
+                                                                        Scheme(Weighting("n", "t", "c", base),
+                                                                               Weighting("n", "t", "c", base))).hits]
+                    for base in (math.e, 10, 2)]
+        self.assertEqual(rankings[0], rankings[1])
+        self.assertEqual(rankings[0], rankings[2])
+
+    def test_cosine_cancels_log_average_tf(self):
+        """L divides every term of a document by the same 1 + log(ave tf), so after L2
+        normalization Lnc and lnc are the same vector; with u they are not."""
+        space = VectorSpace(DOCS)
+        scores = lambda code: [(h.pmid, round(h.score, 12)) for h in space.search("semaglutide weight", code).hits]
+        self.assertEqual(scores("Lnc.ltc"), scores("lnc.ltc"))
+        self.assertNotEqual(scores("Lnu.ltc"), scores("lnu.ltc"))
+
     def test_schemes(self):
-        scheme = Scheme.parse("LNC.ltc")
+        scheme = Scheme.parse("lnc.ltc")
         self.assertEqual((scheme.document.code, scheme.query.code, scheme.code), ("lnc", "ltc", "lnc.ltc"))
-        self.assertIsNone(Scheme.parse("bm25").document)
-        for bad in ("ltc", "xtc.ltc", "lnc.ltcc", "lnc-ltc"):
+        self.assertEqual(Scheme.parse("Lnu.ltc").document.describe(), "log average TF × no IDF, pivoted unique")
+        for bad in ("ltc", "xtc.ltc", "lnc.ltcc", "lnc-ltc", "LNC.ltc", "bm25"):
             with self.subTest(bad=bad), self.assertRaises(ValueError):
                 Scheme.parse(bad)
 
@@ -78,7 +129,7 @@ class EngineTest(unittest.TestCase):
         self.assertEqual(len(ranking.hits), 1)
         self.assertEqual(ranking.unknown, ["unicorn"])
         self.assertEqual(self.space.search("the of", "lnc.ltc").hits, [])
-        self.assertTrue(self.space.search("semaglutide weight", "bm25").hits)
+        self.assertTrue(self.space.search("semaglutide weight", "lnb.ltc").hits)
         # Ties are broken by PMID, so rankings are reproducible.
         tied = self.space.search("secretion", "bnc.bnc").hits
         self.assertEqual([h.pmid for h in tied], sorted(h.pmid for h in tied))
@@ -141,8 +192,8 @@ class ExperimentTest(unittest.TestCase):
                 {"id": "Q1", "query": "semaglutide weight", "mesh_all": ["Semaglutide"]},
                 {"id": "Q2", "query": "insulin secretion", "mesh_any": ["Insulin"]}]}), encoding="utf-8")
             self.assertEqual([q.id for q in load_queries(queries)], ["Q1", "Q2"])
-            summary = run(DOCS, queries, Path(folder, "out"), ["lnc.ltc", "ltc.ltc", "bm25"])
-            self.assertEqual([r["scheme"] for r in summary], ["lnc.ltc", "ltc.ltc", "bm25"])
+            summary = run(DOCS, queries, Path(folder, "out"), ["lnc.ltc", "ltc.ltc", "lnu.ltc"])
+            self.assertEqual([r["scheme"] for r in summary], ["lnc.ltc", "ltc.ltc", "lnu.ltc"])
             for name in ("summary", "per_query", "comparisons", "judgments", "idf", "tf_example", "length_bias"):
                 self.assertTrue(Path(folder, "out", f"{name}.csv").exists(), name)
             manifest = json.loads(Path(folder, "out", "manifest.json").read_text(encoding="utf-8"))
