@@ -47,7 +47,7 @@
 </tbody></table></div></div>{% endfor %}</section>
 
 <section id="cfdf"><h2>CF／DF／IDF 對照（條件 {{ options.baseline }}）</h2>
-<p>條件 {{ options.baseline }} 出現次數最多的 10 個詞，加上上方輸入的詞；輸入的詞會照同一條件前處理（例如條件 D 下 Patients → patient）。IDF = ln(N／DF)。</p>
+<p>條件 {{ options.baseline }} 出現次數最多的 10 個詞，加上上方輸入的詞；輸入的詞會照同一條件前處理（例如條件 D 下 Patients → patient）。IDF = log₁₀(N／DF)。</p>
 <div class="table-wrap"><table><thead><tr><th>輸入</th><th>詞項</th><th>Rank</th><th>CF</th><th>DF</th><th>CF／DF</th><th>IDF</th></tr></thead><tbody>
 {% for row in comparison %}<tr><td>{{ row.word }}</td><td>{{ row.term or '（停用詞或純數字）' }}</td>{% if row.cf is none %}<td colspan="5">不在語料中</td>{% else %}<td>{{ '{:,}'.format(row.rank) }}</td><td>{{ '{:,}'.format(row.cf) }}</td><td>{{ '{:,}'.format(row.df) }}</td><td>{{ '%.2f'|format(row.cf_per_df) }}</td><td>{{ '%.4f'|format(row.idf) }}</td>{% endif %}</tr>{% endfor %}
 </tbody></table></div>

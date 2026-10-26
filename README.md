@@ -124,7 +124,7 @@ bioir/
 
 只分析摘要；依 cf 由大到小排名，同頻時依字母序；對全部排名做
 log10(cf) = intercept + slope · log10(rank) 的最小平方法，exponent = −slope，另回報 R²、RMSE（log10 單位）；
-idf = ln(N / df)。迴歸以純 Python 計算，不需要 numpy。
+idf = log10(N / df)。迴歸以純 Python 計算，不需要 numpy。
 
 | 選項 | 作用 |
 |---|---|
@@ -142,7 +142,7 @@ idf = ln(N / df)。迴歸以純 Python 計算，不需要 numpy。
 ② ③ 以灰線標出分區邊界。殘差呈系統性的弧形：R² 高不代表真的是 power law。
 
 **CF/DF/IDF 表**：cf/df 是含該詞的文件中平均出現幾次。cf 高但 df 低的詞集中在少數文件反覆出現；
-idf 只由 df 決定，例如 `the` 出現在 979 篇，idf 0.021，`semaglutide` 241 篇，idf 1.423。
+idf 只由 df 決定，例如 `the` 出現在 979 篇，idf 0.009，`semaglutide` 241 篇，idf 0.618。
 
 輸出檔：`summary.csv`、`regions.csv`、`terms_A–D.csv`（含 cf_per_df）、`compare_terms.csv`，加 `--plot` 另有 `zipf.png`。
 
@@ -341,7 +341,7 @@ Q08「type 1 diabetes」則從 0（只用 IDF 的三種方法）到 0.78（nnc.n
    | HbA1c | 85.7% | 100% | 100% |
 
 2. **標題也進索引**：標題和摘要之間留一個位置的間隔，片語不會跨欄位比對。
-3. **BM25**（k1=1.2，b=0.75）取代未做長度正規化的 TF-IDF；用 `heapq.nlargest` 取前 k 名，分數相同時依 PMID 排序。
+3. **BM25**（k1=1.2，b=0.75，idf 以 10 為底）取代未做長度正規化的 TF-IDF；用 `heapq.nlargest` 取前 k 名，分數相同時依 PMID 排序。
 4. **位置索引**：支援片語查詢；停用詞移除後仍保留原位置，`"type 2 diabetes"` 不會比對到 `type 2 and diabetes`。
 5. **布林運算用 Python `set`**：由 C 實作，比手寫的合併迴圈短且快；AND 會先從最小的集合開始交集。
 6. Porter 規則表在模組載入時就預先排序（原版每次呼叫都重新排序），並保留 `lru_cache`。

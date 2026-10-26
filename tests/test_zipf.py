@@ -81,7 +81,7 @@ class StatsTest(unittest.TestCase):
         self.assertEqual((weight.rank, weight.cf, weight.df), (1, 3, 2))
         self.assertEqual(weight.idf, 0.0)
         reduced = next(t for t in stats.terms if t.term == "reduced")
-        self.assertAlmostEqual(reduced.idf, math.log(2))
+        self.assertAlmostEqual(reduced.idf, math.log10(2))
         # Ties in cf are ranked alphabetically.
         tied = [t.term for t in stats.terms if t.cf == stats.terms[1].cf]
         self.assertEqual(tied, sorted(tied))

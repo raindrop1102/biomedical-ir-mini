@@ -33,7 +33,7 @@ class Term:
     term: str
     cf: int        # collection frequency
     df: int        # document frequency
-    idf: float     # ln(N / df)
+    idf: float     # log10(N / df)
 
     @property
     def cf_per_df(self) -> float:
@@ -133,7 +133,7 @@ def analyze_condition(documents, condition: str, compound: bool = False, numbers
         total += len(terms)
     n = len(documents)
     ranked = sorted(cf.items(), key=lambda item: (-item[1], item[0]))
-    rows = [Term(rank, term, count, df[term], math.log(n / df[term]))
+    rows = [Term(rank, term, count, df[term], math.log10(n / df[term]))
             for rank, (term, count) in enumerate(ranked, 1)]
     return ConditionStats(condition, n, total, len(rows), sum(t.cf == 1 for t in rows),
                           fit_zipf(rows), regions(rows), rows)

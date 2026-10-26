@@ -54,9 +54,10 @@ class Index:
         return len(self.postings.get(term, ()))
 
     def idf(self, term: str) -> float:
-        # BM25 idf with +1 inside the log (as in Lucene), so it is never negative.
+        # BM25 idf with +1 inside the log (as in Lucene), so it is never negative; base 10 like the
+        # lecture (Lucene uses ln), which rescales every score by one constant and keeps the ranking.
         df = self.df(term)
-        return math.log(1 + (len(self) - df + 0.5) / (df + 0.5))
+        return math.log10(1 + (len(self) - df + 0.5) / (df + 0.5))
 
     # ---------- Boolean matching ----------
 
