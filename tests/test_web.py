@@ -102,16 +102,18 @@ class WebTest(unittest.TestCase):
     def test_homework_3_pages(self):
         self.assertIn("互動檢索", self.get("/hw3"))
         page = self.get("/hw3?query=semaglutide+weight&a=lnc.ltc&b=ltc.ltc")
-        self.assertIn("A（lnc.ltc）", page)
+        self.assertIn("A（ltc.lnc）", page)
         self.assertIn("nDCG@10", page)                                     # Q1 is an evaluation query
         self.assertNotIn('id="steps"', page)                               # steps only after picking a document
         page = self.get("/hw3?query=semaglutide+weight&a=lnc.ltc&b=ltc.ltc&doc=11")
         self.assertIn('id="steps"', page)
         self.assertIn("除以向量長度", page)
-        self.assertIn(">÷ 長度</th>", page)
-        # tf 2, DF 1 of N = 2; IDF grey because lnc does not use it on documents; then the length
-        self.assertIn('<td>semaglutid</td><td>2</td><td>1</td><td class="muted">0.301</td><td>', page)
-        self.assertIn('<td>semaglutid</td><td>2</td><td>1</td><td class="">0.301</td>', page)   # B: ltc uses it
+        self.assertIn("Doc length <strong", page)
+        self.assertIn("A（ltc.lnc）", page)                                # lecture order: query.document
+        # query: tf-raw 1, tf-wt 1, df 1 of N = 2, idf log10 2, wt; document: tf-raw 2, tf-wt 1 + log10 2, wt
+        self.assertIn('<td class="term">semaglutid</td>\n<td>1</td><td>1.00</td><td>1</td>\n<td class="">0.30</td><td>0.30</td>', page)
+        self.assertIn('<td class="group">2</td><td>1.30</td><td>1.30</td>', page)  # A: lnc, no IDF on documents
+        self.assertIn('<td class="group">2</td><td>1.30</td><td>0.39</td>', page)  # B: ltc, 1.30 × 0.30
         page = self.get("/hw3?query=semaglutide+weight&a=lnc.ltc&b=ltc.ltc&doc=11&doc_b=12")
         self.assertIn("pubmed.ncbi.nlm.nih.gov/11/", page)                 # A shows one article,
         self.assertIn("pubmed.ncbi.nlm.nih.gov/12/", page)                 # B the one picked from its list
@@ -135,7 +137,7 @@ class WebTest(unittest.TestCase):
         self.assertIn("IDF 乘一次還是兩次？", page)
         self.assertIn("sig-down", page)                                    # significantly worse
         self.assertIn("p &lt; 0.001", page)
-        self.assertIn("最佳 <code>lnc.ltc</code>", page)                    # RQ5: best scheme per metric
+        self.assertIn("最佳 <code>ltc.lnc</code>", page)                    # RQ5, in lecture order
 
     def test_health_and_headers(self):
         response = self.client.get("/healthz")

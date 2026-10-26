@@ -155,6 +155,13 @@ def _best_by_metric(vsm) -> list[tuple[str, str, float]]:
     return best
 
 
+def lecture_order(code: str) -> str:
+    """A scheme as Lecture 3 writes it, query first ("ltc.lnc"); the code base writes the
+    SMART tradition's document first ("lnc.ltc")."""
+    document, _, query = code.partition(".")
+    return f"{query}.{document}" if query else code
+
+
 def _explain_side(side, space) -> dict:
     """Each SMART letter of one side as the rule it applied, with this text's own inputs."""
     from ..vsm.weighting import BYTE_SIZE_ALPHA, PIVOT_SLOPE
@@ -179,6 +186,7 @@ def create_app(corpus=DEFAULT_CORPUS, results=DEFAULT_RESULTS, vsm_corpus=DEFAUL
                vsm_results=DEFAULT_VSM_RESULTS) -> Flask:
     corpus, results = Path(corpus), Path(results)
     app = Flask(__name__)
+    app.add_template_filter(lecture_order, "lecture")
     started = time.perf_counter()
     documents = load(corpus)
     index = Index(documents)

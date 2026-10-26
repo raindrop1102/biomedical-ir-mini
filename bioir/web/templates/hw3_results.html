@@ -6,13 +6,13 @@
 {% if error and not vsm %}<div class="alert warning">{{ error }}</div>
 {% elif not vsm.comparisons %}<div class="alert warning">還沒有實驗結果：python -m bioir vsm evaluate --out results/vsm_glp1 --plot</div>
 {% else %}
-<p class="hw3-note">{{ vsm.queries|length }} 個查詢 · MeSH 相關性 · 每組比較只改一個 SMART 字母 · p 值為精確配對置換檢定</p>
+<p class="hw3-note">{{ vsm.queries|length }} 個查詢 · MeSH 相關性 · SMART 記號同講義寫成 查詢.文件 · 每組比較只改一個字母 · p 值為精確配對置換檢定</p>
 <section class="hw3-cards">
 {% for card in cards %}<article class="panel hw3-card">
 <h2><span class="rq">{{ card.rq }}</span> {{ card.question }}</h2>
 <p>{{ card.conclusion }}</p>
 {% for pair in card.pairs %}<div class="hw3-pair">
-  <div class="hw3-pair-head"><code>{{ pair.baseline }}</code> → <code>{{ pair.variant }}</code></div>
+  <div class="hw3-pair-head"><code>{{ pair.baseline|lecture }}</code> → <code>{{ pair.variant|lecture }}</code></div>
   {% for row in pair.metrics %}{% set p = row.p_value|float %}{% set diff = row.difference|float %}
   <div class="hw3-pair-row"><small>{{ row.metric }}</small>
     <span>{{ '%.3f'|format(row.baseline_mean|float) }} → <strong>{{ '%.3f'|format(row.variant_mean|float) }}</strong></span>
@@ -24,7 +24,7 @@
 <article class="panel hw3-card">
 <h2><span class="rq">RQ5</span> 換一個指標，結論會變嗎？</h2>
 <p>會。各指標的第一名不同；MRR 幾乎每種方法都很高，最難分出好壞。</p>
-{% for metric, scheme, value in best %}<div class="hw3-pair-row"><small>{{ metric }}</small><span>最佳 <code>{{ scheme }}</code></span><span><strong>{{ '%.3f'|format(value) }}</strong></span></div>{% endfor %}
+{% for metric, scheme, value in best %}<div class="hw3-pair-row"><small>{{ metric }}</small><span>最佳 <code>{{ scheme|lecture }}</code></span><span><strong>{{ '%.3f'|format(value) }}</strong></span></div>{% endfor %}
 </article>
 </section>
 
@@ -33,11 +33,11 @@
 <figure class="projection"><img src="{{ url_for('vsm_chart') }}" alt="各加權方法的 nDCG@10、MAP、P@10、MRR 平均值長條圖" loading="lazy" onerror="this.parentElement.hidden=true"></figure>
 <details><summary>完整結果（{{ vsm.summary|length }} 種加權）</summary>
 <div class="table-wrap"><table><thead><tr><th>加權</th><th>P@10</th><th>R@100</th><th>MRR</th><th>MAP</th><th>nDCG@10</th></tr></thead><tbody>
-{% for row in vsm.summary|sort(attribute='nDCG@10', reverse=true) %}<tr><td><a href="{{ url_for('hw3', a=row.scheme) }}" title="{{ row.description }}"><code>{{ row.scheme }}</code></a></td>{% for m in ['P@10', 'R@100', 'MRR', 'MAP', 'nDCG@10'] %}<td>{{ '%.3f'|format(row[m]|float) }}</td>{% endfor %}</tr>{% endfor %}
+{% for row in vsm.summary|sort(attribute='nDCG@10', reverse=true) %}<tr><td><a href="{{ url_for('hw3', a=row.scheme) }}" title="{{ row.description }}"><code>{{ row.scheme|lecture }}</code></a></td>{% for m in ['P@10', 'R@100', 'MRR', 'MAP', 'nDCG@10'] %}<td>{{ '%.3f'|format(row[m]|float) }}</td>{% endfor %}</tr>{% endfor %}
 </tbody></table></div></details>
 <details><summary>全部控制變因比較（nDCG@10）</summary>
 <div class="table-wrap"><table><thead><tr><th>問題</th><th>改變</th><th>基準 → 變體</th><th>平均</th><th>↑／↓</th><th>p</th></tr></thead><tbody>
-{% for row in vsm.comparisons if row.metric == 'nDCG@10' %}<tr><td>{{ row.question }}</td><td>{{ row.change }}</td><td><code>{{ row.baseline }}</code> → <code>{{ row.variant }}</code></td><td>{{ '%.3f'|format(row.baseline_mean|float) }} → {{ '%.3f'|format(row.variant_mean|float) }}</td><td>{{ row.better }}／{{ row.worse }}</td><td>{{ '%.3f'|format(row.p_value|float) }}</td></tr>{% endfor %}
+{% for row in vsm.comparisons if row.metric == 'nDCG@10' %}<tr><td>{{ row.question }}</td><td>{{ row.change }}</td><td><code>{{ row.baseline|lecture }}</code> → <code>{{ row.variant|lecture }}</code></td><td>{{ '%.3f'|format(row.baseline_mean|float) }} → {{ '%.3f'|format(row.variant_mean|float) }}</td><td>{{ row.better }}／{{ row.worse }}</td><td>{{ '%.3f'|format(row.p_value|float) }}</td></tr>{% endfor %}
 </tbody></table></div></details>
 </section>
 {% endif %}

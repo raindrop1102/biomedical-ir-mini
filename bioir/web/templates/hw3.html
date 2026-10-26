@@ -19,12 +19,12 @@
   </div>
   <div class="hw3-row">
     {% for code in codes %}<label class="hw3-scheme"><span>{{ 'A' if loop.first else 'B' }}</span>
-      <select name="{{ 'a' if loop.first else 'b' }}" aria-label="加權 {{ 'A' if loop.first else 'B' }}">{% for key, label in schemes.items() %}<option value="{{ key }}" title="{{ label }}" {% if code == key %}selected{% endif %}>{{ key }}</option>{% endfor %}</select></label>
+      <select name="{{ 'a' if loop.first else 'b' }}" aria-label="加權 {{ 'A' if loop.first else 'B' }}">{% for key, label in schemes.items() %}<option value="{{ key }}" title="{{ label }}" {% if code == key %}selected{% endif %}>{{ key|lecture }}</option>{% endfor %}</select></label>
     {% if loop.first %}<span class="hw3-vs">vs</span>{% endif %}{% endfor %}
     <button type="submit">比較</button>
   </div>
   <details class="hw3-legend"><summary>記號說明</summary>
-    <p>SMART 記號寫成 <code>文件.查詢</code>，各三個字母：TF · IDF · 正規化（講義寫成 查詢.文件，順序相反）。log 以 10 為底。</p>
+    <p>SMART 記號同講義寫成 <code>查詢.文件</code>（qqq.ddd），各三個字母：TF · IDF · 正規化。例如 ltc.lnc：查詢 log TF × IDF、cosine；文件 log TF、不乘 IDF、cosine。log 以 10 為底。</p>
     <p class="hw3-formula">\[ \text{score}(q,d) = \sum_{t \in q} w_{t,q}\, w_{t,d}, \qquad w_{t} = \text{TF} \times \text{IDF} \times \text{正規化} \]</p>
     <div class="hw3-smart">
       <section><h4>TF（詞頻）</h4><dl>
@@ -63,7 +63,7 @@
 
 <section class="model-columns hw3-lists">
 {% for column in columns %}<div class="panel">
-<h2>{{ 'A' if loop.first else 'B' }}（{{ column.scheme.code }}）</h2>
+<h2>{{ 'A' if loop.first else 'B' }}（{{ column.scheme.code|lecture }}）</h2>
 <ol class="hw3-hits">
 {% set side_b = not loop.first %}{% set shown = column.docs[0].pmid if column.docs else '' %}
 {% for row in column.hits %}{% set pmid = row.hit.pmid %}<li {% if pmid == shown %}class="selected"{% endif %}>
@@ -74,23 +74,29 @@
 {% if columns[0].docs %}
 <section class="panel" id="steps">
 <h2>加權步驟</h2>
-<p class="hw3-note">在左邊清單點標題換 A 的文章，在右邊清單點標題換 B 的文章。文件權重 × 查詢權重 = 這個詞對分數的貢獻，貢獻加總就是分數。</p>
+<p class="hw3-note">在左邊清單點標題換 A 的文章，在右邊清單點標題換 B 的文章。欄位同講義：Query 的權重 × Document 的權重 = Prod，Prod 加總就是分數。</p>
 <div class="model-columns">
-{% for column in columns %}{% set first = column.docs[0] %}<div>
-<h3>{{ 'A' if loop.first else 'B' }}（{{ column.scheme.code }}）</h3>
-<p class="hw3-doc">{% if first.grade == 2 %}★ {% elif first.grade == 1 %}✓ {% endif %}<a href="https://pubmed.ncbi.nlm.nih.gov/{{ first.pmid }}/" target="_blank" rel="noopener noreferrer">{{ first.doc.title or '（無標題）' }}</a></p>
-<p class="hw3-letters">文件 {% for letter, part, rule in first.document.rules %}<code title="{{ part }}：{{ rule }}">{{ letter }}</code>{% endfor %}
- · 查詢 {% for letter, part, rule in first.query.rules %}<code title="{{ part }}：{{ rule }}">{{ letter }}</code>{% endfor %}</p>
-{% for entry in column.docs %}
-<div class="table-wrap"><table class="step-table"><thead><tr><th>詞</th><th title="這篇文章裡出現幾次">tf</th><th title="含這個詞的文件數">DF</th><th title="log(N ÷ DF)；灰字表示文件那邊沒有乘 IDF" class="{{ 'muted' if first.document.side.weighting.idf == 'n' }}">IDF</th><th title="文件正規化時除以的數：c 為向量長度，u、b 見記號說明；n 不除">÷ 長度</th><th title="這個詞在文件向量裡的數字：依文件的三個字母算出">文件權重</th><th title="這個詞在查詢向量裡的數字：依查詢的三個字母算出">× 查詢權重</th><th>= 貢獻</th></tr></thead><tbody>
+{% for column in columns %}{% set entry = column.docs[0] %}{% set qw, dw = column.scheme.query, column.scheme.document %}
+{% set q_norm, d_norm = qw.norm != 'n', dw.norm != 'n' %}<div>
+<h3>{{ 'A' if loop.first else 'B' }}（{{ column.scheme.code|lecture }}）</h3>
+<p class="hw3-doc">{% if entry.grade == 2 %}★ {% elif entry.grade == 1 %}✓ {% endif %}<a href="https://pubmed.ncbi.nlm.nih.gov/{{ entry.pmid }}/" target="_blank" rel="noopener noreferrer">{{ entry.doc.title or '（無標題）' }}</a></p>
+<p class="hw3-letters">Query {% for letter, part, rule in entry.query.rules %}<code title="{{ part }}：{{ rule }}">{{ letter }}</code>{% endfor %}
+ · Document {% for letter, part, rule in entry.document.rules %}<code title="{{ part }}：{{ rule }}">{{ letter }}</code>{% endfor %}
+{% if q_norm %} · Query length <strong>{{ '%.3f'|format(entry.query.side.divisor) }}</strong>{% endif %}
+{% if d_norm %} · Doc length <strong title="文件正規化時除以的數：c 為向量長度，u、b 見記號說明">{{ '%.3f'|format(entry.document.side.divisor) }}</strong>{% endif %}</p>
+<div class="table-wrap"><table class="step-table lecture">
+<thead><tr><th rowspan="2" class="term">Term</th><th colspan="{{ 6 if q_norm else 5 }}" class="group">Query</th><th colspan="{{ 4 if d_norm else 3 }}" class="group">Document</th><th rowspan="2" class="group">Prod</th></tr>
+<tr><th>tf-raw</th><th>tf-wt</th><th>df</th><th class="{{ 'muted' if qw.idf == 'n' }}" title="log(N ÷ df)；灰字表示查詢沒有乘 IDF">idf</th><th>wt</th>{% if q_norm %}<th>n'lized</th>{% endif %}
+<th class="group">tf-raw</th><th>tf-wt</th><th title="tf-wt × 文件的 IDF（文件第 2 個字母）">wt</th>{% if d_norm %}<th>n'lized</th>{% endif %}</tr></thead><tbody>
 {% for d in entry.document.side.terms %}{% set q = entry.query.side.terms[loop.index0] %}
-<tr{% if not (q.weight * d.weight) %} class="zero"{% endif %}><td>{{ d.term }}</td><td>{{ d.tf }}</td><td>{{ '{:,}'.format(df[d.term]) }}</td><td class="{{ 'muted' if entry.document.side.weighting.idf == 'n' }}">{{ '%.3f'|format(idf[d.term]) }}</td><td>{{ '%.3f'|format(entry.document.side.divisor) }}</td>
-<td title="{{ '%.3f'|format(d.tf_weight) }} × {{ '%.3f'|format(d.idf) }} ÷ {{ '%.3f'|format(entry.document.side.divisor) }}">{{ '%.4f'|format(d.weight) }}</td>
-<td title="{{ '%.3f'|format(q.tf_weight) }} × {{ '%.3f'|format(q.idf) }} ÷ {{ '%.3f'|format(entry.query.side.divisor) }}">{{ '%.4f'|format(q.weight) }}</td>
-<td>{{ '%.4f'|format(q.weight * d.weight) }}</td></tr>{% endfor %}
-<tr class="total"><td colspan="7">分數 <small>{{ '第 %d 名'|format(entry.rank) if entry.rank else '前 10 名外' }}</small></td><td><strong>{{ '%.4f'|format(entry.score) }}</strong></td></tr>
-</tbody></table></div>{% endfor %}
-<ul class="hw3-rules">{% for letter, part, rule in first.document.rules %}<li>文件 {{ part }} <code>{{ letter }}</code>：{{ rule }}</li>{% endfor %}</ul>
+<tr{% if not (q.weight * d.weight) %} class="zero"{% endif %}><td class="term">{{ d.term }}</td>
+<td>{{ q.tf }}</td><td>{{ '%.2f'|format(q.tf_weight) }}</td><td>{{ '{:,}'.format(df[d.term]) }}</td>
+<td class="{{ 'muted' if qw.idf == 'n' }}">{{ '%.2f'|format(idf[d.term]) }}</td><td>{{ '%.2f'|format(q.tf_weight * q.idf) }}</td>{% if q_norm %}<td>{{ '%.3f'|format(q.weight) }}</td>{% endif %}
+<td class="group">{{ d.tf }}</td><td>{{ '%.2f'|format(d.tf_weight) }}</td><td>{{ '%.2f'|format(d.tf_weight * d.idf) }}</td>{% if d_norm %}<td>{{ '%.3f'|format(d.weight) }}</td>{% endif %}
+<td class="group">{{ '%.4f'|format(q.weight * d.weight) }}</td></tr>{% endfor %}
+<tr class="total"><td colspan="{{ 1 + (6 if q_norm else 5) + (4 if d_norm else 3) }}">Score <small>{{ '第 %d 名'|format(entry.rank) if entry.rank else '前 10 名外' }}</small></td><td class="group"><strong>{{ '%.4f'|format(entry.score) }}</strong></td></tr>
+</tbody></table></div>
+<ul class="hw3-rules">{% for letter, part, rule in entry.query.rules %}<li>Query {{ part }} <code>{{ letter }}</code>：{{ rule }}</li>{% endfor %}{% for letter, part, rule in entry.document.rules %}<li>Document {{ part }} <code>{{ letter }}</code>：{{ rule }}</li>{% endfor %}</ul>
 </div>{% endfor %}
 </div>
 </section>

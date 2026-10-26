@@ -135,3 +135,8 @@ html[data-theme="dark"] .badge.sig-none { background: #243242; color: #aebdce; }
 .hw3-smart dd small { display: block; color: var(--muted); font-size: 11px; }
 @media (max-width: 900px) { .hw3-smart { grid-template-columns: minmax(0, 1fr); } }
 .step-table .muted { color: var(--muted); opacity: .55; }
+/* The weighting steps laid out like Lecture 3's ltn.lnc example */
+.step-table.lecture th, .step-table.lecture td { padding: 7px 6px; font-size: 13px; }
+.step-table.lecture thead tr:first-child th { text-align: center; color: var(--navy); font-size: 13px; }
+.step-table .group { border-left: 2px solid var(--border); }
+.step-table th.term, .step-table td.term { text-align: left; }
