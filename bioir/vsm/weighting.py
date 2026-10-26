@@ -15,9 +15,9 @@ Letters are case-sensitive, as in SMART: "L" and "l" are different TF weights.
             pivot is the corpus average of distinct terms per document and s = 0.2
          b  byte size: divide by the text's length in characters ** α, α = 0.375
 
-Logs are natural by default. The base only rescales IDF by a constant, which L2
-normalization cancels, but it does change 1 + log(tf); base=10 reproduces the
-lecture's worked examples.
+Logs are base 10, as in the lecture, so its worked examples come out exactly. The
+base only rescales IDF by a constant, which L2 normalization cancels, but it does
+change the shape of 1 + log(tf).
 
 Only the document side's normalization changes a ranking: a query's divisor is the
 same for every document.
@@ -41,7 +41,7 @@ class Weighting:
     tf: str
     idf: str
     norm: str
-    base: float = math.e
+    base: float = 10
 
     def __post_init__(self):
         if self.tf not in TF_CODES or self.idf not in IDF_CODES or self.norm not in NORM_CODES:

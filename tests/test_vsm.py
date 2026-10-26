@@ -23,18 +23,18 @@ class WeightingTest(unittest.TestCase):
     def test_tf_idf_and_norm_letters(self):
         w = Weighting("l", "t", "c")
         self.assertEqual(w.code, "ltc")
-        self.assertAlmostEqual(w.tf_weight(3, 3), 1 + math.log(3))
-        self.assertAlmostEqual(w.idf_weight(2, 8), math.log(4))
+        self.assertAlmostEqual(w.tf_weight(3, 3), 1 + math.log10(3))
+        self.assertAlmostEqual(w.idf_weight(2, 8), math.log10(4))
         self.assertEqual(Weighting("n", "n", "n").tf_weight(3, 5), 3.0)
         self.assertEqual(Weighting("b", "n", "n").tf_weight(7, 7), 1.0)
         self.assertAlmostEqual(Weighting("a", "n", "n").tf_weight(2, 4), 0.75)
         self.assertEqual(Weighting("n", "n", "n").tf_weight(0, 4), 0.0)
-        self.assertAlmostEqual(Weighting("n", "p", "n").idf_weight(2, 8), math.log(3))
+        self.assertAlmostEqual(Weighting("n", "p", "n").idf_weight(2, 8), math.log10(3))
         self.assertEqual(Weighting("n", "p", "n").idf_weight(5, 8), 0.0)     # df above N/2
 
     def test_log_average_tf_and_length_divisors(self):
         L = Weighting("L", "n", "n")
-        self.assertAlmostEqual(L.tf_weight(4, 4, average_tf=2), (1 + math.log(4)) / (1 + math.log(2)))
+        self.assertAlmostEqual(L.tf_weight(4, 4, average_tf=2), (1 + math.log10(4)) / (1 + math.log10(2)))
         self.assertEqual(L.tf_weight(2, 4, average_tf=2), 1.0)          # a term at the text's average
         self.assertAlmostEqual(Weighting("l", "n", "c").divisor([3, 4], 2, 99, 50), 5.0)
         self.assertAlmostEqual(Weighting("l", "n", "u").divisor([3, 4], 100, 99, 50), 0.8 * 50 + 0.2 * 100)
@@ -43,13 +43,13 @@ class WeightingTest(unittest.TestCase):
 
     def test_lecture_example_ltn_lnc(self):
         """Lecture 3, "tf-idf example: ltn.lnc" — query "best car insurance", document
-        "car insurance auto insurance", N = 1,000,000, log base 10. The lecture writes
+        "car insurance auto insurance", N = 1,000,000; logs are base 10 like the lecture's. The lecture writes
         query.document; here that is the document scheme lnc with the query scheme ltn."""
         N = 1_000_000
         df = {"auto": 5000, "best": 50000, "car": 10000, "insurance": 1000}
         query_tf = {"best": 1, "car": 1, "insurance": 1}
         document_tf = {"auto": 1, "car": 1, "insurance": 2}
-        query, document = Weighting("l", "t", "n", base=10), Weighting("l", "n", "c", base=10)
+        query, document = Weighting("l", "t", "n"), Weighting("l", "n", "c")
 
         q = {t: query.tf_weight(tf, 1) * query.idf_weight(df[t], N) for t, tf in query_tf.items()}
         self.assertEqual([round(q[t], 1) for t in ("best", "car", "insurance")], [1.3, 2.0, 3.0])
@@ -113,8 +113,8 @@ class EngineTest(unittest.TestCase):
     def test_cosine_matches_a_hand_computation(self):
         n = len(self.space)
         weighting = Weighting("l", "t", "c")
-        doc = {t: (1 + math.log(tf)) * math.log(n / self.space.df(t)) for t, tf in self.space.tf["4"].items()}
-        query = {t: math.log(n / self.space.df(t)) for t in ("semaglutid", "insulin")}
+        doc = {t: (1 + math.log10(tf)) * math.log10(n / self.space.df(t)) for t, tf in self.space.tf["4"].items()}
+        query = {t: math.log10(n / self.space.df(t)) for t in ("semaglutid", "insulin")}
         expected = (sum(query[t] * doc[t] for t in query)
                     / math.sqrt(sum(v * v for v in doc.values())) / math.sqrt(sum(v * v for v in query.values())))
         hit = next(h for h in self.space.search("semaglutide insulin", Scheme(weighting, weighting)).hits

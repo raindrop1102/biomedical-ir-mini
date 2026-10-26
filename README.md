@@ -226,12 +226,12 @@ trustworthiness（k = 5）與 scikit-learn 的實作在測試資料上數值相�
 ## 作業 3：詞項加權與向量空間（vsm）
 
 **系統**：文件（標題＋摘要）與查詢都用檢索的前處理（移除停用詞、Porter 詞幹）轉成詞袋，依 SMART 記號
-`ddd.qqq` 加權——TF：n 原始、l 1+ln tf、b 二元、a 0.5+0.5·tf/max tf、L (1+ln tf)/(1+ln 平均 tf)；
-IDF：n 無、t ln(N/df)、p max(0, ln((N−df)/df))；正規化：n 無、c L2、u pivoted unique（除以 0.8·pivot＋0.2·相異詞數，
-pivot 為語料平均相異詞數）、b byte size（除以字元數^0.375）。字母區分大小寫（L ≠ l）。
-分數是查詢向量與文件向量的內積，兩邊都 L2 正規化時就是 cosine similarity。
+`ddd.qqq` 加權，log 一律以 10 為底（與講義相同）——TF：n 原始、l 1+log tf、b 二元、a 0.5+0.5·tf/max tf、
+L (1+log tf)/(1+log 平均 tf)；IDF：n 無、t log(N/df)、p max(0, log((N−df)/df))；正規化：n 無、c L2、
+u pivoted unique（除以 0.8·pivot＋0.2·相異詞數，pivot 為語料平均相異詞數）、b byte size（除以字元數^0.375）。
+字母區分大小寫（L ≠ l）。分數是查詢向量與文件向量的內積，兩邊都 L2 正規化時就是 cosine similarity。
 **注意**：本專案沿用 SMART 傳統與教科書的「文件.查詢」順序；課堂講義寫成「查詢.文件」，所以這裡的 lnc.ltc
-就是講義的 ltc.lnc。講義例題 ltn.lnc（best car insurance，3.08 分）在 `tests/test_vsm.py` 以 log₁₀ 重現。
+就是講義的 ltc.lnc。講義例題 ltn.lnc（best car insurance，3.08 分）在 `tests/test_vsm.py` 重現。
 以倒排索引逐詞累加，只碰到含查詢詞的文件；每種加權的文件向量長度算一次後快取。比較只用講義 SMART 表上的公式（BM25 只用在作業 1 的搜尋頁）。
 查詢約 2–6 ms（某加權第一次使用時需約 0.1 秒計算文件向量長度）。
 
@@ -245,55 +245,57 @@ pivot 為語料平均相異詞數）、b byte size（除以字元數^0.375）。
 
 | 加權 | 說明 | P@10 | MRR | MAP | nDCG@10 |
 |---|---|---|---|---|---|
-| lnb.ltc | lnc.ltc 改用 byte size 正規化 | 0.687 | 0.967 | 0.522 | 0.660 |
-| lnc.ltc | 文件 log TF＋cosine；查詢 log TF·IDF＋cosine | 0.680 | 0.922 | 0.513 | 0.655 |
-| lnu.ltc | lnc.ltc 改用 pivoted unique 正規化 | 0.680 | 0.967 | 0.520 | 0.644 |
-| Lnu.ltc | log 平均 TF＋pivoted unique（Singhal 等人的 Lnu） | 0.687 | 0.913 | 0.522 | 0.643 |
-| lnc.lnc | 只有 log TF | 0.647 | 0.967 | 0.488 | 0.632 |
+| Lnu.ltc | log 平均 TF＋pivoted unique（Singhal 等人的 Lnu） | 0.700 | 0.933 | 0.517 | 0.661 |
+| lnu.ltc | lnc.ltc 改用 pivoted unique 正規化 | 0.680 | 0.933 | 0.516 | 0.650 |
 | nnc.nnc | 只有原始 TF | 0.667 | 0.956 | 0.430 | 0.631 |
-| ltn.ltn | log TF·IDF，不正規化 | 0.647 | 0.900 | 0.501 | 0.614 |
+| ltn.ltn | log TF·IDF，不正規化 | 0.653 | 0.900 | 0.499 | 0.627 |
+| lnb.ltc | lnc.ltc 改用 byte size 正規化 | 0.660 | 0.817 | 0.504 | 0.626 |
+| lnc.ltc | 文件 log TF＋cosine；查詢 log TF·IDF＋cosine | 0.653 | 0.889 | 0.496 | 0.620 |
 | ntc.ntc | 原始 TF·IDF | 0.660 | 0.839 | 0.463 | 0.599 |
-| ltc.ltc | log TF·IDF，兩邊都乘 IDF | 0.620 | 0.783 | 0.476 | 0.553 |
+| lnc.lnc | 只有 log TF | 0.607 | 0.880 | 0.478 | 0.598 |
 | nnn.nnn | 原始 TF，不正規化 | 0.580 | 0.818 | 0.369 | 0.544 |
+| ltc.ltc | log TF·IDF，兩邊都乘 IDF | 0.593 | 0.806 | 0.454 | 0.535 |
 | bnc.btc | 只有 IDF（乘一次） | 0.487 | 0.718 | 0.409 | 0.449 |
 | btc.btc | 只有 IDF（兩邊都乘） | 0.453 | 0.670 | 0.387 | 0.398 |
 
 （另有 bnc.bnc、atc.atc、lpc.lpc、ntn.ntn、Lnc.ltc，見 `summary.csv` 與 `metrics.png`。）
 
 **RQ1 原始 TF 與 Log TF**：log TF 壓縮重複出現的詞。`tf_example.csv` 的 PMID 26971825 中，`il` 出現 24 次、`glucos` 6 次：
-原始 TF 下兩者權重相差 4 倍，`il` 佔正規化向量 0.46；log TF 下只差 1.5 倍（4.18 vs 2.79），`il` 佔 0.22。
-檢索上，不含 IDF 時 raw → log 的 MAP 由 0.430 升到 0.488（15 題中 14 題變好，p = 0.039），R@100 由 0.552 升到 0.647；
-P@10 與 nDCG@10 幾乎不變。也就是說，log TF 主要讓排名較後面的相關文件上來，避免單一詞反覆出現的文件獨佔前段。
-講義的 L（log 平均 TF）把每個詞再除以同一篇的 1+ln(平均 tf)，是整篇文件共用的常數，所以搭配 cosine 時會被消掉：
+原始 TF 下兩者權重相差 4 倍，`il` 佔正規化向量 0.46；log TF 下只差 1.3 倍（2.38 vs 1.78），`il` 佔 0.17。
+檢索上，不含 IDF 時 raw → log 的 MAP 由 0.430 升到 0.478（11 題變好、4 題變差，p = 0.15），R@100 由 0.552 升到 0.672；
+nDCG@10 則由 0.631 降到 0.598（不顯著）。以 10 為底時 1+log tf 壓縮得很重（tf = 10 只得 2 分），接近二元，
+所以 log TF 主要讓排名較後面的相關文件上來，前段反而少了「整篇在談」的訊號。
+講義的 L（log 平均 TF）把每個詞再除以同一篇的 1+log(平均 tf)，是整篇文件共用的常數，所以搭配 cosine 時會被消掉：
 Lnc.ltc 與 lnc.ltc 的排名完全相同（有測試確認）。只有在不看權重的正規化下才有作用；lnu.ltc → Lnu.ltc 的
-nDCG@10 為 0.644 → 0.643（7 題變好、7 題變差，p = 0.95），沒有差別。
+nDCG@10 為 0.650 → 0.661（8 題變好、5 題變差，p = 0.66），不顯著。
 
-**RQ2 IDF 的作用**：在這個以 GLP-1 為主題的語料裡，`glp`、`1` 出現在 2,991／2,992 篇，IDF 只有 0.0003；`glucagon` 0.028、
-`receptor` 0.41、`diabet` 0.60；而 `sitagliptin` 4.22、`parkinson` 4.01、`microbiota` 3.89（`idf.csv`）。主題詞自動被降到近乎 0，
-有區辨力的詞得到高權重。把 IDF **乘一次**（lnc.lnc → lnc.ltc）時 nDCG@10 由 0.632 升到 0.655、MAP 由 0.488 升到 0.513，
-但只有 6 題變好、6 題變差，不顯著。若**文件與查詢都乘 IDF**（lnc.ltc → ltc.ltc，等於 IDF²），nDCG@10 反而由 0.655 降到 0.553
-（2 題變好、11 題變差，p = 0.002）：IDF² 讓單一罕見詞壓過其他查詢詞，例如 Q14「pancreatic cancer risk」中 `cancer`
-（IDF² ≈ 14.7）遠大於 `pancreat`（≈ 4.0），前幾名變成泛論癌症的文章，nDCG@10 只剩 0.10。
+**RQ2 IDF 的作用**：在這個以 GLP-1 為主題的語料裡，`glp`、`1` 出現在 2,991／2,992 篇，IDF 只有 0.0001；`glucagon` 0.012、
+`receptor` 0.18、`diabet` 0.26；而 `sitagliptin` 1.83、`parkinson` 1.74、`microbiota` 1.69（`idf.csv`）。主題詞自動被降到近乎 0，
+有區辨力的詞得到高權重。把 IDF **乘一次**（lnc.lnc → lnc.ltc）時 nDCG@10 由 0.598 升到 0.620、MAP 由 0.478 升到 0.496，
+8 題變好、4 題變差，不顯著（p = 0.20）。若**文件與查詢都乘 IDF**（lnc.ltc → ltc.ltc，等於 IDF²），nDCG@10 反而由 0.620 降到 0.535
+（3 題變好、11 題變差，p = 0.002；MAP 14 題變差，p < 0.001）：IDF² 讓單一罕見詞壓過其他查詢詞，例如 Q14「pancreatic cancer risk」中
+`cancer`（IDF² ≈ 2.77）遠大於 `pancreat`（≈ 0.76），前幾名變成泛論癌症的文章，nDCG@10 由 0.35 降到 0.16。
 
-**RQ3 TF-IDF 是否優於只用 TF 或只用 IDF**：TF-IDF（lnc.ltc，nDCG@10 0.655）明顯優於只用 IDF（bnc.btc，0.449；15 題中 12 題變好，p < 0.001），
-但與只用 log TF（lnc.lnc，0.632）的差距不顯著。原因是在單一主題的語料中，使用者輸入的查詢詞多半本身就有區辨力；
+**RQ3 TF-IDF 是否優於只用 TF 或只用 IDF**：TF-IDF（lnc.ltc，nDCG@10 0.620）明顯優於只用 IDF（bnc.btc，0.449；11 題變好、3 題變差，p = 0.001），
+但與只用 log TF（lnc.lnc，0.598）的差距不顯著。原因是在單一主題的語料中，使用者輸入的查詢詞多半本身就有區辨力；
 只用 IDF 則完全忽略文件中出現幾次，無法區分「提到一次」與「整篇在談」。結論：TF 提供主要訊號，IDF 適合當作修正，乘一次比乘兩次好。
 
 **RQ4 L2 正規化**：不正規化時，長文件因含有較多詞而占優勢：nnn.nnn 前 10 名平均 200.5 個詞（語料平均 158.4），
 54% 來自最長的四分之一文件；加上 L2（nnc.nnc）後降到 144.4 個詞、18.7%，nDCG@10 由 0.544 升到 0.631（p = 0.045）、
-MAP 由 0.369 升到 0.430（p = 0.007）。但對 log TF·IDF，L2（ltn → ltc）反而讓 nDCG@10 由 0.614 降到 0.553（不顯著），
-前 10 名平均只剩 128 個詞、最長四分之一僅占 10%——cosine 對長文件**過度矯正**，這正是 pivoted normalization 的動機。
-講義的另外兩種正規化都朝這個方向修正：pivoted unique（lnu.ltc）前 10 名平均 171.0 個詞、31.3% 來自最長四分之一，
-byte size（lnb.ltc）148.5 個詞、21.3%，都比 cosine（131.2、13.3%）更接近語料平均。但指標差異都不顯著：
-lnb.ltc 的 nDCG@10 0.660、MAP 0.522（相對 lnc.ltc：p = 0.84、0.11）；lnu.ltc 0.644、0.520（p = 0.72、0.48）；
-Lnc.ltc → Lnu.ltc 的 MAP 由 0.513 升到 0.522（p = 0.014），nDCG@10 則略降（p = 0.40）。
+MAP 由 0.369 升到 0.430（p = 0.007）。但對 log TF·IDF，L2（ltn → ltc）反而讓 nDCG@10 由 0.627 降到 0.535（10 題變差，p = 0.044）、
+MAP 由 0.499 降到 0.454（p = 0.004），前 10 名平均只剩 117 個詞、最長四分之一僅占 6.7%——cosine 對長文件**過度矯正**，
+這正是 pivoted normalization 的動機。講義的另外兩種正規化都朝這個方向修正（相對 cosine 的 lnc.ltc：123.2 個詞、10%）：
+pivoted unique（lnu.ltc）166.2 個詞、26.7%，MAP 由 0.496 升到 0.516（13 題變好、2 題變差，p = 0.004），nDCG@10 0.650（p = 0.36）；
+搭配 L 的 Lnu.ltc 145.3 個詞、16%，MAP 0.517（14 題變好、1 題變差，p < 0.001），nDCG@10 0.661 為所有方案最高（p = 0.06）；
+byte size（lnb.ltc）128.2 個詞、12.7%，修正幅度小，nDCG@10 0.626、MAP 0.504 都不顯著（p = 0.71、0.08）。
 講義只寫 u 為 1/u、b 的 α < 1；pivot 斜率 0.2 取自 Singhal 等人，α = 0.375 為自訂，都沒有調參。
-結論：正規化需要，但完全的 cosine 不一定最佳。
+結論：正規化需要，但完全的 cosine 不是最佳；pivoted unique 顯著改善 MAP。
 
-**RQ5 不同指標的影響**：nDCG@10 最佳的 lnb.ltc（0.660）與 lnc.ltc（0.655）差距不顯著（p = 0.84）；最差的是兩邊都乘 IDF 的 btc.btc（0.398）。
-指標會改變結論：MRR 最高的是 lnc.lnc、lnu.ltc、lnb.ltc（都是 0.967）——幾乎每題的第一筆都相關，因此 MRR 對加權方法不敏感；
-lnc.lnc 的 nDCG@10（0.632）與 MAP（0.488）卻明顯落後 lnc.ltc 與 lnb.ltc。查詢之間差異也大：Q06「bariatric surgery and gastric bypass」各方法 nDCG@10 都在 0.80–1.0；
-Q08「type 1 diabetes」則從 0（只用 IDF 的三種方法）到 0.78（nnc.nnc）都有，lnc.ltc 只有 0.26：`1` 出現在幾乎每篇
+**RQ5 不同指標的影響**：nDCG@10 最佳的是 Lnu.ltc（0.661），最差的是兩邊都乘 IDF 的 btc.btc（0.398）。
+指標會改變結論：MRR 最高的是只用原始 TF 的 nnc.nnc（0.956）——幾乎每題的第一筆都相關，因此 MRR 對加權方法不敏感；
+nnc.nnc 的 MAP（0.430）卻落後 Lnu.ltc（0.517）一大截，lnb.ltc 的 nDCG@10（0.626）高於 lnc.ltc，MRR（0.817）卻較低。
+查詢之間差異也大：Q06「bariatric surgery and gastric bypass」各方法 nDCG@10 都在 0.80–1.0；
+Q08「type 1 diabetes」則從 0（只用 IDF 的三種方法）到 0.78（nnc.nnc）都有，lnc.ltc 只有 0.22：`1` 出現在幾乎每篇
 （GLP-1 被切成 glp、1），IDF≈0，用 IDF 的方法等於只查 type diabetes，詞袋又不看詞序，很難區分第一型與第二型
 （布林搜尋的片語查詢 `"type 1 diabetes"` 可以）。
 

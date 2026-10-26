@@ -15,7 +15,7 @@
   <button type="submit">檢索</button>
 </form>
 <p class="hint">語料：<strong>{{ vsm.corpus }}</strong> · {{ '{:,}'.format(vsm.space|length) }} 篇 · {{ '{:,}'.format(vsm.space.postings|length) }} 個詞（標題＋摘要，移除停用詞、Porter 詞幹）。
-SMART 記號 ddd.qqq：TF（n 原始、l 對數、b 二元、a 增廣）· IDF（n 無、t ln(N/df)、p 機率型）· 正規化（n 無、c L2）。</p>
+SMART 記號 ddd.qqq（log 以 10 為底）：TF（n 原始、l 對數、b 二元、a 增廣、L 對數平均）· IDF（n 無、t log(N/df)、p 機率型）· 正規化（n 無、c L2、u pivoted unique、b byte size）。</p>
 {% if vsm.queries %}<p class="hint">評估查詢（MeSH 相關性）：{% for q in vsm.queries %}<a href="{{ url_for('vector_space', query=q.text, a=codes[0], b=codes[1]) }}#results">{{ q.id }} {{ q.text }}</a>{{ '、' if not loop.last }}{% endfor %}</p>{% endif %}
 </section>
 
