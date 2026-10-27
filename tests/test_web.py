@@ -138,7 +138,7 @@ class WebTest(unittest.TestCase):
         mesh = Path(self.folder.name, "mesh", "abstracts.jsonl")
         page = create_app(Path(self.folder.name, "corpus.jsonl"), Path(self.folder.name, "no-results"), mesh,
                           results).test_client().get("/hw3/results").get_data(as_text=True)
-        self.assertIn("IDF 乘一次還是兩次？", page)
+        self.assertIn("為什麼 IDF 能降低常見詞的重要性", page)
         self.assertIn("sig-down", page)                                    # significantly worse
         self.assertIn("p &lt; 0.001", page)
         self.assertIn("最佳 <code>ltc.lnc</code>", page)                    # RQ5, in lecture order

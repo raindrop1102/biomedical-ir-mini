@@ -22,7 +22,7 @@
 </div>{% endfor %}
 </article>{% endfor %}
 <article class="panel hw3-card">
-<h2><span class="rq">RQ5</span> 換一個指標，結論會變嗎？</h2>
+<h2><span class="rq">RQ5</span> 不同 weighting 方法對 Precision@k、MRR 或 nDCG 等指標有何影響？</h2>
 <p>會。各指標的第一名不同；MRR 幾乎每種方法都很高，最難分出好壞。</p>
 {% for metric, scheme, value in best %}<div class="hw3-pair-row"><small>{{ metric }}</small><span>最佳 <code>{{ scheme|lecture }}</code></span><span><strong>{{ '%.3f'|format(value) }}</strong></span></div>{% endfor %}
 </article>

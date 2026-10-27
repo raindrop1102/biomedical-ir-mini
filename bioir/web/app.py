@@ -118,13 +118,17 @@ def _load_vsm(corpus: Path, results: Path):
 # The homework's research questions: each with its one-line conclusion and the controlled
 # comparisons (baseline, variant) that support it, looked up in comparisons.csv.
 RQ_CARDS = [
-    ("RQ1", "原始 TF 還是 log TF？", "log TF 壓縮重複出現的詞：MAP 上升，但前 10 名的 nDCG@10 沒有變好。",
+    ("RQ1", "原始 TF 與 Log TF 的差異，如何影響文件的詞項權重？", "原始 TF 讓權重和次數成正比：同一篇裡 il 出現 24 次、glucos 6 次，權重差 4 倍，il 佔文件向量 46%。"
+     "log TF 把兩者壓成 2.38 和 1.78，只差 1.3 倍，il 降到 17%，重複的詞不再獨佔向量；"
+     "排名上 MAP 上升，前 10 名的 nDCG@10 則沒有變好。",
      [("nnc.nnc", "lnc.lnc")]),
-    ("RQ2", "IDF 乘一次還是兩次？", "IDF 只乘在查詢那邊最好；兩邊都乘（IDF²）讓罕見詞過重，顯著變差。",
-     [("lnc.ltc", "ltc.ltc")]),
-    ("RQ3", "TF-IDF 比只用 TF 或只用 IDF 好嗎？", "TF-IDF 顯著優於只用 IDF；和只用 TF 的差距不顯著。",
+    ("RQ2", "為什麼 IDF 能降低常見詞的重要性，並提高較具辨識力詞項的權重？", "IDF = log(N ÷ df)，含這個詞的文件越多，值越小：glp、1 出現在 2,991／2,992 篇，IDF 只有 0.0001，"
+     "幾乎歸零；sitagliptin 只出現在 44 篇，IDF 1.83。乘上 IDF 後，有辨識力的查詢詞主導分數。"
+     "但只乘在查詢那邊就夠了，兩邊都乘（IDF²）讓罕見詞過重，顯著變差。",
+     [("lnc.lnc", "lnc.ltc"), ("lnc.ltc", "ltc.ltc")]),
+    ("RQ3", "相較於只使用 TF 或只使用 IDF，TF-IDF 是否能產生較好的搜尋排名？", "TF-IDF 顯著優於只用 IDF；和只用 TF 的差距不顯著。",
      [("bnc.btc", "lnc.ltc"), ("lnc.lnc", "lnc.ltc")]),
-    ("RQ4", "長度正規化有幫助嗎？", "需要正規化，但 cosine 過度矯正、偏好短文件；pivoted unique 顯著改善 MAP。",
+    ("RQ4", "文件向量是否需要進行 L2 normalization？正規化前後的排名有何差異？", "需要正規化，但 cosine 過度矯正、偏好短文件；pivoted unique 顯著改善 MAP。",
      [("nnn.nnn", "nnc.nnc"), ("ltn.ltn", "ltc.ltc"), ("lnc.ltc", "lnu.ltc")]),
 ]
 CARD_METRICS = ["nDCG@10", "MAP"]
