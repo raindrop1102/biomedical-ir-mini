@@ -177,3 +177,10 @@ html[data-theme="dark"] .hw3-scheme .side-tag { color: #0f1a26; }
 .hit-score { flex: none; margin-left: 12px; font-size: 13px; font-variant-numeric: tabular-nums; color: var(--muted); }
 .hw3-lists .panel:first-child .hit-score { color: var(--side-a); }
 .hw3-lists .panel:last-child .hit-score { color: var(--side-b); }
+.hw3-card p + p { margin-top: -2px; }
+.hw3-help { color: var(--muted); font-size: 13px; line-height: 1.7; margin: 6px 0 12px; }
+.hw3-pair-row { grid-template-columns: 4.5em 1fr auto; }
+.hw3-pair-row strong.up { color: #2f7d52; }
+.hw3-pair-row strong.down { color: #9b2c2c; }
+html[data-theme="dark"] .hw3-pair-row strong.up { color: #8fd6ac; }
+html[data-theme="dark"] .hw3-pair-row strong.down { color: #f0a8a8; }

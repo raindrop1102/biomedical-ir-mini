@@ -118,18 +118,42 @@ def _load_vsm(corpus: Path, results: Path):
 # The homework's research questions: each with its one-line conclusion and the controlled
 # comparisons (baseline, variant) that support it, looked up in comparisons.csv.
 RQ_CARDS = [
-    ("RQ1", "原始 TF 與 Log TF 的差異，如何影響文件的詞項權重？", "原始 TF 讓權重和次數成正比：同一篇裡 il 出現 24 次、glucos 6 次，權重差 4 倍，il 佔文件向量 46%。"
-     "log TF 把兩者壓成 2.38 和 1.78，只差 1.3 倍，il 降到 17%，重複的詞不再獨佔向量；"
-     "排名上 MAP 上升，前 10 名的 nDCG@10 則沒有變好。",
-     [("nnc.nnc", "lnc.lnc")]),
-    ("RQ2", "為什麼 IDF 能降低常見詞的重要性，並提高較具辨識力詞項的權重？", "IDF = log(N ÷ df)，含這個詞的文件越多，值越小：glp、1 出現在 2,991／2,992 篇，IDF 只有 0.0001，"
-     "幾乎歸零；sitagliptin 只出現在 44 篇，IDF 1.83。乘上 IDF 後，有辨識力的查詢詞主導分數。"
-     "但只乘在查詢那邊就夠了，兩邊都乘（IDF²）讓罕見詞過重，顯著變差。",
-     [("lnc.lnc", "lnc.ltc"), ("lnc.ltc", "ltc.ltc")]),
-    ("RQ3", "相較於只使用 TF 或只使用 IDF，TF-IDF 是否能產生較好的搜尋排名？", "TF-IDF 顯著優於只用 IDF；和只用 TF 的差距不顯著。",
-     [("bnc.btc", "lnc.ltc"), ("lnc.lnc", "lnc.ltc")]),
-    ("RQ4", "文件向量是否需要進行 L2 normalization？正規化前後的排名有何差異？", "需要正規化，但 cosine 過度矯正、偏好短文件；pivoted unique 顯著改善 MAP。",
-     [("nnn.nnn", "nnc.nnc"), ("ltn.ltn", "ltc.ltc"), ("lnc.ltc", "lnu.ltc")]),
+    ("RQ1", "原始 TF 與 Log TF 的差異，如何影響文件的詞項權重？", [
+        "原始 TF 讓權重和次數成正比，log TF（1 + log tf）把大的次數壓小。以 Q03「GLP-1 neuroprotection in "
+        "Parkinson's disease」為例：nnc.nnc 排第 2 名的文章裡，glp 出現 9 次、parkinson 只出現 2 次。原始 TF 下 glp 的"
+        "權重是 parkinson 的 4.5 倍；log TF 下是 1.95 對 1.30，只差 1.5 倍。",
+        "glp、1 幾乎每篇都有，本身沒有辨識力，原始 TF 卻讓它們佔滿文件向量，前幾名變成反覆提到 GLP-1 的文章。"
+        "換成 log TF 後，真正談 Parkinson's 的文章排上來，Q03 的 MAP 由 0.144 升到 0.462。",
+        "15 題平均：MAP 上升（11 題變好），因為排在後面的相關文章往前移；前 10 名的 nDCG@10 則沒有變好。",
+     ], [("nnc.nnc", "lnc.lnc")]),
+    ("RQ2", "為什麼 IDF 能降低常見詞的重要性，並提高較具辨識力詞項的權重？", [
+        "IDF = log(N ÷ df)，含這個詞的文件越多，值越小（N = 2,992）。以 Q05「DPP-4 inhibitors such as sitagliptin」"
+        "為例：4 出現在 747 篇，IDF 0.60；inhibitor 403 篇，0.87；dpp 228 篇，1.12；sitagliptin 只有 44 篇，1.83。"
+        "越少見、越能指出主題的詞，權重越高。",
+        "再看 Q03「GLP-1 neuroprotection in Parkinson's disease」：glp、1 出現在 2,991／2,992 篇，IDF 只有 0.0001，"
+        "等於從查詢中消失；parkinson 只出現在 54 篇，IDF 1.74，分數主要由它決定。",
+        "IDF 只要乘在查詢那邊就夠了。兩邊都乘（IDF²）會讓罕見詞過重，15 題中 11 題的 nDCG@10 變差。",
+     ], [("lnc.lnc", "lnc.ltc"), ("lnc.ltc", "ltc.ltc")]),
+    ("RQ3", "相較於只使用 TF 或只使用 IDF，TF-IDF 是否能產生較好的搜尋排名？", [
+        "比較三種做法：只用 TF（lnc.lnc，不乘 IDF）、只用 IDF（btc.bnc，文件只看詞有沒有出現）、TF-IDF（ltc.lnc）。",
+        "只用 IDF 時，只提到一次的文章和整篇都在談的文章分數一樣。以 Q12「delayed gastric emptying」為例：只用 IDF 的"
+        "第 1、2 名是 gastric 出現 2–3 次、empti 只出現 1 次的胃部超音波、內視鏡文章，都不相關；TF-IDF 的第 1 名"
+        "gastric 出現 9 次、empti 8 次，是專門研究胃排空延遲的文章。Q12 的 nDCG@10 由 0.27 升到 0.67。",
+        "15 題平均 nDCG@10：只用 IDF 0.449、只用 TF 0.598、TF-IDF 0.620。TF-IDF 明顯勝過只用 IDF（15 題中 11 題變好）；"
+        "和只用 TF 只差一點，因為這個語料只談 GLP-1，查詢詞本身多半就有辨識力。結論：TF 提供主要訊號，IDF 負責修正。",
+     ], [("bnc.btc", "lnc.ltc"), ("lnc.lnc", "lnc.ltc")]),
+    ("RQ4", "文件向量是否需要進行 L2 normalization？正規化前後的排名有何差異？", [
+        "需要。不正規化時，長文件含的詞多，分數自然高：nnn.nnn 前 10 名平均 200 個詞（語料平均 158），"
+        "54% 來自最長的四分之一文件。加上 L2（nnc.nnc）後降到 144 個詞，nDCG@10 由 0.544 升到 0.631。",
+        "但 cosine 會過度矯正：它除以整篇的向量長度，文章越長、詞越多，除數越大，長文章被壓得太低。以 Q01「semaglutide "
+        "weight loss」為例，不正規化（ltn.ltn）前 10 名平均 189 個詞；cosine（ltc.lnc）只剩 124 個詞，比這題相關文章的"
+        "平均長度 173 個詞短很多，偏好短文件。",
+        "pivoted unique（ltc.lnu）改除以「0.8 × 語料平均相異詞數 + 0.2 × 這篇的相異詞數」：除數大部分是固定的平均值，"
+        "只隨長度小幅增加，長文章只被輕微扣分。Q01 的前 10 名平均變成 172 個詞，和相關文章的長度相當，MAP 由 0.426 "
+        "升到 0.467、nDCG@10 由 0.377 升到 0.572。",
+        "MAP 看的是每一篇相關文章的位置。不再過度壓低長文章後，原本被排到後面的長篇相關文章往前移，"
+        "所以 15 題中 13 題的 MAP 變好。",
+     ], [("nnn.nnn", "nnc.nnc"), ("ltn.ltn", "ltc.ltc"), ("lnc.ltc", "lnu.ltc")]),
 ]
 CARD_METRICS = ["nDCG@10", "MAP"]
 

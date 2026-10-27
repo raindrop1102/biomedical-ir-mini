@@ -6,41 +6,46 @@
 {% if error and not vsm %}<div class="alert warning">{{ error }}</div>
 {% elif not vsm.comparisons %}<div class="alert warning">還沒有實驗結果：python -m bioir vsm evaluate --out results/vsm_glp1 --plot</div>
 {% else %}
-<p class="hw3-note">{{ vsm.queries|length }} 個查詢 · MeSH 相關性 · SMART 記號同講義寫成 查詢.文件 · 每組比較只改一個字母 · p 值為精確配對置換檢定</p>
+<p class="hw3-note">{{ vsm.queries|length }} 個評估查詢 · MeSH 相關性 · SMART 記號同講義寫成 查詢.文件 · 每組比較只改一個字母 · ↑／↓ 為 15 題中變好／變差的題數</p>
 <section class="hw3-cards">
 {% for card in cards %}<article class="panel hw3-card">
 <h2><span class="rq">{{ card.rq }}</span> {{ card.question }}</h2>
-<p>{{ card.conclusion }}</p>
+{% for paragraph in card.conclusion %}<p>{{ paragraph }}</p>{% endfor %}
 {% for pair in card.pairs %}<div class="hw3-pair">
   <div class="hw3-pair-head"><code>{{ pair.baseline|lecture }}</code> → <code>{{ pair.variant|lecture }}</code></div>
-  {% for row in pair.metrics %}{% set p = row.p_value|float %}{% set diff = row.difference|float %}
+  {% for row in pair.metrics %}{% set diff = row.difference|float %}
   <div class="hw3-pair-row"><small>{{ row.metric }}</small>
-    <span>{{ '%.3f'|format(row.baseline_mean|float) }} → <strong>{{ '%.3f'|format(row.variant_mean|float) }}</strong></span>
+    <span>{{ '%.3f'|format(row.baseline_mean|float) }} → <strong class="{{ 'up' if diff > 0 else ('down' if diff < 0) }}">{{ '%.3f'|format(row.variant_mean|float) }}</strong></span>
     <span class="hw3-count">{{ row.better }}↑ {{ row.worse }}↓</span>
-    <span class="badge {{ ('sig-up' if diff > 0 else 'sig-down') if p < 0.05 else 'sig-none' }}">p {{ '< 0.001' if p < 0.001 else '= %.3f'|format(p) }}</span>
   </div>{% endfor %}
 </div>{% endfor %}
 </article>{% endfor %}
 <article class="panel hw3-card">
 <h2><span class="rq">RQ5</span> 不同 weighting 方法對 Precision@k、MRR 或 nDCG 等指標有何影響？</h2>
-<p>會。各指標的第一名不同；MRR 幾乎每種方法都很高，最難分出好壞。</p>
+<p>四個指標看的東西不同：P@10 看前 10 名有幾篇相關；MRR 只看第一篇相關文章排第幾；MAP 看所有相關文章的位置；nDCG@10 看前 10 名，主要主題（★）的文章分數較高，而且越前面越重要。</p>
+<p>所以同一種加權，換個指標名次就不同。下面是各指標的第一名：nDCG@10、MAP、P@10 都是 ltc.Lnu，MRR 卻是只用原始 TF 的 nnc.nnc（0.956），而它的 MAP 只有 0.430。</p>
+<p>原因是 MRR 只要第一篇相關就是滿分，這個語料幾乎每題的第一筆都相關，各方法的 MRR 都很高，分不出好壞；MAP 和 nDCG@10 才拉得開差距。又例如 ltc.lnb 的 nDCG@10（0.626）比 ltc.lnc（0.620）高，MRR 卻比較低（0.817 對 0.889）。</p>
+<p>結果也和查詢有關：Q06「bariatric surgery and gastric bypass」各方法的 nDCG@10 都在 0.80 以上；Q08「type 1 diabetes」的 1 幾乎每篇都有、IDF≈0，各方法從 0 到 0.78 差很多。所以要看多題的平均，並且同時看幾個指標。</p>
 {% for metric, scheme, value in best %}<div class="hw3-pair-row"><small>{{ metric }}</small><span>最佳 <code>{{ scheme|lecture }}</code></span><span><strong>{{ '%.3f'|format(value) }}</strong></span></div>{% endfor %}
 </article>
 </section>
 
 <section class="panel">
 <h2>nDCG@10 與其他指標</h2>
+<p class="hw3-help">怎麼看：四格分別是 nDCG@10、MAP、P@10、MRR，每一條橫條是一種加權，長度是 15 題的平均值（0 到 1，越長越好），數字標在條尾。四格的加權順序相同，依 nDCG@10 由好到差從上往下排；藍色那條是 ltc.lnc，作為對照。同一列往右看，可以看這種加權是不是四個指標都好；同一格上下比，可以看哪種加權在這個指標最好。注意：圖上的記號是程式內部的「文件.查詢」寫法，例如圖上的 lnc.ltc 就是講義寫法的 ltc.lnc。</p>
 <figure class="projection"><img src="{{ url_for('vsm_chart') }}" alt="各加權方法的 nDCG@10、MAP、P@10、MRR 平均值長條圖" loading="lazy" onerror="this.parentElement.hidden=true"></figure>
 <details><summary>完整結果（{{ vsm.summary|length }} 種加權）</summary>
+<p class="hw3-help">每一列是一種加權（講義寫法），數字都是 15 題的平均，越大越好：P@10 是前 10 名中相關文章的比例；R@100 是前 100 名找回了多少比例的相關文章；MRR 是第一篇相關文章名次的倒數（第 1 名 = 1，第 2 名 = 0.5）；MAP 綜合所有相關文章的位置；nDCG@10 考慮相關程度（★ 比 ✓ 重要）和名次，1 代表完美排名。表格依 nDCG@10 由高到低排列，點記號可以到互動檢索用這個加權搜尋。</p>
 <div class="table-wrap"><table><thead><tr><th>加權</th><th>P@10</th><th>R@100</th><th>MRR</th><th>MAP</th><th>nDCG@10</th></tr></thead><tbody>
 {% for row in vsm.summary|sort(attribute='nDCG@10', reverse=true) %}<tr><td><a href="{{ url_for('hw3', a=row.scheme) }}" title="{{ row.description }}"><code>{{ row.scheme|lecture }}</code></a></td>{% for m in ['P@10', 'R@100', 'MRR', 'MAP', 'nDCG@10'] %}<td>{{ '%.3f'|format(row[m]|float) }}</td>{% endfor %}</tr>{% endfor %}
 </tbody></table></div></details>
 <details><summary>全部控制變因比較（nDCG@10）</summary>
-<div class="table-wrap"><table><thead><tr><th>問題</th><th>改變</th><th>基準 → 變體</th><th>平均</th><th>↑／↓</th><th>p</th></tr></thead><tbody>
-{% for row in vsm.comparisons if row.metric == 'nDCG@10' %}<tr><td>{{ row.question }}</td><td>{{ row.change }}</td><td><code>{{ row.baseline|lecture }}</code> → <code>{{ row.variant|lecture }}</code></td><td>{{ '%.3f'|format(row.baseline_mean|float) }} → {{ '%.3f'|format(row.variant_mean|float) }}</td><td>{{ row.better }}／{{ row.worse }}</td><td>{{ '%.3f'|format(row.p_value|float) }}</td></tr>{% endfor %}
+<p class="hw3-help">每一列只改一個 SMART 字母，比較 15 題 nDCG@10 平均值的變化；↑／↓ 是 15 題中變好／變差的題數。</p>
+<div class="table-wrap"><table><thead><tr><th>問題</th><th>改變</th><th>基準 → 變體</th><th>平均</th><th>↑／↓</th></tr></thead><tbody>
+{% for row in vsm.comparisons if row.metric == 'nDCG@10' %}<tr><td>{{ row.question }}</td><td>{{ row.change }}</td><td><code>{{ row.baseline|lecture }}</code> → <code>{{ row.variant|lecture }}</code></td><td>{{ '%.3f'|format(row.baseline_mean|float) }} → {{ '%.3f'|format(row.variant_mean|float) }}</td><td>{{ row.better }}／{{ row.worse }}</td></tr>{% endfor %}
 </tbody></table></div></details>
 </section>
 {% endif %}
 </main>
-<footer class="container">↑／↓ 為 15 題中變好／變差的題數 · 綠色：顯著變好 · 紅色：顯著變差 · 灰色：不顯著（p ≥ 0.05，未做多重比較校正） · 完整數字見 results/vsm_glp1</footer>
+<footer class="container">↑／↓ 為 15 題中變好／變差的題數 · 綠色：平均變好 · 紅色：平均變差 · 完整數字見 results/vsm_glp1</footer>
 {% endblock %}

@@ -139,8 +139,8 @@ class WebTest(unittest.TestCase):
         page = create_app(Path(self.folder.name, "corpus.jsonl"), Path(self.folder.name, "no-results"), mesh,
                           results).test_client().get("/hw3/results").get_data(as_text=True)
         self.assertIn("為什麼 IDF 能降低常見詞的重要性", page)
-        self.assertIn("sig-down", page)                                    # significantly worse
-        self.assertIn("p &lt; 0.001", page)
+        self.assertIn('class="down"', page)                                # worse on average
+        self.assertNotIn("p &lt;", page)                                   # no p-values on this page
         self.assertIn("最佳 <code>ltc.lnc</code>", page)                    # RQ5, in lecture order
 
     def test_health_and_headers(self):
