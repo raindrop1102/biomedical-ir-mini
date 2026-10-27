@@ -184,3 +184,4 @@ html[data-theme="dark"] .hw3-scheme .side-tag { color: #0f1a26; }
 .hw3-pair-row strong.down { color: #9b2c2c; }
 html[data-theme="dark"] .hw3-pair-row strong.up { color: #8fd6ac; }
 html[data-theme="dark"] .hw3-pair-row strong.down { color: #f0a8a8; }
+.hw3-intro { margin-bottom: 20px; }

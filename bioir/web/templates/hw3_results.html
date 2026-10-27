@@ -7,6 +7,10 @@
 {% elif not vsm.comparisons %}<div class="alert warning">還沒有實驗結果：python -m bioir vsm evaluate --out results/vsm_glp1 --plot</div>
 {% else %}
 <p class="hw3-note">{{ vsm.queries|length }} 個評估查詢 · MeSH 相關性 · SMART 記號同講義寫成 查詢.文件 · 每組比較只改一個字母 · ↑／↓ 為 15 題中變好／變差的題數</p>
+<section class="panel hw3-card hw3-intro">
+<h2>這次作業的理解</h2>
+<p>對查詢和文件分別做 tf、IDF、正規化的加權，得到新的向量，再用內積算出分數並排名；我是用 MeSH 挑幾個主題當標準答案，評估排名的好壞，比較不同的加權方法，哪一種能把相關文件排得比較前面。</p>
+</section>
 <section class="hw3-cards">
 {% for card in cards %}<article class="panel hw3-card">
 <h2><span class="rq">{{ card.rq }}</span> {{ card.question }}</h2>
@@ -22,12 +26,17 @@
 </article>{% endfor %}
 <article class="panel hw3-card">
 <h2><span class="rq">RQ5</span> 不同 weighting 方法對 Precision@k、MRR 或 nDCG 等指標有何影響？</h2>
-<p>四個指標看的東西不同：P@10 看前 10 名有幾篇相關；MRR 只看第一篇相關文章排第幾；MAP 看所有相關文章的位置；nDCG@10 看前 10 名，主要主題（★）的文章分數較高，而且越前面越重要。</p>
-<p>所以同一種加權，換個指標名次就不同。下面是各指標的第一名：nDCG@10、MAP、P@10 都是 ltc.Lnu，MRR 卻是只用原始 TF 的 nnc.nnc（0.956），而它的 MAP 只有 0.430。</p>
-<p>原因是 MRR 只要第一篇相關就是滿分，這個語料幾乎每題的第一筆都相關，各方法的 MRR 都很高，分不出好壞；MAP 和 nDCG@10 才拉得開差距。又例如 ltc.lnb 的 nDCG@10（0.626）比 ltc.lnc（0.620）高，MRR 卻比較低（0.817 對 0.889）。</p>
-<p>結果也和查詢有關：Q06「bariatric surgery and gastric bypass」各方法的 nDCG@10 都在 0.80 以上；Q08「type 1 diabetes」的 1 幾乎每篇都有、IDF≈0，各方法從 0 到 0.78 差很多。所以要看多題的平均，並且同時看幾個指標。</p>
+<p>四個指標看的東西不同：P@10 看前 10 名有幾篇相關；MRR 只看第一篇相關文章排第幾；MAP 看所有相關文章的位置；nDCG@10 看前 10 名，主要主題的文章分數較高，而且越前面越重要。</p>
+<p>所以不同的 weighting 方法會改變詞項對文件分數的貢獻，因此可能改變搜尋排名，一種方法即使改善某個指標，也不一定讓其他指標同樣改善；應依查詢需求與實驗結果一起判斷。</p>
 {% for metric, scheme, value in best %}<div class="hw3-pair-row"><small>{{ metric }}</small><span>最佳 <code>{{ scheme|lecture }}</code></span><span><strong>{{ '%.3f'|format(value) }}</strong></span></div>{% endfor %}
 </article>
+</section>
+
+<section class="panel hw3-card hw3-intro">
+<h2>心得</h2>
+<p>在算餘弦相似度（Cosine Similarity）時，比較像「評分」，而不是「兩個同類東西有多像」。</p>
+<p><strong>相似度：</strong>比較兩篇文章有多像。兩邊地位相同，所以用同樣的加權很自然。</p>
+<p><strong>檢索的情況：</strong>一邊是只有 3 個詞的查詢，一邊是 150 個詞的文章。兩邊本來就不對等，所以用不同的加權來處理各自的問題，反而更合理，只是這兩個向量用不同的規則產生，所以這個 cosine 的意義比較像是「這篇文件和查詢有多吻合」，而不是「兩者有多像」。</p>
 </section>
 
 <section class="panel">
