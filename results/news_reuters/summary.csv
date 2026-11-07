@@ -1,0 +1,22 @@
+﻿method,description,queries,P@10,R@100,MRR,MAP,nDCG@10
+A,"TF-IDF vectors (ltc.ltc), cosine",all,0.7867,0.2481,0.82,0.366,0.7746
+A,"TF-IDF vectors (ltc.ltc), cosine",keyword,0.94,0.3134,0.95,0.5002,0.9273
+A,"TF-IDF vectors (ltc.ltc), cosine",paraphrase,0.48,0.1175,0.56,0.0975,0.4691
+B-cbow,"cbow: TF-IDF-weighted average of word vectors, cosine",all,0.8467,0.2614,0.9,0.6408,0.8506
+B-cbow,"cbow: TF-IDF-weighted average of word vectors, cosine",keyword,0.84,0.2592,0.85,0.6458,0.8372
+B-cbow,"cbow: TF-IDF-weighted average of word vectors, cosine",paraphrase,0.86,0.266,1.0,0.6308,0.8774
+mean-cbow,"cbow: plain average of word vectors, cosine",all,0.8667,0.2836,0.9667,0.6725,0.879
+mean-cbow,"cbow: plain average of word vectors, cosine",keyword,0.88,0.297,0.95,0.6937,0.8886
+mean-cbow,"cbow: plain average of word vectors, cosine",paraphrase,0.84,0.2567,1.0,0.63,0.8598
+A+B-cbow,0.5 × A + 0.5 × B-cbow,all,0.8533,0.2802,0.9222,0.6659,0.8608
+A+B-cbow,0.5 × A + 0.5 × B-cbow,keyword,0.89,0.2881,0.95,0.6931,0.8972
+A+B-cbow,0.5 × A + 0.5 × B-cbow,paraphrase,0.78,0.2645,0.8667,0.6116,0.788
+B-skipgram,"skipgram: TF-IDF-weighted average of word vectors, cosine",all,0.8933,0.2914,0.9333,0.6757,0.8983
+B-skipgram,"skipgram: TF-IDF-weighted average of word vectors, cosine",keyword,0.9,0.3003,0.9,0.7002,0.9004
+B-skipgram,"skipgram: TF-IDF-weighted average of word vectors, cosine",paraphrase,0.88,0.2736,1.0,0.6266,0.894
+mean-skipgram,"skipgram: plain average of word vectors, cosine",all,0.8733,0.3032,0.8889,0.6891,0.87
+mean-skipgram,"skipgram: plain average of word vectors, cosine",keyword,0.89,0.3154,0.9,0.729,0.8849
+mean-skipgram,"skipgram: plain average of word vectors, cosine",paraphrase,0.84,0.2788,0.8667,0.6091,0.8402
+A+B-skipgram,0.5 × A + 0.5 × B-skipgram,all,0.86,0.2941,0.8778,0.677,0.8558
+A+B-skipgram,0.5 × A + 0.5 × B-skipgram,keyword,0.93,0.3191,0.95,0.7322,0.9268
+A+B-skipgram,0.5 × A + 0.5 × B-skipgram,paraphrase,0.72,0.2442,0.7333,0.5664,0.7136

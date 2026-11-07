@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% block title %}{% if query %}{{ query }} - {% endif %}作業 4：Reuters 新聞檢索{% endblock %}
+{% block styles %}<link rel="stylesheet" href="{{ url_for('static', filename='embedding.css') }}">{% endblock %}
+{% block body %}
+<header class="site-header"><div class="container"><h1>Reuters 新聞檢索：TF-IDF 對 Word Embedding</h1>
+<p class="hint">Reuters-21578 ModApte：詞向量以訓練集學習，檢索與評估只用測試集；文章 topics 含查詢主題即為相關。</p></div></header>
+<main class="container">
+{% if not news %}<section class="panel"><div class="alert warning">{{ error }}</div></section>
+{% else %}
+{% if error %}<div class="alert warning" role="status">{{ error }}</div>{% endif %}
+<section class="panel" id="query">
+<h2>查詢</h2>
+<form method="get" action="{{ url_for('news_page') }}#results" class="neighbor-form vsm-form">
+  <div class="field"><label for="news-query">查詢（自由文字）</label><input id="news-query" name="query" value="{{ query }}" placeholder="例如 petroleum supply" maxlength="300" required></div>
+  <div class="field narrow-wide"><label for="news-model">方法 B 的詞向量</label><select id="news-model" name="model">{% for name in news.models %}<option value="{{ name }}" {% if model_name == name %}selected{% endif %}>{{ name }}</option>{% endfor %}</select></div>
+  <button type="submit">檢索</button>
+</form>
+<p class="hint">訓練集 {{ '{:,}'.format(news.train) }} 篇、測試集 {{ '{:,}'.format(news.test) }} 篇。方法 A：文件與查詢都是 log TF × IDF 向量，cosine。方法 B：文件與查詢都是「詞向量的 TF-IDF 加權平均」，cosine——每篇都有分數，包括和查詢沒有共同詞的文章。</p>
+{% for kind, label in [('keyword', '關鍵字查詢'), ('paraphrase', '改寫查詢（刻意用相關新聞少用的詞）')] %}
+<p class="hint">{{ label }}：{% for q in news.queries if q.kind == kind %}<a href="{{ url_for('news_page', query=q.text, model=model_name) }}#results">{{ q.id }} {{ q.text }}</a>{{ '、' if not loop.last }}{% endfor %}</p>{% endfor %}
+</section>
+
+{% if columns %}
+<section class="panel" id="results">
+<h2>前 10 名</h2>
+{% if evaluation %}<p>評估查詢 <strong>{{ evaluation.id }}</strong>（{{ '改寫' if evaluation.kind == 'paraphrase' else '關鍵字' }}）：主題 <code>{{ evaluation.topic }}</code>，測試集共 {{ relevant }} 篇相關。<span class="badge available">✓ 相關</span> <span class="badge unavailable">無共同詞</span> 表示這篇和查詢沒有任何共同的詞，方法 A 一定給 0 分。</p>{% endif %}
+<div class="model-columns">
+{% for column in columns %}<div>
+<h3>{{ column.title }}</h3><p class="hint">有分數的文章 {{ '{:,}'.format(column.total) }} 篇</p>
+{% if column.metrics %}<p class="metric-line">{% for name in ['P@10', 'MRR', 'MAP', 'nDCG@10'] %}<span><small>{{ name }}</small> {{ '%.3f'|format(column.metrics[name]) }}</span>{% endfor %}</p>{% endif %}
+<ol class="vsm-hits">
+{% for row in column.rows %}<li>
+  <div class="vsm-title">{% if row.relevant %}<span class="grade" title="相關">✓</span>{% endif %}{{ row.story.title or '（無標題）' }}</div>
+  <div class="vsm-meta">NEWID {{ row.story.newid }} · topics：{{ row.story.topics|join(', ') or '（無）' }}{% if row.shared == false %} · <span class="badge unavailable">無共同詞</span>{% endif %}</div>
+</li>{% else %}<li>沒有文章包含這些查詢詞。</li>{% endfor %}
+</ol></div>{% endfor %}
+</div>
+</section>
+{% endif %}
+
+{% if news.summary %}<section class="panel" id="experiment">
+<h2>實驗結果（{{ news.queries|length }} 個查詢）</h2>
+<figure class="projection"><img src="{{ url_for('news_image', name='metrics') }}" alt="各方法在關鍵字與改寫查詢上的 nDCG@10" loading="lazy" onerror="this.parentElement.hidden=true"></figure>
+<div class="table-wrap"><table><thead><tr><th>方法</th><th>查詢</th><th>P@10</th><th>MRR</th><th>MAP</th><th>nDCG@10</th></tr></thead><tbody>
+{% for row in news.summary %}<tr><td>{{ row.method }}</td><td>{{ {'all': '全部', 'keyword': '關鍵字', 'paraphrase': '改寫'}[row.queries] }}</td>{% for m in ['P@10', 'MRR', 'MAP', 'nDCG@10'] %}<td>{{ '%.3f'|format(row[m]|float) }}</td>{% endfor %}</tr>{% endfor %}
+</tbody></table></div>
+<p class="hint">B = TF-IDF 加權平均詞向量；mean = 不加權平均（對照組）；A+B = 0.5 × A + 0.5 × B（α 事先固定）。</p>
+{% if news.comparisons %}<h3>與方法 A 逐題比較（nDCG@10）</h3>
+<div class="table-wrap"><table><thead><tr><th>方法</th><th>A → 方法</th><th>變好／變差</th><th>p 值</th></tr></thead><tbody>
+{% for row in news.comparisons if row.metric == 'nDCG@10' %}<tr><td>{{ row.method }}</td><td>{{ '%.3f'|format(row.baseline_mean|float) }} → {{ '%.3f'|format(row.method_mean|float) }}</td><td>{{ row.better }}／{{ row.worse }}</td><td>{{ '%.3f'|format(row.p_value|float) }}</td></tr>{% endfor %}
+</tbody></table></div>
+<p class="hint">p 值為精確配對置換檢定；只有 {{ news.queries|length }} 個查詢，作為參考，不宣稱顯著。</p>{% endif %}
+{% if news.zero %}<h3>方法 B 前 10 名中「和查詢沒有共同詞」的文章</h3>
+<div class="table-wrap"><table><thead><tr><th>方法</th><th>無共同詞的文章</th><th>其中相關</th></tr></thead><tbody>
+{% for method in news.zero|map(attribute='method')|unique %}{% set rows = news.zero|selectattr('method', 'equalto', method)|list %}
+<tr><td>{{ method }}</td><td>{{ rows|map(attribute='top10_no_query_word')|map('int')|sum }}</td><td>{{ rows|map(attribute='of_which_relevant')|map('int')|sum }}</td></tr>{% endfor %}
+</tbody></table></div>
+<p class="hint">這些文章在方法 A 的分數一定是 0：方法 B 靠詞向量才找到它們。</p>{% endif %}
+</section>{% endif %}
+
+{% if news.pairs %}<section class="panel" id="words">
+<h2>詞層次分析</h2>
+<div class="table-wrap"><table><thead><tr><th>詞對</th>{% for m in news.pairs|map(attribute='model')|unique %}<th>{{ m }} cosine（z）</th>{% endfor %}</tr></thead><tbody>
+{% set models = news.pairs|map(attribute='model')|unique|list %}
+{% for row in news.pairs if row.model == models[0] %}<tr><td>{{ row.left }} / {{ row.right }}</td>{% for m in models %}{% set other = news.pairs|selectattr('model', 'equalto', m)|selectattr('left', 'equalto', row.left)|selectattr('right', 'equalto', row.right)|first %}<td>{% if other.cosine %}{{ '%.2f'|format(other.cosine|float) }}（{{ '%+.1f'|format(other.z|float) }}）{% else %}—{% endif %}</td>{% endfor %}</tr>{% endfor %}
+</tbody></table></div>
+<p class="hint">z = 比隨機詞對平均高幾個標準差。向量相近代表上下文相似，不代表同義：profit / loss 幾乎和 deficit / surplus 一樣近。</p>
+<h3>Top-5 近鄰</h3>
+<div class="table-wrap"><table><thead><tr><th>詞</th>{% for m in models %}<th>{{ m }}</th>{% endfor %}</tr></thead><tbody>
+{% for word in news.neighbors|map(attribute='word')|unique %}<tr><td><b>{{ word }}</b></td>{% for m in models %}<td>{% for r in news.neighbors if r.model == m and r.word == word %}{{ r.neighbor or 'OOV' }}{% if r.neighbor %} {{ '%.2f'|format(r.cosine|float) }}{% endif %}{{ '、' if not loop.last }}{% endfor %}</td>{% endfor %}</tr>{% endfor %}
+</tbody></table></div>
+<figure class="projection"><img src="{{ url_for('news_image', name='projections') }}" alt="五個主題詞組的 PCA 與 t-SNE 投影" loading="lazy" onerror="this.parentElement.hidden=true"></figure>
+</section>{% endif %}
+{% endif %}
+</main>
+<footer class="container">只讀模式：模型由 python -m bioir news train 訓練，結果由 python -m bioir news evaluate --plot 產生。</footer>
+{% endblock %}

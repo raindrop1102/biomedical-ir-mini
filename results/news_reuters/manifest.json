@@ -1,0 +1,180 @@
+{
+  "generated_at_utc": "2026-11-07T00:38:18+00:00",
+  "collection": "Reuters-21578, ModApte split",
+  "train_stories": 9603,
+  "test_stories": 3299,
+  "relevance": "a test story is relevant when the query's topic is one of its TOPICS",
+  "queries": [
+    {
+      "id": "E1",
+      "text": "quarterly net profit",
+      "topic": "earn",
+      "kind": "keyword",
+      "relevant": 1087
+    },
+    {
+      "id": "E2",
+      "text": "earnings per share and dividend",
+      "topic": "earn",
+      "kind": "keyword",
+      "relevant": 1087
+    },
+    {
+      "id": "E3",
+      "text": "corporate income statement results",
+      "topic": "earn",
+      "kind": "paraphrase",
+      "relevant": 1087
+    },
+    {
+      "id": "A1",
+      "text": "merger and acquisition",
+      "topic": "acq",
+      "kind": "keyword",
+      "relevant": 719
+    },
+    {
+      "id": "A2",
+      "text": "takeover bid for a stake in the company",
+      "topic": "acq",
+      "kind": "keyword",
+      "relevant": 719
+    },
+    {
+      "id": "A3",
+      "text": "buyout of a firm",
+      "topic": "acq",
+      "kind": "paraphrase",
+      "relevant": 719
+    },
+    {
+      "id": "C1",
+      "text": "crude oil prices",
+      "topic": "crude",
+      "kind": "keyword",
+      "relevant": 189
+    },
+    {
+      "id": "C2",
+      "text": "OPEC production quota barrels",
+      "topic": "crude",
+      "kind": "keyword",
+      "relevant": 189
+    },
+    {
+      "id": "C3",
+      "text": "petroleum supply",
+      "topic": "crude",
+      "kind": "paraphrase",
+      "relevant": 189
+    },
+    {
+      "id": "G1",
+      "text": "wheat exports",
+      "topic": "grain",
+      "kind": "keyword",
+      "relevant": 149
+    },
+    {
+      "id": "G2",
+      "text": "corn and soybean crop",
+      "topic": "grain",
+      "kind": "keyword",
+      "relevant": 149
+    },
+    {
+      "id": "G3",
+      "text": "cereal harvest",
+      "topic": "grain",
+      "kind": "paraphrase",
+      "relevant": 149
+    },
+    {
+      "id": "T1",
+      "text": "trade deficit",
+      "topic": "trade",
+      "kind": "keyword",
+      "relevant": 117
+    },
+    {
+      "id": "T2",
+      "text": "tariffs on imports",
+      "topic": "trade",
+      "kind": "keyword",
+      "relevant": 117
+    },
+    {
+      "id": "T3",
+      "text": "protectionism dispute between nations",
+      "topic": "trade",
+      "kind": "paraphrase",
+      "relevant": 117
+    }
+  ],
+  "methods": {
+    "A": "TF-IDF vectors (ltc.ltc), cosine",
+    "B-cbow": "cbow: TF-IDF-weighted average of word vectors, cosine",
+    "mean-cbow": "cbow: plain average of word vectors, cosine",
+    "A+B-cbow": "0.5 × A + 0.5 × B-cbow",
+    "B-skipgram": "skipgram: TF-IDF-weighted average of word vectors, cosine",
+    "mean-skipgram": "skipgram: plain average of word vectors, cosine",
+    "A+B-skipgram": "0.5 × A + 0.5 × B-skipgram"
+  },
+  "models": {
+    "cbow": {
+      "config": {
+        "architecture": "cbow",
+        "dimensions": 100,
+        "window": 5,
+        "epochs": 20,
+        "min_count": 3,
+        "negatives": 5,
+        "learning_rate": 0.025,
+        "subsample": 0.001,
+        "batch_size": 256,
+        "seed": 42,
+        "compound": true
+      },
+      "sanity": {
+        "random_pair_mean": 0.0282,
+        "random_pair_std": 0.1494,
+        "random_pair_p95": 0.2885,
+        "limit": 0.5,
+        "passed": true
+      },
+      "vocabulary": 13376
+    },
+    "skipgram": {
+      "config": {
+        "architecture": "skipgram",
+        "dimensions": 100,
+        "window": 5,
+        "epochs": 20,
+        "min_count": 3,
+        "negatives": 5,
+        "learning_rate": 0.025,
+        "subsample": 0.001,
+        "batch_size": 256,
+        "seed": 42,
+        "compound": true
+      },
+      "sanity": {
+        "random_pair_mean": 0.1839,
+        "random_pair_std": 0.0954,
+        "random_pair_p95": 0.3452,
+        "limit": 0.5,
+        "passed": true
+      },
+      "vocabulary": 13376
+    }
+  },
+  "metrics": [
+    "P@10",
+    "R@100",
+    "MRR",
+    "MAP",
+    "nDCG@10"
+  ],
+  "significance": "exact two-sided paired permutation test over the queries",
+  "python": "3.13.15"
+}

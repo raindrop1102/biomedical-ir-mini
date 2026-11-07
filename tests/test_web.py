@@ -33,7 +33,8 @@ class WebTest(unittest.TestCase):
         mesh_corpus.with_name("queries.json").write_text(
             '{"queries": [{"id": "Q1", "query": "semaglutide weight", "mesh_all": ["Semaglutide"]}]}', encoding="utf-8")
         cls.client = create_app(corpus, Path(cls.folder.name, "no-results"), mesh_corpus,
-                                Path(cls.folder.name, "no-vsm-results")).test_client()
+                                Path(cls.folder.name, "no-vsm-results"), Path(cls.folder.name, "no-reuters"),
+                                Path(cls.folder.name, "no-news-results")).test_client()
 
     @classmethod
     def tearDownClass(cls):
@@ -137,11 +138,15 @@ class WebTest(unittest.TestCase):
             "RQ2,IDF twice,lnc.ltc,ltc.ltc,MAP,0.50,0.45,-0.04,1,14,0.0002\n", encoding="utf-8")
         mesh = Path(self.folder.name, "mesh", "abstracts.jsonl")
         page = create_app(Path(self.folder.name, "corpus.jsonl"), Path(self.folder.name, "no-results"), mesh,
-                          results).test_client().get("/hw3/results").get_data(as_text=True)
+                          results, Path(self.folder.name, "no-reuters")).test_client().get("/hw3/results").get_data(as_text=True)
         self.assertIn("為什麼 IDF 能降低常見詞的重要性", page)
         self.assertIn('class="down"', page)                                # worse on average
         self.assertNotIn("p &lt;", page)                                   # no p-values on this page
         self.assertIn("最佳 <code>ltc.lnc</code>", page)                    # RQ5, in lecture order
+
+    def test_news_page_without_reuters(self):
+        self.assertIn("找不到 Reuters-21578", self.get("/news?query=oil"))
+        self.get("/news/metrics.png", status=404)
 
     def test_health_and_headers(self):
         response = self.client.get("/healthz")
@@ -162,13 +167,39 @@ class EmbeddingPageTest(unittest.TestCase):
             settings = dict(dimensions=8, window=2, epochs=3, min_count=1, subsample=0)
             for name, arch in (("cbow_w5_s42", "cbow"), ("skipgram_w5_s42", "skipgram")):
                 train(docs, Config(architecture=arch, **settings)).save(Path(folder, "models", f"{name}.npz"))
-            client = create_app(corpus, folder).test_client()
+            client = create_app(corpus, folder, news_data=Path(folder, "no-reuters")).test_client()
             page = client.get("/embedding?word=cat&min_count=1&a=cat&b=dog").get_data(as_text=True)
             self.assertIn("CBOW", page)
             self.assertIn("Skip-gram", page)
             self.assertIn("高於隨機詞對", page)
             self.assertIn("不在詞彙表中", client.get("/embedding?word=zebra").get_data(as_text=True))
             self.assertIn("不是單一詞", client.get("/embedding?word=two+words").get_data(as_text=True))
+
+
+
+REUTERS = Path(__file__).resolve().parents[1] / "data" / "reuters21578"
+NEWS_MODELS = Path(__file__).resolve().parents[1] / "results" / "news_reuters" / "models"
+
+
+@unittest.skipUnless(HAS_FLASK and HAS_NUMPY and REUTERS.exists() and NEWS_MODELS.exists(),
+                     "flask, numpy, Reuters-21578 or the trained news models missing")
+class NewsPageTest(unittest.TestCase):
+    def test_methods_side_by_side_on_an_evaluation_query(self):
+        from bioir.web import create_app
+        with tempfile.TemporaryDirectory() as folder:
+            client = create_app(_tiny_corpus(folder), Path(folder, "no-results"),
+                                Path(folder, "no-mesh.jsonl")).test_client()
+            page = client.get("/news?query=cereal+harvest&model=skipgram").get_data(as_text=True)
+        self.assertIn("評估查詢 <strong>G3</strong>", page)
+        self.assertIn("A：TF-IDF", page)
+        self.assertIn("B：skipgram", page)
+        self.assertIn("無共同詞", page)
+
+
+def _tiny_corpus(folder):
+    path = Path(folder, "c.jsonl")
+    save_jsonl([Document("1", "t", "Some text.")], path)
+    return path
 
 
 if __name__ == "__main__":

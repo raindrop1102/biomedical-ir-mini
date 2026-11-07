@@ -1,0 +1,20 @@
+{
+  "description": "Evaluation queries for Reuters-21578 ModApte test stories. A test story is relevant to a query when the query's topic is one of its TOPICS (binary relevance). Each topic has a keyword query in the words its stories use, a second keyword query, and a paraphrase written in words those stories rarely use, to probe vocabulary mismatch. Queries were fixed before any method was scored.",
+  "queries": [
+    {"id": "E1", "topic": "earn", "kind": "keyword", "query": "quarterly net profit"},
+    {"id": "E2", "topic": "earn", "kind": "keyword", "query": "earnings per share and dividend"},
+    {"id": "E3", "topic": "earn", "kind": "paraphrase", "query": "corporate income statement results"},
+    {"id": "A1", "topic": "acq", "kind": "keyword", "query": "merger and acquisition"},
+    {"id": "A2", "topic": "acq", "kind": "keyword", "query": "takeover bid for a stake in the company"},
+    {"id": "A3", "topic": "acq", "kind": "paraphrase", "query": "buyout of a firm"},
+    {"id": "C1", "topic": "crude", "kind": "keyword", "query": "crude oil prices"},
+    {"id": "C2", "topic": "crude", "kind": "keyword", "query": "OPEC production quota barrels"},
+    {"id": "C3", "topic": "crude", "kind": "paraphrase", "query": "petroleum supply"},
+    {"id": "G1", "topic": "grain", "kind": "keyword", "query": "wheat exports"},
+    {"id": "G2", "topic": "grain", "kind": "keyword", "query": "corn and soybean crop"},
+    {"id": "G3", "topic": "grain", "kind": "paraphrase", "query": "cereal harvest"},
+    {"id": "T1", "topic": "trade", "kind": "keyword", "query": "trade deficit"},
+    {"id": "T2", "topic": "trade", "kind": "keyword", "query": "tariffs on imports"},
+    {"id": "T3", "topic": "trade", "kind": "paraphrase", "query": "protectionism dispute between nations"}
+  ]
+}

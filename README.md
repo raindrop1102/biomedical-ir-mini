@@ -2,7 +2,7 @@
 
 PubMed 摘要搜尋引擎的最小可執行版本：位置倒排索引、布林查詢（AND / OR / NOT / 括號 / 片語）、BM25 排序、拼字建議，
 A–D 四種前處理條件的 Zipf 分析、從零訓練的 CBOW / Skip-gram 詞向量，以及 SMART 詞項加權的
-向量空間模型與 MeSH 相關性評估（作業 3）。
+向量空間模型與 MeSH 相關性評估（作業 3），以及 Reuters-21578 上 TF-IDF 與詞向量檢索的比較（作業 4）。
 檢索與 Zipf 統計只用 Python 3.10+ 標準函式庫；Zipf 畫圖（`--plot`）需要 matplotlib，詞向量（`embed`）需要 numpy，
 網頁介面（`serve`）需要 flask。
 
@@ -27,7 +27,8 @@ python -m bioir embed compare --out embed_results --plot # 6 個模型：架構 
 python -m bioir embed project cbow.npz sg.npz --out proj --plot   # PCA / t-SNE 投影圖
 python -m bioir vsm search pancreatic cancer risk --scheme lnc.ltc --explain   # 向量空間前 10 名＋各詞貢獻
 python -m bioir vsm evaluate --out results/vsm_glp1 --plot   # 14 種加權 × 15 個查詢的對照實驗（約 10 秒）
-python -m bioir serve                                    # 網頁介面 http://127.0.0.1:5000（搜尋、Zipf、詞向量、向量空間）
+python -m bioir news evaluate --plot                     # 作業 4：TF-IDF 對詞向量（需先下載 Reuters-21578，見下方）
+python -m bioir serve                                    # 網頁介面 http://127.0.0.1:5000（搜尋、Zipf、詞向量、向量空間、新聞檢索）
 python -m bioir fetch pmids.txt --email you@example.com -o abstracts.jsonl
 python -m bioir fetch --query '"GLP-1"[tiab] AND hasabstract' -n 1000 --email you@example.com
 python -m unittest discover tests
@@ -71,6 +72,10 @@ for score, doc in results.hits:
 所以每篇都有 NLM 標註的 MeSH 主題詞（`mesh`）與主要主題（`mesh_major`）。`abstracts.manifest.json` 記錄查詢、
 PubMed 的轉譯、時間與 SHA-256；`queries.json` 是 15 個評估查詢與對應的 MeSH 規則。
 
+**Reuters-21578**（作業 4）不包含在儲存庫中：請自行從 UCI Machine Learning Repository
+（<https://archive.ics.uci.edu/dataset/137>）下載，把 22 個 `reut2-*.sgm` 解壓到 `data/reuters21578/`（已列入 `.gitignore`）。
+`results/news_reuters/` 是 `python -m bioir news evaluate --plot` 的輸出，`models/` 是只用訓練集學到的詞向量（不含原文）。
+
 `results/embed_glp1/` 是 `python -m bioir embed compare --out results/embed_glp1 --plot` 的完整輸出
 （六個模型、CSV、投影圖、manifest），可直接給網頁的詞向量頁使用。
 
@@ -83,8 +88,9 @@ bioir/
   zipf/    stats.py  plot.py                   Zipf 分析（plot.py 才需要 matplotlib）
   embed/   train.py  model.py  evaluate.py     詞向量（需要 numpy）
   vsm/     weighting.py  engine.py  evaluate.py  experiment.py  plot.py   向量空間模型（只用標準函式庫）
+  news/    reuters.py  queries.py  retrieval.py  semantic.py  words.py  experiment.py  plot.py   Reuters 新聞檢索（作業 4）
   web/     app.py  templates/  static/         網頁介面（需要 flask）
-  __main__.py                                  命令列：search / zipf / embed / vsm / serve / fetch
+  __main__.py                                  命令列：search / zipf / embed / vsm / news / serve / fetch
 ```
 
 依賴只能單向：`search`、`zipf`、`embed` 都只 import 共用基礎，彼此不互相 import；`web` 是唯一同時使用三者的
@@ -111,6 +117,12 @@ bioir/
 | `bioir/vsm/engine.py` | 文件與查詢向量、依詞累加的內積／cosine 排名、每個詞的分數貢獻 |
 | `bioir/vsm/evaluate.py` | MeSH 相關性判斷（分級）、P@k、R@k、MRR、MAP、nDCG@10、精確配對置換檢定 |
 | `bioir/vsm/experiment.py` | 17 種加權的控制變因實驗與 RQ1–RQ5 的輔助表 |
+| `bioir/news/reuters.py` | Reuters-21578 SGML 解析（BRIEF、UNPROC、控制字元、署名）、ModApte 分割 |
+| `bioir/news/queries.py` | 評估查詢、以 topics 判斷相關、詞彙覆蓋率 |
+| `bioir/news/retrieval.py` | 方法 A（沿用 vsm 的 ltc.ltc）、`Ranker` 介面、P@10／R@100／MRR／MAP／nDCG@10 |
+| `bioir/news/semantic.py` | 方法 B：TF-IDF 加權（或不加權）平均詞向量、cosine 排名；A+B 混合 |
+| `bioir/news/words.py` | 詞層次分析的詞、詞對與投影詞組 |
+| `bioir/news/experiment.py` | 作業 4 的完整實驗與所有輸出檔 |
 | `bioir/__main__.py` | 命令列介面 |
 
 ## Zipf 分析
@@ -303,15 +315,120 @@ Q08「type 1 diabetes」則從 0（只用 IDF 的三種方法）到 0.78（nnc.n
 只有 15 個查詢且做了多組比較，p 值未做多重比較校正，僅供參考。查詢由本專案撰寫；語料是單一主題、依 PubMed relevance 取樣，
 結論不一定能推廣到其他領域。前處理（停用詞、Porter）在所有方案中固定，未納入比較。
 
+## 作業 4：Reuters 新聞檢索，從 TF-IDF 到 Word Embedding（news）
+
+**資料**：Reuters-21578 的 ModApte 分割（`LEWISSPLIT` 為 TRAIN／TEST 且 `TOPICS="YES"`）：訓練集 9,603 篇、測試集 3,299 篇。
+詞向量**只用訓練集**學習，檢索與評估**只用測試集**，避免模型看過要被檢索的文章。文章 = 標題＋內文（含 `TYPE="BRIEF"`
+只有標題、`TYPE="UNPROC"` 內文直接放在 `<TEXT>` 的 68 篇），去掉 `&#3;` 等控制字元與結尾的 `Reuter` 署名。
+
+**相關性判斷**：`data/reuters_queries.json` 的 15 個查詢，每個對應一個主題（earn、acq、crude、grain、trade 各 3 個）；
+測試集文章的 `TOPICS` 含該主題即為相關（二元）。每個主題 2 個**關鍵字查詢**（用相關新聞常見的詞）、
+1 個**改寫查詢**（刻意用意思相同、但新聞少用的詞，例如 `cereal harvest`、`petroleum supply`）。
+`coverage.csv` 列出每個查詢的相關文章中「至少含一個查詢詞」的比例，這是方法 A 的召回上限：
+`cereal harvest` 的 149 篇相關文章只有 24 篇含 cereal 或 harvest，`crude oil prices` 則是 186／189。
+
+**方法**（都排名全部測試集文章，`bioir/news/experiment.py`）：
+
+| 方法 | 文件與查詢向量 | 分數 |
+|---|---|---|
+| A | 作業 3 的 ltc.ltc：檢索前處理（去停用詞、Porter 詞幹）後的 (1+log tf)·log(N/df)，L2 正規化 | cosine |
+| B-cbow / B-skipgram | 每個詞的單位詞向量，以 w = (1+log tf)·log(N/df) 加權平均（df 取自測試集） | cosine |
+| mean-*（對照組） | 同 B，但不加權，直接平均 | cosine |
+| A+B-*（延伸） | 0.5 × A 的 cosine ＋ 0.5 × B 的 cosine（α 事先固定，未用這些查詢調整） | — |
+
+詞向量：`bioir/embed` 的 NumPy 實作，100 維、window 5、負取樣 5、20 輪、min_count 3、保留停用詞、不做詞幹化，
+詞彙 13,376 個；訓練集共 1,135,781 個 token，CBOW 約 10 分鐘、Skip-gram 約 20 分鐘。隨機詞對的 cosine 平均
+CBOW 0.03、Skip-gram 0.18（都通過 < 0.5 的健全性檢查，沒有塌縮）。兩個模型的 cosine 基準不同，所以詞對比較同時列出
+**z 值**（比隨機詞對平均高幾個標準差）。指標：P@10、R@100、MRR、MAP、nDCG@10；與方法 A 的差異以精確配對置換檢定。
+
+```bash
+# 先下載 https://archive.ics.uci.edu/dataset/137 並解壓到 data/reuters21578/（22 個 reut2-*.sgm）
+python -m bioir news train                                   # 訓練 CBOW 與 Skip-gram，約 30 分鐘
+python -m bioir news search petroleum supply --method B-skipgram
+python -m bioir news evaluate --plot                         # 全部方法 × 15 個查詢，約 10 秒
+```
+
+**結果**（`results/news_reuters/summary.csv`，nDCG@10 平均；P@10 等其他指標見檔案）：
+
+| 方法 | 全部 15 題 | 關鍵字 10 題 | 改寫 5 題 | 與 A 比：變好／變差（p） |
+|---|---|---|---|---|
+| A（TF-IDF） | 0.775 | **0.927** | 0.469 | — |
+| B-cbow | 0.851 | 0.837 | 0.877 | 5／6（0.40） |
+| B-skipgram | **0.898** | 0.900 | **0.894** | 5／4（0.12） |
+| mean-cbow | 0.879 | 0.889 | 0.860 | 6／4（0.21） |
+| mean-skipgram | 0.870 | 0.885 | 0.840 | 6／4（0.19） |
+| A+B-cbow | 0.861 | 0.897 | 0.788 | 5／2（0.20） |
+| A+B-skipgram | 0.856 | 0.927 | 0.714 | 5／2（0.09） |
+
+### 1. Word-level：哪些詞在向量空間中相近？為什麼？
+
+`neighbors.csv` 列出 16 個詞的 Top-5 近鄰，`pairs.csv` 列出 14 組詞對。近鄰可以分成四類：
+
+| 類型 | 例子（模型） | 解釋 |
+|---|---|---|
+| 合理的語意或用法關係 | wheat → barley、corn、maize、rice；merger → acquisition、transaction；buyout → leveraged、management-led、lbo；oil → petroleum、fuel；harvest → crop、harvested | 同一類事物或可互換的說法，會出現在相同的句型中 |
+| 因為常一起出現在同類新聞 | opec → arabia、kuwait、ecuador、lukman（時任 OPEC 主席）、13-nation；takeover → hostile、sweetened、icahn；dividend → quarterly、split、three-for-two；harvest → temporao（巴西可可的收成季）；crude → palm、cpo；oil → kernel | 是**主題或事件**上的關聯，不是同義。crude 的近鄰是 palm，因為「crude palm oil（毛棕櫚油）」常見，「crude」在 Reuters 不只指原油 |
+| 反義卻最相近 | profit ↔ loss：CBOW 0.74、Skip-gram 0.81，**比 profit ↔ earnings（0.59、0.57）更近**；deficit ↔ surplus：0.85、0.77；loss → gain | 財報新聞的模板是「net profit X vs loss Y」，兩者出現在完全相同的上下文。向量相近代表「可以填進同一個位置」，不代表意思相同 |
+| 不合預期 | cereal → chocolate、clothing、livestock（CBOW）；tariff → depletion、wage、legislative（CBOW）；petroleum → dmp、imo、esso、oxy（Skip-gram）；profit → notel、ln（Skip-gram）；protectionism → doldrums、disinflation（Skip-gram） | 多數有原因：cereal 在訓練集只出現 15 次，一半談歐體的穀物政策，另一半是早餐穀片、加工食品（和 pasta、corn products 等品項並列），CBOW 因此把它放到消費品附近；petroleum 的近鄰是公司代號（Dome Petroleum、Imperial Oil、Esso、Occidental），因為 petroleum 在新聞裡多半是**公司名稱**的一部分；notel、ln、doldrums 只出現 3–5 次，向量幾乎只由一兩個句子決定，不可靠 |
+
+**結論**：詞向量學到的是「分布相似」（distributional similarity）：上下文相似，向量就近。這包含同義（merger／acquisition）、
+同類（wheat／barley）、主題關聯（opec／kuwait），也包含**反義**（profit／loss、deficit／surplus）。因此不能把 cosine 高解讀成
+「可以互相替換來檢索」。在這個作業的主題式相關性下，反義詞剛好無害（profit 和 loss 都屬於 earn），但若使用者要找
+「獲利的公司」，詞向量會把虧損的新聞也排進來。
+
+### 2. CBOW 與 Skip-gram
+
+- **詞對**：Skip-gram 讓同義與同類詞對的 z 值都較高（oil／crude 6.3 vs 3.2、oil／petroleum 4.5 vs 3.4、wheat／cereal 3.2 vs 1.9），
+  tariff／protectionism 兩者都很低（z 0.7、1.7）：tariff 的近鄰是 fee、surcharge，代表它在 Reuters 被當成「一種費用」使用。
+  原始 cosine 不能直接比，因為 Skip-gram 的隨機詞對平均就有 0.18。
+- **近鄰**：Skip-gram 較常把只出現 3–6 次的罕見詞（notel、ln、dmp、imo、doldrums）排進 Top-5。Skip-gram 對每個（中心詞, 上下文詞）配對
+  分別更新，罕見詞的少數上下文會被學得很「專」，因此和那幾個詞非常接近；CBOW 先平均上下文再更新，對罕見詞較平滑，
+  但也產生 cereal → chocolate 這類只靠清單共現的近鄰。
+- **檢索**：B-skipgram 的 nDCG@10 高於 B-cbow（0.898 vs 0.851），但**不加權平均時反過來**（mean-cbow 0.879 > mean-skipgram 0.870），
+  逐題看也互有勝負（T1、C3 是 CBOW 較好）。只訓練一個隨機種子、只有 15 個查詢，**不能下 Skip-gram 一定較好的結論**；
+  兩者的差異比「用不用詞向量」小得多。
+
+### 3. Document-level：方法 B 有沒有改善檢索？
+
+- **整體**：nDCG@10 由 0.775 升到 0.851（CBOW）、0.898（Skip-gram），但**不顯著**（p = 0.40、0.12），B-cbow 甚至是 5 題變好、6 題變差。
+  平均變好完全來自改寫查詢。
+- **改寫查詢大幅改善**：0.469 → 0.877／0.894。`corporate income statement results` 0.30 → 1.00、`protectionism dispute between nations`
+  0.31 → 1.00、`cereal harvest` 0.68 → 0.94／1.00。原因直接可見：B 的前 10 名中**和查詢沒有任何共同詞**的文章兩個模型各 26 篇，
+  其中 22（CBOW）、25 篇（Skip-gram）相關（`zero_overlap.csv`）；`cereal harvest` 的前 10 名有 8 篇不含 cereal 或 harvest，全部是穀物新聞。
+  這些文章在方法 A 的分數一定是 0。
+- **關鍵字查詢反而變差**：A 0.927 → B-cbow 0.837、B-skipgram 0.900。`tariffs on imports` 由 0.78 降到 0.28（CBOW），前幾名變成
+  USDA 的供需報告；`crude oil prices`、`wheat exports` 也從 1.00 下降。把整篇文章平均成一個向量後，「有沒有出現 tariff」這個精確訊號
+  被稀釋成「這篇大致在談貿易／農產品」，主題相近但不相關的文章就混進來。
+- **仍然失敗的查詢**：`petroleum supply` 兩種方法都差（A 0.06 → B 0.54／0.47）。petroleum 在 Reuters 多半是公司名稱
+  （British Petroleum、Dome Petroleum，正好對應 Skip-gram 的近鄰 dmp、imo），supply 則把 money supply（貨幣供給）的新聞拉進來：
+  詞向量無法分辨一詞多義，因為每個詞只有一個向量。
+- **TF-IDF 加權不一定有幫助**：Skip-gram 加權較好（0.898 vs 0.870），CBOW 卻是不加權較好（0.879 vs 0.851）。加權會讓少數罕見詞
+  主導文件向量，若那些詞的向量本身不可靠，反而有害。
+- **混合（A+B）**：關鍵字查詢回到 A 的水準（0.897、0.927），但改寫查詢跌到 0.788、0.714。和查詢沒有共同詞的文章在 A 的分數是 0，
+  混合後最多只有 0.5 × B，會輸給有字面重疊的文章，B 最大的優點被抵消。α 固定為 0.5，沒有調整。
+
+**回答作業的問題**：保留 TF-IDF 的權重、再加入詞向量的上下文資訊，**在詞彙不一致（改寫）時明顯改善檢索，在詞彙一致（關鍵字）時
+沒有改善、甚至變差**；整體差異在 15 個查詢上不顯著。詞向量的價值是補上 TF-IDF 的召回缺口，而不是取代精確比對。
+較合理的設計是依查詢決定：方法 A 找到的相關候選很少時（詞彙覆蓋低）再改用 B（本作業未實驗）。
+
+### 限制
+
+- 相關性以 topics 標記判斷：標記是編輯分類，不等於使用者判斷。`trade deficit` 的第 1 名標題是「Further marked dollar fall would burden U.S. Trade deficit」，但只被標為 money-fx，被算成不相關。
+- 15 個查詢由本專案撰寫，改寫查詢是**刻意**避開新聞常用詞，會放大 B 的優勢，不代表一般使用者查詢的分布；多組比較未做 p 值校正。
+- 詞向量只訓練一個種子；方法 A 有詞幹化、方法 B 沒有（詞向量以原形學習），兩者的前處理不同。查詢詞不在詞彙表（OOV）時 B 無法處理。
+- 加權平均會丟失詞序與否定，`not profitable` 與 `profitable` 幾乎是同一個向量。
+- Reuters-21578 是 1987 年的新聞、約 130 萬詞，詞向量品質遠不及在大型語料預訓練的模型；本作業比較的是方法，不是追求最佳數字。
+
 ## 網頁介面（web）
 
-`python -m bioir serve`（`--corpus`、`--results`、`--host`、`--port`）啟動 Flask 開發伺服器，三個頁面：
+`python -m bioir serve`（`--corpus`、`--results`、`--host`、`--port`）啟動 Flask 開發伺服器，各頁面：
 
 | 頁面 | 內容 |
 |---|---|
 | 文獻搜尋 `/` | 單一查詢框（AND / OR / NOT / 括號 / 片語）、BM25 排名、命中片語高亮（摘錄＋完整摘要）、拼字建議、分頁、跳至文章側欄 |
 | Zipf 分析 `/zipf` | 基準條件、`--no-numbers`、`--compound` 與加入詞的表單；A–D 總表、10/80/10 分區、前 50 名、CF/DF/IDF 對照、三格圖；CSV 下載 |
 | 向量空間 `/vsm` | 自由文字查詢，兩種 SMART 加權並排的前 10 名、查詢向量、各詞貢獻；評估查詢會標出 MeSH 相關文件並即時計算指標；對照實驗結果表、控制變因比較與圖 |
+| 新聞檢索 `/news` | 方法 A 與方法 B 的前 10 名並排，標出相關文章與「無共同詞」的文章；實驗結果圖表、詞對與 Top-5 近鄰、投影圖。需要 `data/reuters21578/` 與 `results/news_reuters/models/`，沒有時頁面會說明要執行的指令 |
 | 詞向量 `/embedding` | 模型健全性、CBOW 與 Skip-gram 近鄰並排（可調近鄰最少出現次數）、兩詞相似度與 z 值、投影圖與 trustworthiness、比較實驗摘要 |
 
 **設計**：

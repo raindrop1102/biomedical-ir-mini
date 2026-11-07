@@ -36,7 +36,7 @@ jobs:
           eval "$start" &
           for i in $(seq 60); do curl -fs localhost:$PORT/healthz >/dev/null && break; sleep 1; done
           for path in / "/?q=glp-1" /zipf /zipf.png /embedding "/embedding?word=semaglutide" \
-                      /embedding/projections.png "/vsm?query=pancreatic+cancer+risk" /vsm/metrics.png; do
+                      /embedding/projections.png "/vsm?query=pancreatic+cancer+risk" /vsm/metrics.png /news; do
             curl -fsS -o /dev/null -w "%{http_code} %{time_total}s $path\n" "localhost:$PORT$path"
           done
       - name: Serve with Render's default start command for a hand-made web service

@@ -1,6 +1,6 @@
 """Command line: `python -m bioir search [QUERY]`, `python -m bioir zipf`,
 `python -m bioir embed (train | similar | compare | project)`, `python -m bioir vsm (search | evaluate)`,
-`python -m bioir serve`,
+`python -m bioir news (train | search | evaluate)`, `python -m bioir serve`,
 `python -m bioir fetch (PMID_FILE | --query Q)`."""
 import argparse
 import sys
@@ -15,6 +15,9 @@ from .zipf.stats import CONDITIONS
 
 DEFAULT_CORPUS = Path(__file__).resolve().parents[1] / "data" / "glp1_1000" / "abstracts.jsonl"
 VSM_CORPUS = Path(__file__).resolve().parents[1] / "data" / "glp1_mesh_3000" / "abstracts.jsonl"
+REUTERS = Path(__file__).resolve().parents[1] / "data" / "reuters21578"
+REUTERS_QUERIES = Path(__file__).resolve().parents[1] / "data" / "reuters_queries.json"
+NEWS_RESULTS = Path(__file__).resolve().parents[1] / "results" / "news_reuters"
 
 
 def snippet(text: str, spans, width: int = 220) -> str:
@@ -238,6 +241,55 @@ def vsm_evaluate(args) -> int:
     return 0
 
 
+def news_train(args) -> int:
+    embed = _embed_module()
+    from .news import load_reuters
+    documents = [a.document for a in load_reuters(args.data) if a.split == "train"]
+    folder = Path(args.out) / "models"
+    print(f"Reuters-21578 ModApte 訓練集 {len(documents):,} 篇；模型存到 {folder}")
+    for architecture in args.arch:
+        model = embed.train(documents, embed.Config(architecture=architecture, epochs=args.epochs),
+                            progress=lambda e, n, loss: print(f"  {architecture} epoch {e:>2}/{n}  loss {loss:.4f}",
+                                                              flush=True))
+        model.save(folder / f"{architecture}.npz")
+        print(f"{architecture}：詞彙 {len(model):,} 個，{model.metadata['seconds']} 秒")
+        _report_sanity(model)
+    return 0
+
+
+def news_search(args) -> int:
+    from .news import load_reuters
+    from .news.retrieval import test_space, tfidf_ranker
+    articles = load_reuters(args.data)
+    by_id = {a.newid: a for a in articles}
+    query = " ".join(args.query)
+    if args.method == "A":
+        ranking = tfidf_ranker(test_space(articles))(query)
+    else:
+        embed = _embed_module()
+        from .news.semantic import EmbeddingSpace
+        model = embed.Embeddings.load(Path(args.models) / f"{args.method.split('-', 1)[1]}.npz")
+        ranking = EmbeddingSpace(articles, model).ranker()(query)
+    print(f"方法 {args.method}，測試集 {sum(a.split == 'test' for a in articles):,} 篇，查詢：{query}")
+    for rank, newid in enumerate(ranking[:args.k], 1):
+        story = by_id[newid]
+        print(f"{rank:>2}. NEWID {newid:<6} {','.join(story.topics) or '（無 topic）':<22} {story.title[:70]}")
+    return 0
+
+
+def news_evaluate(args) -> int:
+    _embed_module()
+    from .news.experiment import run
+    summary = run(args.data, args.queries, Path(args.models), args.out, plot=args.plot,
+                  progress=lambda name: print(f"  {name}", flush=True))
+    print(f"\n{'method':<14}{'queries':<12}{'P@10':>7}{'MRR':>7}{'MAP':>7}{'nDCG@10':>9}")
+    for row in summary:
+        print(f"{row['method']:<14}{row['queries']:<12}{row['P@10']:>7.3f}{row['MRR']:>7.3f}{row['MAP']:>7.3f}"
+              f"{row['nDCG@10']:>9.3f}")
+    print(f"\n已輸出到 {args.out}")
+    return 0
+
+
 def serve(args) -> int:
     try:
         from .web import create_app
@@ -342,6 +394,29 @@ def main(argv=None) -> int:
     ve.add_argument("--out", type=Path, required=True)
     ve.add_argument("--plot", action="store_true", help="also draw metrics.png (needs matplotlib)")
     ve.set_defaults(run=vsm_evaluate)
+
+    n = commands.add_parser("news", help="Reuters-21578: TF-IDF versus word embeddings (homework 4)")
+    news_commands = n.add_subparsers(dest="news_command", required=True)
+    nt = news_commands.add_parser("train", help="train CBOW and Skip-gram on the ModApte training stories")
+    nt.add_argument("--data", type=Path, default=REUTERS)
+    nt.add_argument("--arch", nargs="+", choices=["cbow", "skipgram"], default=["cbow", "skipgram"])
+    nt.add_argument("--epochs", type=int, default=20)
+    nt.add_argument("--out", type=Path, default=NEWS_RESULTS)
+    nt.set_defaults(run=news_train)
+    ns = news_commands.add_parser("search", help="rank the ModApte test stories")
+    ns.add_argument("query", nargs="+")
+    ns.add_argument("--method", choices=["A", "B-cbow", "B-skipgram"], default="A")
+    ns.add_argument("--data", type=Path, default=REUTERS)
+    ns.add_argument("--models", type=Path, default=NEWS_RESULTS / "models")
+    ns.add_argument("-k", type=int, default=10)
+    ns.set_defaults(run=news_search)
+    ne = news_commands.add_parser("evaluate", help="method A against method B on the evaluation queries")
+    ne.add_argument("--data", type=Path, default=REUTERS)
+    ne.add_argument("--queries", type=Path, default=REUTERS_QUERIES)
+    ne.add_argument("--models", type=Path, default=NEWS_RESULTS / "models")
+    ne.add_argument("--out", type=Path, default=NEWS_RESULTS)
+    ne.add_argument("--plot", action="store_true", help="also draw metrics.png and projections.png (needs matplotlib)")
+    ne.set_defaults(run=news_evaluate)
 
     w = commands.add_parser("serve", help="read-only web interface (needs flask)")
     w.add_argument("--corpus", type=Path, default=DEFAULT_CORPUS)

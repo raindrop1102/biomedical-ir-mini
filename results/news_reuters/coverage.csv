@@ -1,0 +1,16 @@
+﻿query,text,topic,kind,relevant,any_term,all_terms,no_term
+E1,quarterly net profit,earn,keyword,1087,960,0,127
+E2,earnings per share and dividend,earn,keyword,1087,352,7,735
+E3,corporate income statement results,earn,paraphrase,1087,185,0,902
+A1,merger and acquisition,acq,keyword,719,257,26,462
+A2,takeover bid for a stake in the company,acq,keyword,719,498,10,221
+A3,buyout of a firm,acq,paraphrase,719,126,6,593
+C1,crude oil prices,crude,keyword,189,186,56,3
+C2,OPEC production quota barrels,crude,keyword,189,106,12,83
+C3,petroleum supply,crude,paraphrase,189,62,9,127
+G1,wheat exports,grain,keyword,149,107,43,42
+G2,corn and soybean crop,grain,keyword,149,74,2,75
+G3,cereal harvest,grain,paraphrase,149,24,3,125
+T1,trade deficit,trade,keyword,117,112,42,5
+T2,tariffs on imports,trade,keyword,117,81,28,36
+T3,protectionism dispute between nations,trade,paraphrase,117,54,0,63

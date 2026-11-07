@@ -7,7 +7,6 @@ from pathlib import Path
 
 import numpy as np
 
-from .projection import PROJECTION_GROUPS
 
 
 def _place_labels(ax, xs, ys, words, fontsize=8):
@@ -64,7 +63,9 @@ def plot_projections(projections: dict, path) -> Path:
         raise RuntimeError("畫圖需要 matplotlib：python -m pip install matplotlib") from None
 
     plt.rcParams.update({"axes.spines.top": False, "axes.spines.right": False, "font.size": 9})
-    colors = dict(zip(PROJECTION_GROUPS, plt.get_cmap("tab10").colors))
+    # Groups in the order the points list them, so any corpus's word groups get colours.
+    groups = list(dict.fromkeys(p["group"] for points, _ in projections.values() for p in points))
+    colors = dict(zip(groups, plt.get_cmap("tab10").colors))
     figure, axes = plt.subplots(len(projections), 2, figsize=(12, 5.2 * len(projections)), squeeze=False)
     for row, (name, (points, quality)) in zip(axes, projections.items()):
         for ax, method in zip(row, ("PCA", "t-SNE")):

@@ -8,3 +8,5 @@ embed_results/
 proj/
 *.npz
 !results/**/*.npz
+# Reuters-21578: download it yourself (see README); not redistributed here
+data/reuters21578/

@@ -25,6 +25,8 @@ DEFAULT_CORPUS = ROOT / "data" / "glp1_1000" / "abstracts.jsonl"
 DEFAULT_RESULTS = ROOT / "results" / "embed_glp1"
 DEFAULT_VSM_CORPUS = ROOT / "data" / "glp1_mesh_3000" / "abstracts.jsonl"
 DEFAULT_VSM_RESULTS = ROOT / "results" / "vsm_glp1"
+DEFAULT_NEWS_DATA = ROOT / "data" / "reuters21578"
+DEFAULT_NEWS_RESULTS = ROOT / "results" / "news_reuters"
 EMBED_MODELS = {"cbow_w5_s42": "CBOW", "skipgram_w5_s42": "Skip-gram"}
 PAGE_SIZES = (10, 20, 50)
 SNIPPET_CHARS, SNIPPET_LEAD = 260, 40
@@ -260,8 +262,39 @@ def _explain_side(side, space) -> dict:
     return {"side": side, "rules": [(w.tf, "TF", tf), (w.idf, "IDF", idf), (w.norm, "正規化", norm)]}
 
 
+def _load_news(data: Path, results: Path):
+    """Reuters test stories, method A and the method-B spaces of the trained models, the evaluation
+    queries with their judgments and the experiment's saved results — or why they are missing."""
+    if not data.exists():
+        return None, f"找不到 Reuters-21578（{data}）；請依 README 下載並解壓到這個資料夾"
+    from ..news import judgments, load_queries, load_reuters
+    from ..news.retrieval import test_space
+    articles = load_reuters(data)
+    news = {"articles": {a.newid: a for a in articles}, "space": test_space(articles), "models": {},
+            "train": sum(a.split == "train" for a in articles), "test": sum(a.split == "test" for a in articles),
+            "summary": _read_csv(results / "summary.csv"), "comparisons": _read_csv(results / "comparisons.csv"),
+            "zero": _read_csv(results / "zero_overlap.csv"), "pairs": _read_csv(results / "pairs.csv"),
+            "neighbors": _read_csv(results / "neighbors.csv"), "coverage": _read_csv(results / "coverage.csv"),
+            "results": results, "queries": [], "judgments": {}}
+    queries_file = data.parent / "reuters_queries.json"
+    if queries_file.exists():
+        news["queries"] = load_queries(queries_file)
+        news["judgments"] = {q.id: judgments(articles, q) for q in news["queries"]}
+    try:
+        from ..embed import Embeddings
+        from ..news.semantic import EmbeddingSpace
+    except ImportError:
+        return news, "方法 B 需要 numpy：python -m pip install numpy"
+    for name in ("cbow", "skipgram"):
+        path = results / "models" / f"{name}.npz"
+        if path.exists():
+            news["models"][name] = EmbeddingSpace(articles, Embeddings.load(path))
+    return news, None if news["models"] else "找不到詞向量模型；請先執行 python -m bioir news train"
+
+
 def create_app(corpus=DEFAULT_CORPUS, results=DEFAULT_RESULTS, vsm_corpus=DEFAULT_VSM_CORPUS,
-               vsm_results=DEFAULT_VSM_RESULTS) -> Flask:
+               vsm_results=DEFAULT_VSM_RESULTS, news_data=DEFAULT_NEWS_DATA,
+               news_results=DEFAULT_NEWS_RESULTS) -> Flask:
     corpus, results = Path(corpus), Path(results)
     app = Flask(__name__)
     app.add_template_filter(lecture_order, "lecture")
@@ -271,6 +304,7 @@ def create_app(corpus=DEFAULT_CORPUS, results=DEFAULT_RESULTS, vsm_corpus=DEFAUL
     speller = Speller(index)
     embeddings, embed_error = _load_embeddings(results)
     vsm, vsm_error = _load_vsm(Path(vsm_corpus), Path(vsm_results))
+    news, news_error = _load_news(Path(news_data), Path(news_results))
     site = {"corpus": corpus.name, "documents": len(documents), "vocabulary": len(index.postings),
             "seconds": time.perf_counter() - started}
     plot_lock = threading.Lock()
@@ -493,6 +527,47 @@ def create_app(corpus=DEFAULT_CORPUS, results=DEFAULT_RESULTS, vsm_corpus=DEFAUL
         if not vsm or not vsm["chart"].exists():
             abort(404)
         return send_file(vsm["chart"], mimetype="image/png", max_age=3600)
+
+    @app.get("/news")
+    def news_page():
+        from ..news.semantic import words
+        query = request.args.get("query", "").strip()[:300]
+        model_name = request.args.get("model", "skipgram")
+        context = {"news": news, "error": news_error, "query": query, "model_name": model_name,
+                   "columns": [], "evaluation": None}
+        if not news or not query:
+            return render_template("news.html", **context)
+        if model_name not in news["models"] and news["models"]:
+            model_name = context["model_name"] = next(iter(news["models"]))
+        evaluation = next((q for q in news["queries"] if q.text.lower() == query.lower()), None)
+        grades = news["judgments"][evaluation.id] if evaluation else {}
+        from ..vsm.evaluate import score
+        rankings = [("A：TF-IDF（ltc.ltc）", [h.pmid for h in news["space"].search(query, "ltc.ltc").hits], None)]
+        if model_name in news["models"]:
+            space = news["models"][model_name]
+            rankings.append((f"B：{model_name} TF-IDF 加權詞向量", space.ranker()(query), space.model))
+        query_words = None
+        for title, ranking, model in rankings:
+            if model is not None:
+                query_words = set(words(query, model))
+            rows = []
+            for rank, newid in enumerate(ranking[:10], 1):
+                story = news["articles"][newid]
+                shared = None
+                if query_words is not None:
+                    shared = bool(query_words & set(words(f"{story.title} . {story.body}", model)))
+                rows.append({"rank": rank, "story": story, "relevant": newid in grades, "shared": shared})
+            metrics = score(ranking, grades).values if evaluation else None
+            context["columns"].append({"title": title, "rows": rows, "metrics": metrics, "total": len(ranking)})
+        context["evaluation"] = evaluation
+        context["relevant"] = len(grades)
+        return render_template("news.html", **context)
+
+    @app.get("/news/<name>.png")
+    def news_image(name):
+        if not news or name not in ("metrics", "projections") or not (news["results"] / f"{name}.png").exists():
+            abort(404)
+        return send_file(news["results"] / f"{name}.png", mimetype="image/png", max_age=3600)
 
     @app.get("/healthz")
     def health():
