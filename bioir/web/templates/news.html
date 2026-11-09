@@ -36,12 +36,64 @@
 {% for column in columns %}<div class="panel">
 <h2 class="side-title {{ 'side-a' if column.tag == 'A' else 'side-b' }}"><span class="side-tag">{{ column.tag }}</span>{{ column.title }}<small class="side-count">{{ '{:,}'.format(column.total) }} 篇有分數</small></h2>
 <ol class="hw3-hits">
-{% for row in column.rows %}<li>
-<div class="hit-line"><span class="grade">{% if row.relevant %}✓{% endif %}</span><span class="hit-title" title="{{ row.story.title }}">{{ row.story.title or '（無標題）' }}</span>{% if row.shared == false %}<span class="hit-tag" title="這篇和查詢沒有任何共同的詞">無共同詞</span>{% endif %}<span class="hit-score" title="cosine">{{ '%.4f'|format(row.score) }}</span></div>
+{% for row in column.rows %}<li{% if steps and steps.newid == row.story.newid %} class="selected"{% endif %}>
+<div class="hit-line"><span class="grade">{% if row.relevant %}✓{% endif %}</span><a class="hit-title" href="{{ url_for('news_page', query=query, model=model_name, doc=row.story.newid) }}#steps" title="{{ row.story.title }}">{{ row.story.title or '（無標題）' }}</a>{% if row.shared == false %}<span class="hit-tag" title="這篇和查詢沒有任何共同的詞">無共同詞</span>{% endif %}<span class="hit-score" title="cosine">{{ '%.4f'|format(row.score) }}</span></div>
 <div class="hit-meta">NEWID {{ row.story.newid }} · {{ row.story.topics|join(', ') or '無 topic' }}</div>
 </li>{% else %}<li>沒有文章包含這些查詢詞。</li>{% endfor %}
 </ol></div>{% endfor %}
 </section>
+{% if steps %}{% set a, b, story = steps.a, steps.b, steps.story %}
+<section class="panel" id="steps">
+<h2>加權步驟</h2>
+<p class="hw3-doc" title="{{ story.title }}">{% if steps.relevant %}✓ {% endif %}<strong>{{ story.title or '（無標題）' }}</strong> <small>NEWID {{ story.newid }} · {{ story.topics|join(', ') or '無 topic' }}</small></p>
+<p class="hw3-note">在任一邊的清單點標題換文章；同一篇文章先看 A、再看 B 的計算。滑鼠移到數字上可以看計算過程。</p>
+<div class="steps-stack">
+<div>
+<h3 class="side-title side-a"><span class="side-tag">A</span>{{ a.title }}</h3>
+<p class="hw3-letters">Query {% for letter, part, rule in a.query.rules %}<code title="{{ part }}：{{ rule }}">{{ letter }}</code>{% endfor %}
+ · Document {% for letter, part, rule in a.document.rules %}<code title="{{ part }}：{{ rule }}">{{ letter }}</code>{% endfor %}
+ · Query length <strong title="{{ a.query.rules[2][2] }}">{{ '%.3f'|format(a.query.side.divisor) }}</strong>
+ · Doc length <strong title="{{ a.document.rules[2][2] }}">{{ '%.3f'|format(a.document.side.divisor) }}</strong></p>
+<div class="table-wrap"><table class="step-table lecture">
+<thead><tr><th rowspan="2" class="term">Term</th><th colspan="6" class="group q">Query</th><th colspan="4" class="group d">Document</th><th rowspan="2" class="group p">Prod</th></tr>
+<tr><th class="group q">tf-raw</th><th class="q">tf-wt</th><th class="q">df</th><th class="q" title="log(N ÷ df)">idf</th><th class="q">wt</th><th class="q">n'lized</th>
+<th class="group d">tf-raw</th><th class="d">tf-wt</th><th class="d">wt</th><th class="d">n'lized</th></tr></thead><tbody>
+{% for r in a.rows %}
+<tr{% if r.zero %} class="zero"{% endif %}><td class="term">{{ r.term }}</td>
+<td class="group q" title="{{ r.q_tf[1] }}">{{ r.q_tf[0] }}</td><td class="q" title="{{ r.q_tfwt[1] }}">{{ '%.2f'|format(r.q_tfwt[0]) }}</td><td class="q" title="{{ r.df[1] }}">{{ '{:,}'.format(r.df[0]) }}</td>
+<td class="q" title="{{ r.idf[1] }}">{{ '%.2f'|format(r.idf[0]) }}</td><td class="q" title="{{ r.q_wt[1] }}">{{ '%.2f'|format(r.q_wt[0]) }}</td><td class="q" title="{{ r.q_norm[1] }}">{{ '%.3f'|format(r.q_norm[0]) }}</td>
+<td class="group d" title="{{ r.d_tf[1] }}">{{ r.d_tf[0] }}</td><td class="d" title="{{ r.d_tfwt[1] }}">{{ '%.2f'|format(r.d_tfwt[0]) }}</td><td class="d" title="{{ r.d_wt[1] }}">{{ '%.2f'|format(r.d_wt[0]) }}</td><td class="d" title="{{ r.d_norm[1] }}">{{ '%.3f'|format(r.d_norm[0]) }}</td>
+<td class="group p" title="{{ r.prod[1] }}">{{ '%.4f'|format(r.prod[0]) }}</td></tr>{% endfor %}
+<tr class="total"><td colspan="11">Score <small>{{ '第 %d 名'|format(a.rank) if a.rank else '沒有分數（不含任何查詢詞）' }}</small></td><td class="group p"><strong>{{ '%.4f'|format(a.score) }}</strong></td></tr>
+</tbody></table></div>
+<ul class="hw3-rules">{% for letter, part, rule in a.query.rules %}<li>Query {{ part }} <code>{{ letter }}</code>：{{ rule }}</li>{% endfor %}{% for letter, part, rule in a.document.rules %}<li>Document {{ part }} <code>{{ letter }}</code>：{{ rule }}</li>{% endfor %}</ul>
+{% if not a.score %}<p class="hw3-note">每個查詢詞在這篇的 tf 都是 0，所以每列的 Prod 都是 0：方法 A 看不到這篇文章。</p>{% endif %}
+</div>
+<div>
+{% if b %}
+<h3 class="side-title side-b"><span class="side-tag">B</span>{{ b.title }}</h3>
+<p class="hw3-letters">查詢向量 q 與文件向量 d 都是 Σ w·v 再除以長度 · <strong title="L = ‖Σ w·v‖，計入這篇全部 {{ b.rows|length }} 個詞">文件長度 L = {{ '%.3f'|format(b.length) }}</strong></p>
+<div class="steps-b">
+<div class="table-wrap"><table class="step-table lecture">
+<thead><tr><th class="term">查詢詞</th><th class="q">tf</th><th class="q">tf-wt</th><th class="q">df</th><th class="q">idf</th><th class="q">w</th><th class="q" title="w ÷ Σ w">比重</th></tr></thead><tbody>
+{% for r in b.query %}<tr><td class="term">{{ r.word }}</td><td class="q" title="查詢中出現 {{ r.tf }} 次">{{ r.tf }}</td><td class="q" title="1 + log {{ r.tf }} = {{ '%.3f'|format(r.tf_weight) }}">{{ '%.2f'|format(r.tf_weight) }}</td><td class="q" title="{{ '{:,}'.format(b.n) }} 篇中有 {{ r.df }} 篇含 {{ r.word }}">{{ r.df }}</td>
+<td class="q" title="log({{ '{:,}'.format(b.n) }} ÷ {{ [r.df, 1]|max }}) = {{ '%.3f'|format(r.idf) }}">{{ '%.2f'|format(r.idf) }}</td><td class="q" title="tf-wt × idf = {{ '%.3f'|format(r.tf_weight) }} × {{ '%.3f'|format(r.idf) }} = {{ '%.3f'|format(r.weight) }}">{{ '%.2f'|format(r.weight) }}</td><td class="q" title="{{ '%.3f'|format(r.weight) }} ÷ Σ w">{{ '%.0f'|format(100 * r.share) }}%</td></tr>{% endfor %}
+</tbody></table></div>
+<div class="table-wrap"><table class="step-table lecture">
+<thead><tr><th class="term">文件中的詞</th><th class="d">tf</th><th class="d">idf</th><th class="d">w</th><th class="d" title="w ÷ L：這個詞佔文件向量的份量">份量</th><th class="q" title="這個詞的向量和查詢向量的 cosine">cos(v, q)</th><th class="group p">貢獻</th></tr></thead><tbody>
+{% for r in b.top %}<tr{% if r.contribution <= 0 %} class="zero"{% endif %}><td class="term">{% if r.in_query %}<strong title="查詢詞">{{ r.word }}</strong>{% else %}{{ r.word }}{% endif %}</td><td class="d" title="這篇文章出現 {{ r.tf }} 次">{{ r.tf }}</td><td class="d" title="log({{ '{:,}'.format(b.n) }} ÷ {{ r.df }}) = {{ '%.3f'|format(r.idf) }}">{{ '%.2f'|format(r.idf) }}</td>
+<td class="d" title="(1 + log {{ r.tf }}) × {{ '%.3f'|format(r.idf) }} = {{ '%.3f'|format(r.weight) }}">{{ '%.2f'|format(r.weight) }}</td><td class="d" title="w ÷ L = {{ '%.3f'|format(r.weight) }} ÷ {{ '%.3f'|format(b.length) }} = {{ '%.4f'|format(r.share) }}">{{ '%.3f'|format(r.share) }}</td>
+<td class="q" title="cos(v_{{ r.word }}, q) = {{ '%.4f'|format(r.cosine) }}">{{ '%.2f'|format(r.cosine) }}</td><td class="group p" title="份量 × cos = {{ '%.4f'|format(r.share) }} × {{ '%.4f'|format(r.cosine) }} = {{ '%.4f'|format(r.contribution) }}">{{ '%.4f'|format(r.contribution) }}</td></tr>{% endfor %}
+{% if b.rest %}<tr class="divisor"><td class="term" colspan="6">其餘 {{ b.rest|length }} 個詞（{{ b.rest[:5]|map(attribute='word')|join('、') }}{{ '…' if b.rest|length > 5 }}）</td><td class="group p">{{ '%.4f'|format(b.rest_sum) }}</td></tr>{% endif %}
+<tr class="total"><td colspan="6">Score <small>{{ '第 %d 名'|format(b.rank) if b.rank else '' }}</small></td><td class="group p"><strong>{{ '%.4f'|format(b.score) }}</strong></td></tr>
+</tbody></table></div>
+</div>
+<ul class="hw3-rules"><li>w = (1 + log tf) × log(N ÷ df)，N = {{ '{:,}'.format(b.n) }}（測試集），查詢與文件用同一個公式</li><li>份量 = w ÷ L，L 是這篇所有詞加權向量和的長度，因此 cosine(q, d) = Σ 份量 × cos(v, q)，貢獻加總正好等於分數</li><li>粗體是查詢詞；其他詞即使和查詢沒有共同的字，只要向量接近查詢也會加分</li><li>A 先做 Porter 詞幹（cereal 與 cereals 算同一個詞），B 用詞向量認得的原形，所以同一個詞的 df 可能不同</li></ul>
+{% else %}<p class="hw3-note">查詢中沒有詞向量認得的詞，方法 B 無法計算。</p>{% endif %}
+</div>
+</div>
+</section>
+{% elif columns[0].rows %}<p class="hw3-note">點一篇標題，看這篇在 A、B 下的加權步驟。</p>{% endif %}
 </div>
 {% endif %}
 

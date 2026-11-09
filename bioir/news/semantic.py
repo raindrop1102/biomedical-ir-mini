@@ -37,6 +37,7 @@ class EmbeddingSpace:
         stories = [a for a in articles if a.split == "test"]
         self.ids = [a.newid for a in stories]
         counts = [Counter(words(f"{a.title} . {a.body}", model)) for a in stories]
+        self.counts = dict(zip(self.ids, counts))
         self.n = len(stories)
         self.df = Counter(w for c in counts for w in c)
         self.matrix = np.vstack([self.vector(c) for c in counts])
@@ -45,14 +46,17 @@ class EmbeddingSpace:
     def idf(self, word: str) -> float:
         return math.log10(self.n / max(self.df.get(word, 0), 1))           # unseen query words count as rare
 
+    def weights(self, counts: Counter) -> dict[str, float]:
+        """w(t) for each counted word: tf for "mean", (1 + log10 tf) · idf otherwise."""
+        if self.weighting == "mean":
+            return {w: float(c) for w, c in counts.items()}
+        return {w: (1 + math.log10(c)) * self.idf(w) for w, c in counts.items()}
+
     def vector(self, counts: Counter) -> np.ndarray:
         """Unit-length weighted average of the counted words' vectors (zeros if none has weight)."""
         if not counts:
             return np.zeros(self.model.vectors.shape[1])
-        if self.weighting == "mean":
-            weights = {w: float(c) for w, c in counts.items()}
-        else:
-            weights = {w: (1 + math.log10(c)) * self.idf(w) for w, c in counts.items()}
+        weights = self.weights(counts)
         total = sum(weights.values())
         if total <= 0:
             return np.zeros(self.model.vectors.shape[1])
@@ -66,6 +70,41 @@ class EmbeddingSpace:
         query_words = words(text, self.model)
         q = self.vector(Counter(query_words))
         return self.matrix @ q, query_words
+
+    def explain(self, text: str, newid: str) -> dict | None:
+        """One story's score split exactly into its words' contributions.
+
+        The story vector is d = Σ w_t·v_t / L with v_t unit vectors and L = ‖Σ w_t·v_t‖ (dividing
+        by Σ w first does not change the direction), so
+            cosine(q, d) = Σ_t (w_t / L) · cos(v_t, q)
+        — each word's share of the story times how close the word is to the query vector.
+        Words are sorted by contribution; None when no query word has a vector."""
+        query_counts = Counter(words(text, self.model))
+        q = self.vector(query_counts)
+        if not q.any():
+            return None
+        query_weights = self.weights(query_counts)
+        query_total = sum(query_weights.values())
+        query = [{"word": w, "tf": c, "tf_weight": 1 + math.log10(c), "df": self.df.get(w, 0), "idf": self.idf(w),
+                  "weight": query_weights[w],
+                  "share": query_weights[w] / query_total if query_total else 0.0}
+                 for w, c in query_counts.items()]
+        counts = self.counts[newid]
+        weights = self.weights(counts)
+        rows = []
+        if counts:
+            unit = self.model.unit[[self.model.index[w] for w in weights]]
+            length = float(np.linalg.norm((np.array(list(weights.values()))[:, None] * unit).sum(0)))
+            for (w, weight), cosine in zip(weights.items(), (unit @ q).tolist()):
+                share = weight / length if length else 0.0
+                rows.append({"word": w, "tf": counts[w], "df": self.df[w], "idf": self.idf(w), "weight": weight,
+                             "share": share, "cosine": cosine, "contribution": share * cosine,
+                             "in_query": w in query_counts})
+        else:
+            length = 0.0
+        rows.sort(key=lambda r: (-r["contribution"], r["word"]))
+        return {"query": query, "rows": rows, "length": length,
+                "score": sum(r["contribution"] for r in rows), "weighting": self.weighting}
 
     def ranker(self):
         def rank(text: str) -> list[str]:

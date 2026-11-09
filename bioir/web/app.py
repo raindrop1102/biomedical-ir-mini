@@ -242,6 +242,26 @@ def _step_rows(query_side, document_side, space) -> list[dict]:
     return rows
 
 
+def _news_steps(news: dict, query: str, newid: str, grades: dict, rankings: list, model_name: str) -> dict:
+    """How one story got its score under method A (Lecture 3's table) and method B (each word's
+    share of the story times its cosine with the query)."""
+    from ..vsm import Scheme
+    space = news["space"]
+    ranks = {tag: ranking.index(newid) + 1 if newid in ranking else None for tag, _, ranking, _, _ in rankings}
+    query_side, document_side = space.breakdown(query, Scheme.parse("ltc.ltc"), newid)
+    a = {"rows": _step_rows(query_side, document_side, space), "query": _explain_side(query_side, space),
+         "document": _explain_side(document_side, space), "rank": ranks["A"], "title": rankings[0][1]}
+    a["score"] = sum(r["prod"][0] for r in a["rows"])
+    b = None
+    if "B" in ranks:
+        embedding = news["models"][model_name]
+        b = embedding.explain(query, newid)
+        if b:
+            b.update(rank=ranks["B"], title=rankings[1][1], n=embedding.n, top=b["rows"][:10],
+                     rest=b["rows"][10:], rest_sum=sum(r["contribution"] for r in b["rows"][10:]))
+    return {"newid": newid, "story": news["articles"][newid], "relevant": newid in grades, "a": a, "b": b}
+
+
 def _explain_side(side, space) -> dict:
     """Each SMART letter of one side as the rule it applied, with this text's own inputs."""
     from ..vsm.weighting import BYTE_SIZE_ALPHA, PIVOT_SLOPE
@@ -534,7 +554,7 @@ def create_app(corpus=DEFAULT_CORPUS, results=DEFAULT_RESULTS, vsm_corpus=DEFAUL
         query = request.args.get("query", "").strip()[:300]
         model_name = request.args.get("model", "skipgram")
         context = {"news": news, "error": news_error, "query": query, "model_name": model_name,
-                   "columns": [], "evaluation": None}
+                   "columns": [], "evaluation": None, "steps": None}
         if not news or not query:
             return render_template("news.html", **context)
         if model_name not in news["models"] and news["models"]:
@@ -567,6 +587,9 @@ def create_app(corpus=DEFAULT_CORPUS, results=DEFAULT_RESULTS, vsm_corpus=DEFAUL
                                        "total": len(ranking)})
         context["evaluation"] = evaluation
         context["relevant"] = len(grades)
+        newid = request.args.get("doc", "")
+        if newid in news["space"].tf:
+            context["steps"] = _news_steps(news, query, newid, grades, rankings, model_name)
         return render_template("news.html", **context)
 
     @app.get("/news/<name>.png")

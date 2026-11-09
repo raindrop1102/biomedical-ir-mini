@@ -116,6 +116,22 @@ class MethodBTest(unittest.TestCase):
         self.assertAlmostEqual(float(scores[1]), 0.1 / math.hypot(0.9, 0.1))   # cosine(petroleum, wheat)
         self.assertGreater(scores[0], 0.9)                                     # oil and prices lie near petroleum
 
+    def test_explain_splits_the_score_into_word_contributions(self):
+        from bioir.news.semantic import EmbeddingSpace
+        for weighting in ("tfidf", "mean"):
+            space = EmbeddingSpace(self.articles, self.model, weighting)
+            scores, _ = space.scores("petroleum")
+            for i, newid in enumerate(space.ids):
+                steps = space.explain("petroleum", newid)
+                self.assertAlmostEqual(steps["score"], float(scores[i]))      # Σ share × cos is the cosine
+                for row in steps["rows"]:
+                    self.assertAlmostEqual(row["contribution"], row["share"] * row["cosine"])
+        steps = EmbeddingSpace(self.articles, self.model).explain("petroleum", "1")
+        self.assertEqual([r["word"] for r in steps["query"]], ["petroleum"])
+        self.assertEqual({r["word"] for r in steps["rows"]}, {"oil", "prices"})
+        self.assertFalse(any(r["in_query"] for r in steps["rows"]))         # no shared word, yet a high score
+        self.assertIsNone(space.explain("the of", "1"))                      # no known query word
+
     def test_weighting_and_hybrid(self):
         import math
         from collections import Counter

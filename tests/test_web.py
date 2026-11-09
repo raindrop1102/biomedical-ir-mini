@@ -195,6 +195,20 @@ class NewsPageTest(unittest.TestCase):
         self.assertIn('<span class="side-b win">1.00</span>', page)       # B wins nDCG@10 on G3
         self.assertIn("Skip-gram 加權詞向量", page)
         self.assertIn("無共同詞", page)
+        self.assertNotIn('id="steps"', page)                                  # no story chosen yet
+
+    def test_weighting_steps_for_a_story_method_a_cannot_see(self):
+        from bioir.web import create_app
+        with tempfile.TemporaryDirectory() as folder:
+            client = create_app(_tiny_corpus(folder), Path(folder, "no-results"),
+                                Path(folder, "no-mesh.jsonl")).test_client()
+            page = client.get("/news?query=cereal+harvest&model=skipgram&doc=15874").get_data(as_text=True)
+            unknown = client.get("/news?query=cereal+harvest&doc=no-such-story").get_data(as_text=True)
+        self.assertIn('id="steps"', page)
+        self.assertIn("沒有分數（不含任何查詢詞）", page)                      # A: every Prod is 0
+        self.assertIn("<strong>0.8015</strong>", page)                        # B: contributions add up to its cosine
+        self.assertIn("文件中的詞", page)
+        self.assertNotIn('id="steps"', unknown)
 
 
 def _tiny_corpus(folder):

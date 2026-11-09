@@ -191,3 +191,13 @@ html[data-theme="dark"] .hw3-pair-row strong.down { color: #f0a8a8; }
   color: var(--side-b); background: var(--side-b-bg); white-space: nowrap; }
 .hit-meta { padding-left: 1.4em; font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
 .side-count { margin-left: auto; font-size: 12px; font-weight: 400; color: var(--muted); }
+.hw3-hits a.hit-title { text-decoration: none; color: var(--ink); }
+.hw3-hits a.hit-title:hover { color: var(--blue); text-decoration: underline; }
+#steps .table-wrap + .table-wrap { margin-top: 10px; }
+#steps .hw3-doc small { color: var(--muted); font-weight: 400; }
+.steps-stack > div + div { margin-top: 26px; }
+.steps-stack .step-table { width: auto; min-width: 60%; }
+.steps-b { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); gap: 16px; align-items: start; }
+.steps-b .table-wrap + .table-wrap { margin-top: 0; }
+.steps-b .step-table { width: 100%; min-width: 0; }
+@media (max-width: 900px) { .steps-b { grid-template-columns: minmax(0, 1fr); } }
