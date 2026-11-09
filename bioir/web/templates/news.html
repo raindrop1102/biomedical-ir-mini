@@ -38,14 +38,14 @@
 <ol class="hw3-hits">
 {% for row in column.rows %}<li{% if steps and steps.newid == row.story.newid %} class="selected"{% endif %}>
 <div class="hit-line"><span class="grade">{% if row.relevant %}✓{% endif %}</span><a class="hit-title" href="{{ url_for('news_page', query=query, model=model_name, doc=row.story.newid) }}#steps" title="{{ row.story.title }}">{{ row.story.title or '（無標題）' }}</a>{% if row.shared == false %}<span class="hit-tag" title="這篇和查詢沒有任何共同的詞">無共同詞</span>{% endif %}<span class="hit-score" title="cosine">{{ '%.4f'|format(row.score) }}</span></div>
-<div class="hit-meta">NEWID {{ row.story.newid }} · {{ row.story.topics|join(', ') or '無 topic' }}</div>
+<div class="hit-meta">NEWID {{ row.story.newid }} · 主題（TOPICS）：{{ row.story.topics|join(', ') or '無' }}</div>
 </li>{% else %}<li>沒有文章包含這些查詢詞。</li>{% endfor %}
 </ol></div>{% endfor %}
 </section>
 {% if steps %}{% set a, b, story = steps.a, steps.b, steps.story %}
 <section class="panel" id="steps">
 <h2>加權步驟</h2>
-<p class="hw3-doc" title="{{ story.title }}">{% if steps.relevant %}✓ {% endif %}<strong>{{ story.title or '（無標題）' }}</strong> <small>NEWID {{ story.newid }} · {{ story.topics|join(', ') or '無 topic' }}</small></p>
+<p class="hw3-doc" title="{{ story.title }}">{% if steps.relevant %}✓ {% endif %}<strong>{{ story.title or '（無標題）' }}</strong> <small>NEWID {{ story.newid }} · 主題（TOPICS）：{{ story.topics|join(', ') or '無' }}</small></p>
 <p class="hw3-note">在任一邊的清單點標題換文章；同一篇文章在 A、B 下的計算並排。滑鼠移到數字上可以看計算過程。</p>
 <div class="model-columns steps-columns">
 <div>
