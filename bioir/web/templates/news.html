@@ -2,9 +2,9 @@
 {% block title %}{% if query %}{{ query }} - {% endif %}作業 4：Reuters 新聞檢索{% endblock %}
 {% block styles %}<link rel="stylesheet" href="{{ url_for('static', filename='embedding.css') }}">{% endblock %}
 {% block body %}
-<header class="site-header"><div class="container"><h1>Reuters 新聞檢索：TF-IDF 對 Word Embedding</h1>
+<header class="site-header hw3-header"><div class="container"><h1>Reuters 新聞檢索：TF-IDF 對 Word Embedding</h1>
 <p class="hint">Reuters-21578 ModApte：詞向量以訓練集學習，檢索與評估只用測試集；文章 topics 含查詢主題即為相關。</p></div></header>
-<main class="container">
+<main class="container news">
 {% if not news %}<section class="panel"><div class="alert warning">{{ error }}</div></section>
 {% else %}
 {% if error %}<div class="alert warning" role="status">{{ error }}</div>{% endif %}
@@ -46,8 +46,8 @@
 <section class="panel" id="steps">
 <h2>加權步驟</h2>
 <p class="hw3-doc" title="{{ story.title }}">{% if steps.relevant %}✓ {% endif %}<strong>{{ story.title or '（無標題）' }}</strong> <small>NEWID {{ story.newid }} · {{ story.topics|join(', ') or '無 topic' }}</small></p>
-<p class="hw3-note">在任一邊的清單點標題換文章；同一篇文章先看 A、再看 B 的計算。滑鼠移到數字上可以看計算過程。</p>
-<div class="steps-stack">
+<p class="hw3-note">在任一邊的清單點標題換文章；同一篇文章在 A、B 下的計算並排。滑鼠移到數字上可以看計算過程。</p>
+<div class="model-columns steps-columns">
 <div>
 <h3 class="side-title side-a"><span class="side-tag">A</span>{{ a.title }}</h3>
 <p class="hw3-letters">Query {% for letter, part, rule in a.query.rules %}<code title="{{ part }}：{{ rule }}">{{ letter }}</code>{% endfor %}
