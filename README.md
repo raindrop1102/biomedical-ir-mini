@@ -27,7 +27,7 @@ python -m bioir embed compare --out embed_results --plot # 6 個模型：架構 
 python -m bioir embed project cbow.npz sg.npz --out proj --plot   # PCA / t-SNE 投影圖
 python -m bioir vsm search pancreatic cancer risk --scheme lnc.ltc --explain   # 向量空間前 10 名＋各詞貢獻
 python -m bioir vsm evaluate --out results/vsm_glp1 --plot   # 14 種加權 × 15 個查詢的對照實驗（約 10 秒）
-python -m bioir news evaluate --plot                     # 作業 4：TF-IDF 對詞向量（需先下載 Reuters-21578，見下方）
+python -m bioir news evaluate --plot                     # 作業 4：Reuters-21578 上 TF-IDF 對詞向量
 python -m bioir serve                                    # 網頁介面 http://127.0.0.1:5000（搜尋、Zipf、詞向量、向量空間、新聞檢索）
 python -m bioir fetch pmids.txt --email you@example.com -o abstracts.jsonl
 python -m bioir fetch --query '"GLP-1"[tiab] AND hasabstract' -n 1000 --email you@example.com
@@ -72,8 +72,10 @@ for score, doc in results.hits:
 所以每篇都有 NLM 標註的 MeSH 主題詞（`mesh`）與主要主題（`mesh_major`）。`abstracts.manifest.json` 記錄查詢、
 PubMed 的轉譯、時間與 SHA-256；`queries.json` 是 15 個評估查詢與對應的 MeSH 規則。
 
-**Reuters-21578**（作業 4）不包含在儲存庫中：請自行從 UCI Machine Learning Repository
-（<https://archive.ics.uci.edu/dataset/137>）下載，把 22 個 `reut2-*.sgm` 解壓到 `data/reuters21578/`（已列入 `.gitignore`）。
+`data/reuters21578/` 是作業 4 的語料 **Reuters-21578, Distribution 1.0**，原封不動收錄（22 個 `reut2-*.sgm`、DTD、類別清單與原始 `README.txt`）。
+**新聞原文與 Reuters 標註的著作權屬於 Reuters Ltd.**；依原始 README，Reuters Ltd. 與 Carnegie Group, Inc. 同意本資料
+**僅供研究用途**免費散布，本儲存庫只為課程作業的研究示範收錄，使用時請遵守同樣的限制。官方取得位置：
+UCI Machine Learning Repository（<https://archive.ics.uci.edu/dataset/137>）。
 `results/news_reuters/` 是 `python -m bioir news evaluate --plot` 的輸出，`models/` 是只用訓練集學到的詞向量（不含原文）。
 
 `results/embed_glp1/` 是 `python -m bioir embed compare --out results/embed_glp1 --plot` 的完整輸出
@@ -342,7 +344,6 @@ CBOW 0.03、Skip-gram 0.18（都通過 < 0.5 的健全性檢查，沒有塌縮�
 **z 值**（比隨機詞對平均高幾個標準差）。指標：P@10、R@100、MRR、MAP、nDCG@10；與方法 A 的差異以精確配對置換檢定。
 
 ```bash
-# 先下載 https://archive.ics.uci.edu/dataset/137 並解壓到 data/reuters21578/（22 個 reut2-*.sgm）
 python -m bioir news train                                   # 訓練 CBOW 與 Skip-gram，約 30 分鐘
 python -m bioir news search petroleum supply --method B-skipgram
 python -m bioir news evaluate --plot                         # 全部方法 × 15 個查詢，約 10 秒
@@ -428,7 +429,7 @@ python -m bioir news evaluate --plot                         # 全部方法 × 1
 | 文獻搜尋 `/` | 單一查詢框（AND / OR / NOT / 括號 / 片語）、BM25 排名、命中片語高亮（摘錄＋完整摘要）、拼字建議、分頁、跳至文章側欄 |
 | Zipf 分析 `/zipf` | 基準條件、`--no-numbers`、`--compound` 與加入詞的表單；A–D 總表、10/80/10 分區、前 50 名、CF/DF/IDF 對照、三格圖；CSV 下載 |
 | 向量空間 `/vsm` | 自由文字查詢，兩種 SMART 加權並排的前 10 名、查詢向量、各詞貢獻；評估查詢會標出 MeSH 相關文件並即時計算指標；對照實驗結果表、控制變因比較與圖 |
-| 新聞檢索 `/news` | 方法 A 與方法 B 的前 10 名並排，標出相關文章與「無共同詞」的文章；實驗結果圖表、詞對與 Top-5 近鄰、投影圖。需要 `data/reuters21578/` 與 `results/news_reuters/models/`，沒有時頁面會說明要執行的指令 |
+| 新聞檢索 `/news` | 方法 A 與方法 B 的前 10 名並排，標出相關文章與「無共同詞」的文章；實驗結果圖表、詞對與 Top-5 近鄰、投影圖。需要 `data/reuters21578/` 與 `results/news_reuters/models/`（都已收錄），缺少時頁面會說明要執行的指令 |
 | 詞向量 `/embedding` | 模型健全性、CBOW 與 Skip-gram 近鄰並排（可調近鄰最少出現次數）、兩詞相似度與 z 值、投影圖與 trustworthiness、比較實驗摘要 |
 
 **設計**：
@@ -450,7 +451,7 @@ python -m bioir news evaluate --plot                         # 全部方法 × 1
 **New → Blueprint**、指定這個儲存庫即可。啟動指令是
 `gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 120 app:app`（根目錄的 `app.py`），健康檢查 `/healthz`。
 若不用 Blueprint、改在 Render 手動建立 Web Service，預設的 Start Command `gunicorn app:app` 也能直接執行。
-一個 worker 約佔 200 MB 記憶體（免費方案上限 512 MB），啟動約 3 秒。免費方案閒置 15 分鐘會休眠，
+一個 worker 約佔 200 MB 記憶體（含新聞頁；免費方案上限 512 MB），啟動約 6 秒。免費方案閒置 15 分鐘會休眠，
 下一次開啟需等約 30–60 秒喚醒。GitHub Actions 的 `deploy-smoke` 工作用同一組檔案與同一條啟動指令在 Linux 上
 啟動網站並請求每一頁，部署設定壞掉時會先在那裡失敗（gunicorn 不支援 Windows，本機請用 `python -m bioir serve`）。
 

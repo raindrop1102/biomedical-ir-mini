@@ -5,8 +5,9 @@ services:
     runtime: python
     plan: free
     buildCommand: pip install -r requirements.txt
-    # One worker keeps memory near 200 MB (the free plan has 512 MB); threads serve requests
-    # concurrently, which the read-only app allows. Startup builds every index in about 3 s.
+    # One worker keeps memory near 200 MB with the Reuters news page loaded (the free plan has
+    # 512 MB); threads serve requests concurrently, which the read-only app allows. Startup
+    # builds every index and the news page's vectors in about 6 s.
     startCommand: gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 120 app:app
     healthCheckPath: /healthz
     envVars:
