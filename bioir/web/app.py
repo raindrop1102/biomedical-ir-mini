@@ -542,12 +542,16 @@ def create_app(corpus=DEFAULT_CORPUS, results=DEFAULT_RESULTS, vsm_corpus=DEFAUL
         evaluation = next((q for q in news["queries"] if q.text.lower() == query.lower()), None)
         grades = news["judgments"][evaluation.id] if evaluation else {}
         from ..vsm.evaluate import score
-        rankings = [("A：TF-IDF（ltc.ltc）", [h.pmid for h in news["space"].search(query, "ltc.ltc").hits], None)]
+        hits = news["space"].search(query, "ltc.ltc").hits
+        rankings = [("A", "TF-IDF（ltc.ltc）", [h.pmid for h in hits], {h.pmid: h.score for h in hits}, None)]
         if model_name in news["models"]:
             space = news["models"][model_name]
-            rankings.append((f"B：{model_name} TF-IDF 加權詞向量", space.ranker()(query), space.model))
+            values, _ = space.scores(query)
+            label = {"cbow": "CBOW", "skipgram": "Skip-gram"}.get(model_name, model_name)
+            rankings.append(("B", f"{label} 加權詞向量", space.ranker()(query),
+                             dict(zip(space.ids, values.tolist())), space.model))
         query_words = None
-        for title, ranking, model in rankings:
+        for tag, title, ranking, scores, model in rankings:
             if model is not None:
                 query_words = set(words(query, model))
             rows = []
@@ -556,9 +560,11 @@ def create_app(corpus=DEFAULT_CORPUS, results=DEFAULT_RESULTS, vsm_corpus=DEFAUL
                 shared = None
                 if query_words is not None:
                     shared = bool(query_words & set(words(f"{story.title} . {story.body}", model)))
-                rows.append({"rank": rank, "story": story, "relevant": newid in grades, "shared": shared})
+                rows.append({"rank": rank, "story": story, "relevant": newid in grades, "shared": shared,
+                             "score": scores.get(newid, 0.0)})
             metrics = score(ranking, grades).values if evaluation else None
-            context["columns"].append({"title": title, "rows": rows, "metrics": metrics, "total": len(ranking)})
+            context["columns"].append({"tag": tag, "title": title, "rows": rows, "metrics": metrics,
+                                       "total": len(ranking)})
         context["evaluation"] = evaluation
         context["relevant"] = len(grades)
         return render_template("news.html", **context)

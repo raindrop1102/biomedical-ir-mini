@@ -190,9 +190,10 @@ class NewsPageTest(unittest.TestCase):
             client = create_app(_tiny_corpus(folder), Path(folder, "no-results"),
                                 Path(folder, "no-mesh.jsonl")).test_client()
             page = client.get("/news?query=cereal+harvest&model=skipgram").get_data(as_text=True)
-        self.assertIn("評估查詢 <strong>G3</strong>", page)
-        self.assertIn("A：TF-IDF", page)
-        self.assertIn("B：skipgram", page)
+        self.assertIn("G3（改寫查詢）", page)
+        self.assertIn('<span class="side-tag">A</span>TF-IDF（ltc.ltc）', page)
+        self.assertIn('<span class="side-b win">1.00</span>', page)       # B wins nDCG@10 on G3
+        self.assertIn("Skip-gram 加權詞向量", page)
         self.assertIn("無共同詞", page)
 
 

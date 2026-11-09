@@ -185,3 +185,9 @@ html[data-theme="dark"] .hw3-scheme .side-tag { color: #0f1a26; }
 html[data-theme="dark"] .hw3-pair-row strong.up { color: #8fd6ac; }
 html[data-theme="dark"] .hw3-pair-row strong.down { color: #f0a8a8; }
 .hw3-intro { margin-bottom: 20px; }
+/* Homework 4 top-10 lists: homework 3's layout plus topics and a "no shared word" tag */
+.hit-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hit-tag { flex: none; margin-left: 8px; padding: 0 6px; border-radius: 4px; font-size: 12px; line-height: 1.6;
+  color: var(--side-b); background: var(--side-b-bg); white-space: nowrap; }
+.hit-meta { padding-left: 1.4em; font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+.side-count { margin-left: auto; font-size: 12px; font-weight: 400; color: var(--muted); }
