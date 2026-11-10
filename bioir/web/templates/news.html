@@ -154,13 +154,12 @@
 {% if news.experiment %}{% set e = news.experiment %}{% set A = e.headline[0] %}{% set bs = e.headline[1:] %}
 <section class="panel exp" id="experiment">
 <h2>實驗結果（{{ e.queries|length }} 個查詢）</h2>
-<p class="exp-lead">一句話：<strong>查詢用的詞和新聞一樣時，TF-IDF 就夠好；換成新聞少用的說法，詞向量明顯較好。</strong>指標以 nDCG@10 為主（前 10 名的排序品質，1 代表相關文章全排在最前面）。</p>
+<p class="exp-lead"><strong>查詢用的詞和新聞一樣時，TF-IDF 就夠好；換成新聞少用的說法，詞向量明顯較好。</strong>指標以 nDCG@10 為主（前 10 名的排序品質，1 代表相關文章全排在最前面）。</p>
 
-{% set bk = bs|map(attribute='values')|map(attribute='keyword')|max %}{% set bp = bs|map(attribute='values')|map(attribute='paraphrase')|max %}{% set t = e.tests|sort(attribute='p')|first %}
-<div class="exp-cards">
+{% set bk = bs|map(attribute='values')|map(attribute='keyword')|max %}{% set bp = bs|map(attribute='values')|map(attribute='paraphrase')|max %}
+<div class="exp-cards two">
 <div class="exp-card"><small>① 關鍵字查詢（{{ e.counts.keyword }} 題）</small><div class="exp-big"><span class="side-a">{{ '%.2f'|format(A['values'].keyword) }}</span> <span class="sep">對</span> <span class="side-b">{{ '%.2f'|format(bk) }}</span></div><p>{{ 'TF-IDF 最好，詞向量略輸' if A['values'].keyword > bk else '詞向量追平或勝過 TF-IDF' }}</p></div>
 <div class="exp-card"><small>② 改寫查詢（{{ e.counts.paraphrase }} 題）</small><div class="exp-big"><span class="side-a">{{ '%.2f'|format(A['values'].paraphrase) }}</span> <span class="sep">對</span> <span class="side-b">{{ '%.2f'|format(bp) }}</span></div><p>TF-IDF 大幅下滑，詞向量幾乎不受影響</p></div>
-<div class="exp-card"><small>③ 統計檢定（{{ t.label }} 對 A）</small><div class="exp-big">p = {{ '%.2f'|format(t.p) }}</div><p>{{ t.better }} 勝 {{ t.worse }} 負 {{ t.ties }} 平：趨勢一致，但 {{ e.queries|length }} 題不足以顯著</p></div>
 </div>
 <p class="exp-legend"><span class="key a"></span>A：TF-IDF <span class="key b1"></span>B：CBOW 詞向量 <span class="key b2"></span>B：Skip-gram 詞向量 <span class="muted">· 卡片中 <span class="side-a">藍</span> 為 A、<span class="side-b">橘</span> 為最好的 B</span></p>
 
@@ -174,7 +173,7 @@
 </div>
 <p class="hint">只看「全部」會以為詞向量全面勝出；分開看才知道差距幾乎都來自改寫查詢。</p>
 
-<h3><span class="exp-step">2</span>為什麼：相關文章有多少含查詢詞</h3>
+<h3><span class="exp-step">2</span>相關文章有多少含查詢詞</h3>
 <p class="exp-text">TF-IDF 只能找到<strong>含查詢詞</strong>的文章。關鍵字查詢的相關文章有 <strong>{{ '%.0f'|format(100 * e.coverage.keyword) }}%</strong> 含任一查詢詞，改寫查詢只有 <strong>{{ '%.0f'|format(100 * e.coverage.paraphrase) }}%</strong>；其餘的 TF-IDF 給 0 分，永遠排不上來。</p>
 <div class="table-wrap"><table class="data-table exp-queries">
 <thead><tr><th>查詢</th><th class="num">相關篇數</th><th>含查詢詞的比例</th>{% for m, label, css in e.methods %}<th class="num"><span class="key {{ css }}"></span>{{ label }}</th>{% endfor %}<th class="num" title="Skip-gram 前 10 名中和查詢沒有共同詞、但相關的文章">無共同詞而相關</th></tr></thead>
@@ -194,13 +193,13 @@
 </div>
 <p class="hint">代價是語意漂移：T2 tariffs on imports，CBOW 把黃豆、玉米的供需報表（主題 oilseed、grain）排進前 10 名：表格裡大量出現 imports，詞向量覺得很像，但主題不是 trade。</p>
 
-<h3><span class="exp-step">4</span>差異顯著嗎：逐題配對檢定</h3>
+<h3><span class="exp-step">4</span>逐題配對檢定</h3>
 <div class="table-wrap"><table class="data-table exp-tests"><thead><tr><th>和 A 比</th><th class="num">勝</th><th class="num">負</th><th class="num">平</th><th class="num">p 值</th><th>解讀</th></tr></thead><tbody>
 {% for row in e.tests %}<tr><td>{{ row.label }}</td><td class="num">{{ row.better }}</td><td class="num">{{ row.worse }}</td><td class="num">{{ row.ties }}</td><td class="num">{{ '%.2f'|format(row.p) }}</td><td>{{ '顯著（p < 0.05）' if row.p < 0.05 else '不顯著：勝負接近，打平的題又多' }}</td></tr>{% endfor %}
 </tbody></table></div>
 <p class="hint">精確配對置換檢定：把每一題 A、B 的分數隨機對調，看平均差距有多常和實際一樣大或更大。只有 {{ e.queries|length }} 題、很多題雙方都是 1.00，只能說「趨勢」，不能說「顯著較好」。</p>
 
-{% if e.ablations %}<h3><span class="exp-step">5</span>對照實驗：加權和混合有沒有幫助</h3>
+{% if e.ablations %}<h3><span class="exp-step">5</span>加權和混合對照實驗</h3>
 <div class="table-wrap"><table class="data-table"><thead><tr><th>變化</th><th class="num">關鍵字</th><th class="num">改寫</th><th class="num">全部</th><th class="num">和原本的 B 比（全部）</th></tr></thead><tbody>
 {% for row in e.ablations %}{% set d = row['values'].all - row.base_values.all %}<tr><td>{{ row.description }}</td>{% for kind in ['keyword', 'paraphrase', 'all'] %}<td class="num">{{ '%.3f'|format(row['values'][kind]) }}</td>{% endfor %}<td class="num {{ 'up' if d > 0 else 'down' }}">{{ '%+.3f'|format(d) }}</td></tr>{% endfor %}
 </tbody></table></div>
