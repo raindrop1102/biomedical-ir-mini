@@ -106,6 +106,17 @@ class EmbeddingSpace:
         return {"query": query, "rows": rows, "length": length,
                 "score": sum(r["contribution"] for r in rows), "weighting": self.weighting}
 
+    def unweighted(self, text: str, newid: str) -> float:
+        """cosine(q, d) before weighting: every word occurrence counts once (the "mean" ablation)."""
+        def direction(counts: Counter):
+            if not counts:
+                return None
+            total = sum(c * self.model.unit[self.model.index[w]] for w, c in counts.items())
+            norm = np.linalg.norm(total)
+            return total / norm if norm else None
+        q, d = direction(Counter(words(text, self.model))), direction(self.counts[newid])
+        return float(q @ d) if q is not None and d is not None else 0.0
+
     def ranker(self):
         def rank(text: str) -> list[str]:
             scores, query_words = self.scores(text)

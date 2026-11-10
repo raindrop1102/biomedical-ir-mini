@@ -208,6 +208,9 @@ class NewsPageTest(unittest.TestCase):
         self.assertIn("沒有分數（不含任何查詢詞）", page)                      # A: every Prod is 0
         self.assertIn("<strong>0.8015</strong>", page)                        # B: contributions add up to its cosine
         self.assertIn("文件中的詞", page)
+        self.assertIn("加權前後的夾角", page)
+        self.assertIn("cos = <strong>0.8015</strong> → θ = <strong>36.7°</strong>", page)   # B after weighting
+        self.assertIn("cos = <strong>0.0000</strong> → θ = <strong>90.0°</strong>", page)   # A: orthogonal either way
         self.assertNotIn('id="steps"', unknown)
 
 

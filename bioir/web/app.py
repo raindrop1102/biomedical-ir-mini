@@ -6,6 +6,7 @@ thread-safe). Training and downloads stay on the command line.
 """
 import csv
 import io
+import math
 import threading
 import time
 from functools import lru_cache
@@ -252,6 +253,9 @@ def _news_steps(news: dict, query: str, newid: str, grades: dict, rankings: list
     a = {"rows": _step_rows(query_side, document_side, space), "query": _explain_side(query_side, space),
          "document": _explain_side(document_side, space), "rank": ranks["A"], "title": rankings[0][1]}
     a["score"] = sum(r["prod"][0] for r in a["rows"])
+    raw_query, raw_document = space.breakdown(query, Scheme.parse("nnc.nnc"), newid)
+    raw = sum(q.weight * d.weight for q, d in zip(raw_query.terms, raw_document.terms))
+    a["angle"] = _angle(raw, a["score"], "加權前：tf 原值（nnc.nnc）", "加權後：ltc.ltc")
     b = None
     if "B" in ranks:
         embedding = news["models"][model_name]
@@ -259,7 +263,30 @@ def _news_steps(news: dict, query: str, newid: str, grades: dict, rankings: list
         if b:
             b.update(rank=ranks["B"], title=rankings[1][1], n=embedding.n, top=b["rows"][:10],
                      rest=b["rows"][10:], rest_sum=sum(r["contribution"] for r in b["rows"][10:]))
+            b["angle"] = _angle(embedding.unweighted(query, newid), b["score"],
+                                "加權前：直接平均（每次出現算一次）", "加權後：TF-IDF 加權平均")
     return {"newid": newid, "story": news["articles"][newid], "relevant": newid in grades, "a": a, "b": b}
+
+
+def _angle(before: float, after: float, before_label: str, after_label: str) -> dict:
+    """The angles behind two cosines, drawn on a half circle with the query vector q along the x axis."""
+    cx, cy, radius = 170, 172, 125
+
+    def point(theta: float, r: float) -> tuple[float, float]:
+        return round(cx + r * math.cos(theta), 1), round(cy - r * math.sin(theta), 1)
+
+    lines = []
+    for key, cosine, label, arc_radius in (("before", before, before_label, 58), ("after", after, after_label, 38)):
+        theta = math.acos(max(-1.0, min(1.0, cosine)))
+        end, arc_end = point(theta, radius), point(theta, arc_radius)
+        lines.append({"key": key, "label": label, "cosine": cosine, "degrees": math.degrees(theta), "end": end,
+                      "theta": theta,
+                      "arc": f"M {cx + arc_radius} {cy} A {arc_radius} {arc_radius} 0 0 0 {arc_end[0]} {arc_end[1]}"})
+    close = abs(lines[0]["theta"] - lines[1]["theta"]) < math.radians(12)
+    for line in lines:                                   # labels of near-identical rays stack instead of overlapping
+        line["tip"] = point(line["theta"], radius + (36 if close and line["key"] == "before" else 16))
+    return {"origin": (cx, cy), "q": (cx + radius, cy), "radius": radius, "lines": lines,
+            "change": lines[0]["degrees"] - lines[1]["degrees"]}
 
 
 def _explain_side(side, space) -> dict:

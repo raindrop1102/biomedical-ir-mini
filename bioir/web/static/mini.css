@@ -201,3 +201,30 @@ main.container.news, .news ~ footer.container { width: min(1240px, calc(100% - 4
 .steps-columns { gap: 24px; }
 .steps-columns .step-table { width: 100%; }
 .steps-b .table-wrap + .table-wrap { margin-top: 12px; }
+/* Homework 4: the angle between q and d before and after weighting */
+.angle-heading { margin-top: 22px; }
+.angle-heading small { color: var(--muted); font-weight: 400; font-size: 13px; margin-left: 6px; }
+.angle-columns { margin-top: 8px; }
+.angle-figure { margin: 0; }
+.angle-figure h4 { margin: 0 0 4px; }
+.angle-figure svg { display: block; width: 100%; max-width: 420px; height: auto; margin: 0 auto; overflow: visible; }
+.angle-guide { fill: none; stroke: var(--border, #ccc); stroke-width: 1; stroke-dasharray: 2 3; }
+.angle-tick { font-size: 10px; fill: var(--muted); }
+.angle-q { stroke: currentColor; stroke-width: 2.5; }
+.angle-label { font-size: 13px; font-weight: 700; fill: currentColor; }
+.angle-label.side-a { fill: var(--side-a); }
+.angle-label.side-b { fill: var(--side-b); }
+.angle-label.before { opacity: .7; }
+.angle-ray, .angle-arc { fill: none; stroke-width: 2.5; }
+.angle-ray.side-a, .angle-arc.side-a { stroke: var(--side-a); }
+.angle-ray.side-b, .angle-arc.side-b { stroke: var(--side-b); }
+.angle-ray.before, .angle-arc.before { stroke-dasharray: 6 4; opacity: .65; stroke-width: 2; }
+.angle-arc { stroke-width: 1.5; }
+.angle-origin { fill: currentColor; }
+.angle-legend { list-style: none; padding: 0; margin: 8px 0 4px; font-size: 13px; }
+.angle-legend li { margin: 3px 0; }
+.angle-key { display: inline-block; width: 22px; border-top: 2.5px solid; vertical-align: middle; margin-right: 6px; }
+.angle-legend .side-a .angle-key { border-color: var(--side-a); }
+.angle-legend .side-b .angle-key { border-color: var(--side-b); }
+.angle-legend .before .angle-key { border-top-style: dashed; opacity: .65; }
+.angle-figure .hw3-note { margin-top: 4px; }

@@ -92,6 +92,36 @@
 {% else %}<p class="hw3-note">查詢中沒有詞向量認得的詞，方法 B 無法計算。</p>{% endif %}
 </div>
 </div>
+{% macro angle_figure(tag, title, side, angle) %}
+<figure class="angle-figure">
+<h4 class="side-title side-{{ side }}"><span class="side-tag">{{ tag }}</span>{{ title }}</h4>
+{% set ox, oy = angle.origin %}
+<svg viewBox="0 0 340 196" role="img" aria-label="{{ tag }}：加權前夾角 {{ '%.1f'|format(angle.lines[0].degrees) }} 度，加權後 {{ '%.1f'|format(angle.lines[1].degrees) }} 度">
+<path class="angle-guide" d="M {{ ox - angle.radius }} {{ oy }} A {{ angle.radius }} {{ angle.radius }} 0 0 1 {{ ox + angle.radius }} {{ oy }}"/>
+<line class="angle-guide" x1="{{ ox - angle.radius }}" y1="{{ oy }}" x2="{{ ox }}" y2="{{ oy }}"/>
+<line class="angle-guide" x1="{{ ox }}" y1="{{ oy }}" x2="{{ ox }}" y2="{{ oy - angle.radius }}"/>
+<text class="angle-tick" x="{{ ox - 6 }}" y="{{ oy - angle.radius + 12 }}" text-anchor="end">90°</text>
+<text class="angle-tick" x="{{ ox - angle.radius }}" y="{{ oy + 16 }}" text-anchor="middle">180°</text>
+<line class="angle-q" x1="{{ ox }}" y1="{{ oy }}" x2="{{ angle.q[0] }}" y2="{{ angle.q[1] }}"/>
+<text class="angle-label" x="{{ angle.q[0] + 6 }}" y="{{ angle.q[1] + 4 }}">q</text>
+{% for line in angle.lines %}
+<path class="angle-arc {{ line.key }} side-{{ side }}" d="{{ line.arc }}"/>
+<line class="angle-ray {{ line.key }} side-{{ side }}" x1="{{ ox }}" y1="{{ oy }}" x2="{{ line.end[0] }}" y2="{{ line.end[1] }}"><title>{{ line.label }}：cos = {{ '%.4f'|format(line.cosine) }}，θ = {{ '%.1f'|format(line.degrees) }}°</title></line>
+<text class="angle-label {{ line.key }} side-{{ side }}" x="{{ line.tip[0] }}" y="{{ line.tip[1] + 4 }}" text-anchor="middle">d{{ '前' if line.key == 'before' else '後' }}</text>
+{% endfor %}
+<circle class="angle-origin" cx="{{ ox }}" cy="{{ oy }}" r="2.5"/>
+</svg>
+<ul class="angle-legend">{% for line in angle.lines %}
+<li class="{{ line.key }} side-{{ side }}"><span class="angle-key"></span>{{ line.label }}：cos = <strong>{{ '%.4f'|format(line.cosine) }}</strong> → θ = <strong>{{ '%.1f'|format(line.degrees) }}°</strong></li>{% endfor %}
+</ul>
+<p class="hw3-note">{% if angle.change > 0.05 %}加權後夾角縮小 {{ '%.1f'|format(angle.change) }}°，這篇更靠近查詢{% elif angle.change < -0.05 %}加權後夾角變大 {{ '%.1f'|format(-angle.change) }}°，這篇離查詢更遠{% else %}加權前後夾角幾乎不變{% endif %}。</p>
+</figure>
+{% endmacro %}
+<h3 class="angle-heading">加權前後的夾角 <small>cos θ 就是分數；θ 越小，文件向量 d 越貼近查詢向量 q</small></h3>
+<div class="model-columns angle-columns">
+{{ angle_figure('A', 'TF-IDF', 'a', a.angle) }}
+{% if b %}{{ angle_figure('B', b.title, 'b', b.angle) }}{% endif %}
+</div>
 </section>
 {% elif columns[0].rows %}<p class="hw3-note">點一篇標題，看這篇在 A、B 下的加權步驟。</p>{% endif %}
 </div>

@@ -131,6 +131,11 @@ class MethodBTest(unittest.TestCase):
         self.assertEqual({r["word"] for r in steps["rows"]}, {"oil", "prices"})
         self.assertFalse(any(r["in_query"] for r in steps["rows"]))         # no shared word, yet a high score
         self.assertIsNone(space.explain("the of", "1"))                      # no known query word
+        mean_scores, _ = EmbeddingSpace(self.articles, self.model, "mean").scores("oil wheat")
+        tfidf = EmbeddingSpace(self.articles, self.model)
+        for i, newid in enumerate(tfidf.ids):                                 # before weighting = the mean ablation
+            self.assertAlmostEqual(tfidf.unweighted("oil wheat", newid), float(mean_scores[i]))
+        self.assertEqual(tfidf.unweighted("the of", "1"), 0.0)
 
     def test_weighting_and_hybrid(self):
         import math
