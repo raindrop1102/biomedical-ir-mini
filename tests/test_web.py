@@ -191,6 +191,9 @@ class NewsPageTest(unittest.TestCase):
                                 Path(folder, "no-mesh.jsonl")).test_client()
             page = client.get("/news?query=cereal+harvest&model=skipgram").get_data(as_text=True)
         self.assertIn("G3（改寫查詢）", page)
+        self.assertIn('<details class="panel news-data" id="data">', page)      # collapsed once there is a query
+        for number in ("21,578", "9,603", "3,299", "8,676", "1,828", "1,087"):   # split and topic counts
+            self.assertIn(f">{number}<", page)
         self.assertIn('<span class="side-tag">A</span>TF-IDF（ltc.ltc）', page)
         self.assertIn('<span class="side-b win">1.00</span>', page)       # B wins nDCG@10 on G3
         self.assertIn("Skip-gram 加權詞向量", page)

@@ -19,6 +19,30 @@
 {% for kind, label in [('keyword', '關鍵字查詢'), ('paraphrase', '改寫查詢（刻意用相關新聞少用的詞）')] %}
 <p class="hint">{{ label }}：{% for q in news.queries if q.kind == kind %}<a href="{{ url_for('news_page', query=q.text, model=model_name) }}#results">{{ q.id }} {{ q.text }}</a>{{ '、' if not loop.last }}{% endfor %}</p>{% endfor %}
 </section>
+{% set data = news.collection %}
+<details class="panel news-data" id="data"{% if not query %} open{% endif %}>
+<summary><h2>資料集：Reuters-21578 的 ModApte 切分</h2><small>共 {{ '{:,}'.format(data.total) }} 篇，訓練 {{ '{:,}'.format(data.splits[0][2]) }} · 測試 {{ '{:,}'.format(data.splits[1][2]) }}</small></summary>
+<div class="model-columns data-columns">
+<div>
+<h3>切分條件</h3>
+<div class="table-wrap"><table class="data-table">
+<thead><tr><th>集合</th><th>條件</th><th class="num">篇數</th></tr></thead><tbody>
+{% for name, rule, n, use in data.splits %}<tr{% if not use %} class="unused"{% endif %}><td class="set">{{ name }}{% if use %}<small>{{ use }}</small>{% endif %}</td><td><code>{{ rule }}</code></td><td class="num">{{ '{:,}'.format(n) }}</td></tr>{% endfor %}
+</tbody>
+<tfoot><tr><td colspan="2">合計（全部 <code>&lt;REUTERS&gt;</code>）</td><td class="num">{{ '{:,}'.format(data.total) }}</td></tr></tfoot></table></div>
+<p class="hint">TOPICS="YES" 但沒有任何 topic 的文章仍屬於 ModApte，只是不和任何查詢相關。</p>
+</div>
+<div>
+<h3>讀進來的結果</h3>
+<div class="table-wrap"><table class="data-table">
+<thead><tr><th></th><th class="num">訓練集</th><th class="num">測試集</th></tr></thead><tbody>
+{% for label, n, kind in data.rows %}{% if loop.index == 4 %}<tr class="group"><td colspan="3">評估查詢用到的 5 個主題</td></tr>{% endif %}
+<tr class="{{ kind }}"><td>{% if kind == 'topic' %}<code>{{ label }}</code>{% else %}{{ label }}{% endif %}</td><td class="num">{{ '{:,}'.format(n.train) }}</td><td class="num">{{ '{:,}'.format(n.test) }}</td></tr>{% endfor %}
+</tbody></table></div>
+<p class="hint">一篇可以有多個 topic，所以各主題篇數加起來不等於總數。</p>
+</div>
+</div>
+</details>
 
 {% if columns %}
 <div id="results">

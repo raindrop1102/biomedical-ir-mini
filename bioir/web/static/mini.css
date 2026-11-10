@@ -228,3 +228,23 @@ main.container.news, .news ~ footer.container { width: min(1240px, calc(100% - 4
 .angle-legend .side-b .angle-key { border-color: var(--side-b); }
 .angle-legend .before .angle-key { border-top-style: dashed; opacity: .65; }
 .angle-figure .hw3-note { margin-top: 4px; }
+/* Homework 4: the collection's ModApte split and topic counts */
+.news-data > summary { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; cursor: pointer; list-style: none; }
+.news-data > summary::-webkit-details-marker { display: none; }
+.news-data > summary::before { content: "▸"; color: var(--navy); transition: transform .15s; }
+.news-data[open] > summary::before { transform: rotate(90deg); }
+.news-data > summary h2 { margin: 0; }
+.news-data > summary small { color: var(--muted); }
+.data-columns { margin-top: 14px; }
+.data-columns h3 { font-size: 16px; margin-bottom: 8px; }
+.data-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.data-table th, .data-table td { padding: 7px 10px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; }
+.data-table thead th { color: var(--muted); font-weight: 600; font-size: 13px; }
+.data-table .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.data-table td.set { font-weight: 600; white-space: nowrap; }
+.data-table td.set small { display: block; font-weight: 400; font-size: 12px; color: var(--muted); }
+.data-table code { font-size: 12px; white-space: normal; }
+.data-table tr.unused td { color: var(--muted); }
+.data-table tr.muted td:first-child { color: var(--muted); }
+.data-table tr.group td { font-size: 12px; color: var(--muted); padding-top: 12px; border-bottom: 0; }
+.data-table tfoot td { font-weight: 700; border-top: 2px solid var(--border); border-bottom: 0; }

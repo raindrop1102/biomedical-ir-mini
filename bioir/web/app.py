@@ -309,15 +309,33 @@ def _explain_side(side, space) -> dict:
     return {"side": side, "rules": [(w.tf, "TF", tf), (w.idf, "IDF", idf), (w.norm, "正規化", norm)]}
 
 
+def _collection(articles, total: int) -> dict:
+    """The ModApte split of the collection and, per split, how the stories' topics fall."""
+    splits = {split: [a for a in articles if a.split == split] for split in ("train", "test")}
+
+    def count(test) -> dict:
+        return {split: sum(map(test, stories)) for split, stories in splits.items()}
+
+    rows = [("ModApte 篇數", count(lambda a: True), ""), ("沒有任何 topic", count(lambda a: not a.topics), "muted"),
+            ("有多個 topic", count(lambda a: len(a.topics) > 1), "muted")]
+    rows += [(topic, count(lambda a, t=topic: t in a.topics), "topic") for topic in ("earn", "acq", "crude", "grain", "trade")]
+    train, test = len(splits["train"]), len(splits["test"])
+    return {"total": total, "rows": rows,
+            "splits": [("訓練集", 'LEWISSPLIT="TRAIN" 且 TOPICS="YES"', train, "訓練詞向量"),
+                       ("測試集", 'LEWISSPLIT="TEST" 且 TOPICS="YES"', test, "檢索與評估"),
+                       ("不使用", '其他（NOT-USED、TOPICS="NO"、BYPASS）', total - train - test, "")]}
+
+
 def _load_news(data: Path, results: Path):
     """Reuters test stories, method A and the method-B spaces of the trained models, the evaluation
     queries with their judgments and the experiment's saved results — or why they are missing."""
     if not data.exists():
         return None, f"找不到 Reuters-21578（{data}）；請依 README 下載並解壓到這個資料夾"
-    from ..news import judgments, load_queries, load_reuters
+    from ..news import count_stories, judgments, load_queries, load_reuters
     from ..news.retrieval import test_space
     articles = load_reuters(data)
     news = {"articles": {a.newid: a for a in articles}, "space": test_space(articles), "models": {},
+            "collection": _collection(articles, count_stories(data)),
             "train": sum(a.split == "train" for a in articles), "test": sum(a.split == "test" for a in articles),
             "summary": _read_csv(results / "summary.csv"), "comparisons": _read_csv(results / "comparisons.csv"),
             "zero": _read_csv(results / "zero_overlap.csv"), "pairs": _read_csv(results / "pairs.csv"),

@@ -79,3 +79,8 @@ def load_reuters(folder) -> list[Article]:
     # The collection predates UTF-8 and contains a few Latin-1 bytes.
     articles = [a for path in files for a in parse(path.read_text(encoding="latin-1"))]
     return sorted(articles, key=lambda a: int(a.newid))
+
+
+def count_stories(folder) -> int:
+    """How many <REUTERS> stories the distribution holds, in or out of ModApte (21,578)."""
+    return sum(len(STORY.findall(path.read_text(encoding="latin-1"))) for path in Path(folder).glob("reut2-*.sgm"))
