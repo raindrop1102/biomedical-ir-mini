@@ -309,6 +309,29 @@ def _explain_side(side, space) -> dict:
     return {"side": side, "rules": [(w.tf, "TF", tf), (w.idf, "IDF", idf), (w.norm, "正規化", norm)]}
 
 
+def _pair_table(pairs: list[dict]) -> dict:
+    """The word pairs grouped by relation (near-synonym, opposite, ...), with each group's mean cosine per model."""
+    from ..news.words import RELATION_ORDER, RELATIONS
+    models = list(dict.fromkeys(row["model"] for row in pairs))
+    found = {}
+    for row in pairs:
+        if row.get("cosine"):
+            found.setdefault((row["left"], row["right"]), {})[row["model"]] = (float(row["cosine"]), float(row["z"]))
+    order = {relation: i for i, relation in enumerate(RELATION_ORDER)}
+    rows = [{"left": left, "right": right, "relation": RELATIONS.get((left, right), "—"),
+             "kind": order.get(RELATIONS.get((left, right)), len(order)), "values": values}
+            for (left, right), values in found.items()]
+    rows.sort(key=lambda r: r["kind"])                                   # stable: keeps the file's order within a group
+    groups = []
+    for relation in RELATION_ORDER:
+        members = [r for r in rows if r["relation"] == relation]
+        if len(members) > 1:
+            groups.append({"relation": relation, "kind": order[relation], "n": len(members),
+                           "means": {m: sum(r["values"][m][0] for r in members if m in r["values"])
+                                     / max(1, sum(m in r["values"] for r in members)) for m in models}})
+    return {"models": models, "rows": rows, "groups": groups}
+
+
 def _collection(articles, total: int) -> dict:
     """The ModApte split of the collection and, per split, how the stories' topics fall."""
     splits = {split: [a for a in articles if a.split == split] for split in ("train", "test")}
@@ -341,6 +364,7 @@ def _load_news(data: Path, results: Path):
             "zero": _read_csv(results / "zero_overlap.csv"), "pairs": _read_csv(results / "pairs.csv"),
             "neighbors": _read_csv(results / "neighbors.csv"), "coverage": _read_csv(results / "coverage.csv"),
             "results": results, "queries": [], "judgments": {}}
+    news["pair_table"] = _pair_table(news["pairs"]) if news["pairs"] else None
     queries_file = data.parent / "reuters_queries.json"
     if queries_file.exists():
         news["queries"] = load_queries(queries_file)

@@ -17,6 +17,19 @@ PAIRS = [("oil", "petroleum"), ("oil", "crude"), ("profit", "loss"), ("profit", 
          ("harvest", "crop"), ("tariff", "protectionism"), ("import", "export"), ("deficit", "surplus"),
          ("supply", "demand"), ("oil", "wheat")]
 
+# What each pair is, decided with the pairs (before training). Near-synonyms and opposites are the
+# contrast that matters: a cosine near 1 says "used in the same contexts", which opposites also are.
+RELATIONS = {
+    ("oil", "petroleum"): "近義", ("oil", "crude"): "近義", ("profit", "earnings"): "近義",
+    ("merger", "acquisition"): "近義", ("takeover", "buyout"): "近義",
+    ("profit", "loss"): "反義／相對", ("import", "export"): "反義／相對", ("deficit", "surplus"): "反義／相對",
+    ("supply", "demand"): "反義／相對",
+    ("wheat", "grain"): "上下位", ("wheat", "cereal"): "上下位",
+    ("harvest", "crop"): "相關", ("tariff", "protectionism"): "相關",
+    ("oil", "wheat"): "無關（對照）",
+}
+RELATION_ORDER = ["近義", "反義／相對", "上下位", "相關", "無關（對照）"]
+
 
 # Word groups for the PCA / t-SNE figure, one per topic studied.
 PROJECTION_GROUPS = {

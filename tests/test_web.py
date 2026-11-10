@@ -191,6 +191,8 @@ class NewsPageTest(unittest.TestCase):
                                 Path(folder, "no-mesh.jsonl")).test_client()
             page = client.get("/news?query=cereal+harvest&model=skipgram").get_data(as_text=True)
         self.assertIn("G3（改寫查詢）", page)
+        self.assertIn('<span class="relation relation-1">反義／相對</span>', page)   # word pairs carry their relation
+        self.assertIn("各關係的平均 cosine", page)
         self.assertIn('<details class="panel news-data" id="data">', page)      # collapsed once there is a query
         for number in ("21,578", "9,603", "3,299", "8,676", "1,828", "1,087"):   # split and topic counts
             self.assertIn(f">{number}<", page)

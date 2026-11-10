@@ -248,3 +248,13 @@ main.container.news, .news ~ footer.container { width: min(1240px, calc(100% - 4
 .data-table tr.muted td:first-child { color: var(--muted); }
 .data-table tr.group td { font-size: 12px; color: var(--muted); padding-top: 12px; border-bottom: 0; }
 .data-table tfoot td { font-weight: 700; border-top: 2px solid var(--border); border-bottom: 0; }
+/* Homework 4: word pairs labelled by relation */
+.pair-columns { margin-top: 4px; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); }
+@media (max-width: 760px) { .pair-columns { grid-template-columns: minmax(0, 1fr); } }
+.pair-columns h3 { font-size: 16px; margin-bottom: 8px; }
+.pair-table small { color: var(--muted); margin-left: 2px; }
+.pair-table tr.pair-group td { padding: 0; border-bottom: 2px solid var(--border); }
+.relation { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 12px; font-weight: 600; white-space: nowrap;
+  color: var(--muted); background: rgba(127, 127, 127, .12); }
+.relation-0 { color: var(--side-a); background: var(--side-a-bg); }
+.relation-1 { color: var(--side-b); background: var(--side-b-bg); }

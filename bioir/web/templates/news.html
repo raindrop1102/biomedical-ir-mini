@@ -173,11 +173,24 @@
 
 {% if news.pairs %}<section class="panel" id="words">
 <h2>詞層次分析</h2>
-<div class="table-wrap"><table><thead><tr><th>詞對</th>{% for m in news.pairs|map(attribute='model')|unique %}<th>{{ m }} cosine（z）</th>{% endfor %}</tr></thead><tbody>
-{% set models = news.pairs|map(attribute='model')|unique|list %}
-{% for row in news.pairs if row.model == models[0] %}<tr><td>{{ row.left }} / {{ row.right }}</td>{% for m in models %}{% set other = news.pairs|selectattr('model', 'equalto', m)|selectattr('left', 'equalto', row.left)|selectattr('right', 'equalto', row.right)|first %}<td>{% if other.cosine %}{{ '%.2f'|format(other.cosine|float) }}（{{ '%+.1f'|format(other.z|float) }}）{% else %}—{% endif %}</td>{% endfor %}</tr>{% endfor %}
+{% set pt = news.pair_table %}{% set models = pt.models %}
+<div class="model-columns pair-columns">
+<div>
+<h3>詞對</h3>
+<div class="table-wrap"><table class="data-table pair-table"><thead><tr><th>詞對</th><th>關係</th>{% for m in models %}<th class="num">{{ m }} cosine（z）</th>{% endfor %}</tr></thead><tbody>
+{% for row in pt.rows %}{% if loop.first or row.kind != loop.previtem.kind %}<tr class="pair-group"><td colspan="{{ 2 + models|length }}"></td></tr>{% endif %}
+<tr><td>{{ row.left }} / {{ row.right }}</td><td><span class="relation relation-{{ row.kind }}">{{ row.relation }}</span></td>{% for m in models %}{% set v = row["values"].get(m) %}<td class="num">{% if v %}{{ '%.2f'|format(v[0]) }}<small>（{{ '%+.1f'|format(v[1]) }}）</small>{% else %}—{% endif %}</td>{% endfor %}</tr>{% endfor %}
 </tbody></table></div>
-<p class="hint">z = 比隨機詞對平均高幾個標準差。向量相近代表上下文相似，不代表同義：profit / loss 幾乎和 deficit / surplus 一樣近。</p>
+</div>
+<div>
+<h3>各關係的平均 cosine</h3>
+<div class="table-wrap"><table class="data-table"><thead><tr><th>關係</th><th class="num">詞對數</th>{% for m in models %}<th class="num">{{ m }}</th>{% endfor %}</tr></thead><tbody>
+{% for g in pt.groups %}<tr><td><span class="relation relation-{{ g.kind }}">{{ g.relation }}</span></td><td class="num">{{ g.n }}</td>{% for m in models %}<td class="num">{{ '%.2f'|format(g.means[m]) }}</td>{% endfor %}</tr>{% endfor %}
+</tbody></table></div>
+<p class="hint">z = 比隨機詞對平均高幾個標準差。反義／相對的詞對平均起來和近義的一樣近（deficit / surplus 甚至比 oil / petroleum 更近）：它們出現在相同的上下文——新聞裡 trade deficit 和 trade surplus 後面都接 widened／narrowed——所以詞向量學到的是「用法相似」，不是「意思相同」。</p>
+<p class="hint">對檢索的影響：查 profit 時，方法 B 也會把 loss 拉近，詞向量分不出「賺」或「賠」。</p>
+</div>
+</div>
 <h3>Top-5 近鄰</h3>
 <div class="table-wrap"><table><thead><tr><th>詞</th>{% for m in models %}<th>{{ m }}</th>{% endfor %}</tr></thead><tbody>
 {% for word in news.neighbors|map(attribute='word')|unique %}<tr><td><b>{{ word }}</b></td>{% for m in models %}<td>{% for r in news.neighbors if r.model == m and r.word == word %}{{ r.neighbor or 'OOV' }}{% if r.neighbor %} {{ '%.2f'|format(r.cosine|float) }}{% endif %}{{ '、' if not loop.last }}{% endfor %}</td>{% endfor %}</tr>{% endfor %}
