@@ -332,6 +332,58 @@ def _pair_table(pairs: list[dict]) -> dict:
     return {"models": models, "rows": rows, "groups": groups}
 
 
+NEWS_METHODS = [("A", "A：TF-IDF", "a"), ("B-cbow", "B：CBOW", "b1"), ("B-skipgram", "B：Skip-gram", "b2")]
+NEWS_ABLATIONS = [("mean-cbow", "B-cbow", "CBOW 不加權平均"), ("mean-skipgram", "B-skipgram", "Skip-gram 不加權平均"),
+                  ("A+B-cbow", "B-cbow", "0.5 × A + 0.5 × CBOW"), ("A+B-skipgram", "B-skipgram", "0.5 × A + 0.5 × Skip-gram")]
+
+
+def _winners(scores: dict) -> list[str]:
+    """The methods with a query's best score — none when every method ties, which is no contrast to show."""
+    values = [v for v in scores.values() if v is not None]
+    top = max(values)
+    winners = [m for m, v in scores.items() if v is not None and v >= top - 0.005]
+    return [] if len(winners) == len(values) else winners
+
+
+def _experiment(results: Path) -> dict:
+    """Homework 4's results arranged to be presented: the headline nDCG@10 by query kind, every query
+    with how many of its relevant stories contain a query word, the paired tests and the ablations."""
+    summary = {(r["method"], r["queries"]): float(r["nDCG@10"]) for r in _read_csv(results / "summary.csv")}
+    per_query = {(r["method"], r["query"]): float(r["nDCG@10"]) for r in _read_csv(results / "per_query.csv")}
+    zero = {(r["method"], r["query"]): (int(r["top10_no_query_word"]), int(r["of_which_relevant"]))
+            for r in _read_csv(results / "zero_overlap.csv")}
+    methods = [(m, label, css) for m, label, css in NEWS_METHODS if (m, "all") in summary]
+    headline = [{"method": m, "label": label, "css": css,
+                 "values": {kind: summary.get((m, kind)) for kind in ("keyword", "paraphrase", "all")}}
+                for m, label, css in methods]
+    best = {kind: max(row["values"][kind] for row in headline) for kind in ("keyword", "paraphrase", "all")}
+    queries = []
+    for row in _read_csv(results / "coverage.csv"):
+        relevant, any_term = int(row["relevant"]), int(row["any_term"])
+        scores = {m: per_query.get((m, row["query"])) for m, _, _ in methods}
+        queries.append({"id": row["query"], "text": row["text"], "topic": row["topic"], "kind": row["kind"],
+                        "relevant": relevant, "any_term": any_term, "coverage": any_term / relevant if relevant else 0,
+                        "scores": scores, "winners": _winners(scores),
+                        "zero": zero.get(("B-skipgram", row["query"]))})
+    queries.sort(key=lambda q: q["kind"] != "keyword")                   # keyword queries first, file order inside
+    tests = []
+    for row in _read_csv(results / "comparisons.csv"):
+        if row["metric"] == "nDCG@10" and row["method"] in dict((m, 1) for m, _, _ in methods):
+            better, worse = int(row["better"]), int(row["worse"])
+            tests.append({"label": dict((m, label) for m, label, _ in methods)[row["method"]], "better": better,
+                          "worse": worse, "ties": len(queries) - better - worse, "p": float(row["p_value"])})
+    ablations = [{"method": m, "description": text, "base": base,
+                  "values": {kind: summary.get((m, kind)) for kind in ("keyword", "paraphrase", "all")},
+                  "base_values": {kind: summary.get((base, kind)) for kind in ("keyword", "paraphrase", "all")}}
+                 for m, base, text in NEWS_ABLATIONS if (m, "all") in summary]
+    kinds = {kind: [q for q in queries if q["kind"] == kind] for kind in ("keyword", "paraphrase")}
+    return {"methods": methods, "headline": headline, "best": best, "queries": queries, "tests": tests,
+            "ablations": ablations, "counts": {k: len(v) for k, v in kinds.items()},
+            "coverage": {k: sum(q["any_term"] for q in v) / max(1, sum(q["relevant"] for q in v)) for k, v in kinds.items()},
+            "zero": {m: tuple(sum(z[i] for (method, _), z in zero.items() if method == m) for i in (0, 1))
+                     for m, _, _ in methods if m != "A"}}
+
+
 def _collection(articles, total: int) -> dict:
     """The ModApte split of the collection and, per split, how the stories' topics fall."""
     splits = {split: [a for a in articles if a.split == split] for split in ("train", "test")}
@@ -365,6 +417,7 @@ def _load_news(data: Path, results: Path):
             "neighbors": _read_csv(results / "neighbors.csv"), "coverage": _read_csv(results / "coverage.csv"),
             "results": results, "queries": [], "judgments": {}}
     news["pair_table"] = _pair_table(news["pairs"]) if news["pairs"] else None
+    news["experiment"] = _experiment(results) if news["summary"] else None
     queries_file = data.parent / "reuters_queries.json"
     if queries_file.exists():
         news["queries"] = load_queries(queries_file)

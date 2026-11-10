@@ -151,24 +151,68 @@
 </div>
 {% endif %}
 
-{% if news.summary %}<section class="panel" id="experiment">
-<h2>實驗結果（{{ news.queries|length }} 個查詢）</h2>
+{% if news.experiment %}{% set e = news.experiment %}{% set A = e.headline[0] %}{% set bs = e.headline[1:] %}
+<section class="panel exp" id="experiment">
+<h2>實驗結果（{{ e.queries|length }} 個查詢）</h2>
+<p class="exp-lead">一句話：<strong>查詢用的詞和新聞一樣時，TF-IDF 就夠好；換成新聞少用的說法，詞向量明顯較好。</strong>指標以 nDCG@10 為主（前 10 名的排序品質，1 代表相關文章全排在最前面）。</p>
+
+{% set bk = bs|map(attribute='values')|map(attribute='keyword')|max %}{% set bp = bs|map(attribute='values')|map(attribute='paraphrase')|max %}{% set t = e.tests|sort(attribute='p')|first %}
+<div class="exp-cards">
+<div class="exp-card"><small>① 關鍵字查詢（{{ e.counts.keyword }} 題）</small><div class="exp-big"><span class="side-a">{{ '%.2f'|format(A['values'].keyword) }}</span> <span class="sep">對</span> <span class="side-b">{{ '%.2f'|format(bk) }}</span></div><p>{{ 'TF-IDF 最好，詞向量略輸' if A['values'].keyword > bk else '詞向量追平或勝過 TF-IDF' }}</p></div>
+<div class="exp-card"><small>② 改寫查詢（{{ e.counts.paraphrase }} 題）</small><div class="exp-big"><span class="side-a">{{ '%.2f'|format(A['values'].paraphrase) }}</span> <span class="sep">對</span> <span class="side-b">{{ '%.2f'|format(bp) }}</span></div><p>TF-IDF 大幅下滑，詞向量幾乎不受影響</p></div>
+<div class="exp-card"><small>③ 統計檢定（{{ t.label }} 對 A）</small><div class="exp-big">p = {{ '%.2f'|format(t.p) }}</div><p>{{ t.better }} 勝 {{ t.worse }} 負 {{ t.ties }} 平：趨勢一致，但 {{ e.queries|length }} 題不足以顯著</p></div>
+</div>
+<p class="exp-legend"><span class="key a"></span>A：TF-IDF <span class="key b1"></span>B：CBOW 詞向量 <span class="key b2"></span>B：Skip-gram 詞向量 <span class="muted">· 卡片中 <span class="side-a">藍</span> 為 A、<span class="side-b">橘</span> 為最好的 B</span></p>
+
+<h3><span class="exp-step">1</span>主要結果：nDCG@10，依查詢類型分開看</h3>
+<div class="exp-bars">
+{% for kind, label in [('keyword', '關鍵字查詢'), ('paraphrase', '改寫查詢'), ('all', '全部')] %}
+<div class="exp-group"><h4>{{ label }}{% if kind != 'all' %} <small>{{ e.counts[kind] }} 題</small>{% endif %}</h4>
+{% for row in e.headline %}{% set v = row['values'][kind] %}
+<div class="exp-bar-row"><span class="exp-bar-label">{{ row.label }}</span><span class="exp-track"><span class="exp-bar {{ row.css }}" style="width: {{ '%.1f'|format(100 * v) }}%"></span></span><span class="exp-num{% if v >= e.best[kind] - 0.0005 %} best{% endif %}">{{ '%.3f'|format(v) }}</span></div>{% endfor %}
+</div>{% endfor %}
+</div>
+<p class="hint">只看「全部」會以為詞向量全面勝出；分開看才知道差距幾乎都來自改寫查詢。</p>
+
+<h3><span class="exp-step">2</span>為什麼：相關文章有多少含查詢詞</h3>
+<p class="exp-text">TF-IDF 只能找到<strong>含查詢詞</strong>的文章。關鍵字查詢的相關文章有 <strong>{{ '%.0f'|format(100 * e.coverage.keyword) }}%</strong> 含任一查詢詞，改寫查詢只有 <strong>{{ '%.0f'|format(100 * e.coverage.paraphrase) }}%</strong>；其餘的 TF-IDF 給 0 分，永遠排不上來。</p>
+<div class="table-wrap"><table class="data-table exp-queries">
+<thead><tr><th>查詢</th><th class="num">相關篇數</th><th>含查詢詞的比例</th>{% for m, label, css in e.methods %}<th class="num"><span class="key {{ css }}"></span>{{ label }}</th>{% endfor %}<th class="num" title="Skip-gram 前 10 名中和查詢沒有共同詞、但相關的文章">無共同詞而相關</th></tr></thead>
+<tbody>
+{% for q in e.queries %}{% if loop.first or q.kind != loop.previtem.kind %}<tr class="exp-kind"><td colspan="{{ 4 + e.methods|length }}">{{ '關鍵字查詢' if q.kind == 'keyword' else '改寫查詢（刻意用新聞少用的詞）' }}</td></tr>{% endif %}
+<tr><td><a href="{{ url_for('news_page', query=q.text, model='skipgram') }}#results"><b>{{ q.id }}</b> {{ q.text }}</a><small class="exp-topic">{{ q.topic }}</small></td>
+<td class="num">{{ '{:,}'.format(q.relevant) }}</td>
+<td><span class="exp-cover"><span class="exp-track small"><span class="exp-bar cover{% if q.coverage < 0.5 %} low{% endif %}" style="width: {{ '%.1f'|format(100 * q.coverage) }}%"></span></span>{{ '%.0f'|format(100 * q.coverage) }}%</span></td>
+{% for m, label, css in e.methods %}{% set v = q.scores[m] %}<td class="num{% if m in q.winners %} win {{ css }}{% endif %}">{{ '%.2f'|format(v) if v is not none else '—' }}</td>{% endfor %}
+<td class="num">{% if q.zero and q.zero[1] %}{{ q.zero[1] }}{% else %}<span class="muted">0</span>{% endif %}</td></tr>{% endfor %}
+</tbody></table></div>
+<p class="hint">每列最高的 nDCG@10 加粗上色（三者打平則不標）；點查詢可看兩邊的前 10 名。比例低不一定讓 TF-IDF 失敗：E2 只有 32%，但 earn 有 1,087 篇相關，含查詢詞的仍遠多於 10 篇。真正拉開差距的是比例低、相關文章又少的改寫查詢（C3、G3、T3）。</p>
+
+<h3><span class="exp-step">3</span>詞向量找到 TF-IDF 找不到的文章</h3>
+<div class="exp-cards two">{% for m, label, css in e.methods if m in e.zero %}{% set z = e.zero[m] %}
+<div class="exp-card"><small>{{ label }}：{{ e.queries|length }} 題的前 10 名中，和查詢沒有共同詞的文章</small><div class="exp-big"><span class="side-b">{{ z[0] }}</span> 篇，其中 <span class="side-b">{{ z[1] }}</span> 篇相關</div><p>這些文章在 TF-IDF 一定是 0 分</p></div>{% endfor %}
+</div>
+<p class="hint">代價是語意漂移：T2 tariffs on imports，CBOW 把黃豆、玉米的供需報表（主題 oilseed、grain）排進前 10 名：表格裡大量出現 imports，詞向量覺得很像，但主題不是 trade。</p>
+
+<h3><span class="exp-step">4</span>差異顯著嗎：逐題配對檢定</h3>
+<div class="table-wrap"><table class="data-table exp-tests"><thead><tr><th>和 A 比</th><th class="num">勝</th><th class="num">負</th><th class="num">平</th><th class="num">p 值</th><th>解讀</th></tr></thead><tbody>
+{% for row in e.tests %}<tr><td>{{ row.label }}</td><td class="num">{{ row.better }}</td><td class="num">{{ row.worse }}</td><td class="num">{{ row.ties }}</td><td class="num">{{ '%.2f'|format(row.p) }}</td><td>{{ '顯著（p < 0.05）' if row.p < 0.05 else '不顯著：勝負接近，打平的題又多' }}</td></tr>{% endfor %}
+</tbody></table></div>
+<p class="hint">精確配對置換檢定：把每一題 A、B 的分數隨機對調，看平均差距有多常和實際一樣大或更大。只有 {{ e.queries|length }} 題、很多題雙方都是 1.00，只能說「趨勢」，不能說「顯著較好」。</p>
+
+{% if e.ablations %}<h3><span class="exp-step">5</span>對照實驗：加權和混合有沒有幫助</h3>
+<div class="table-wrap"><table class="data-table"><thead><tr><th>變化</th><th class="num">關鍵字</th><th class="num">改寫</th><th class="num">全部</th><th class="num">和原本的 B 比（全部）</th></tr></thead><tbody>
+{% for row in e.ablations %}{% set d = row['values'].all - row.base_values.all %}<tr><td>{{ row.description }}</td>{% for kind in ['keyword', 'paraphrase', 'all'] %}<td class="num">{{ '%.3f'|format(row['values'][kind]) }}</td>{% endfor %}<td class="num {{ 'up' if d > 0 else 'down' }}">{{ '%+.3f'|format(d) }}</td></tr>{% endfor %}
+</tbody></table></div>
+<p class="hint">不加權平均：CBOW 反而變好、Skip-gram 變差，TF-IDF 加權沒有穩定的好處。混合 A + B（α 固定 0.5）：關鍵字追平 A，但改寫查詢被 A 的 0 分拖累，沒有拿到兩邊的優點。</p>{% endif %}
+
+<details class="exp-details"><summary>完整數字（P@10、MRR、MAP、所有方法）</summary>
 <figure class="projection"><img src="{{ url_for('news_image', name='metrics') }}" alt="各方法在關鍵字與改寫查詢上的 nDCG@10" loading="lazy" onerror="this.parentElement.hidden=true"></figure>
-<div class="table-wrap"><table><thead><tr><th>方法</th><th>查詢</th><th>P@10</th><th>MRR</th><th>MAP</th><th>nDCG@10</th></tr></thead><tbody>
-{% for row in news.summary %}<tr><td>{{ row.method }}</td><td>{{ {'all': '全部', 'keyword': '關鍵字', 'paraphrase': '改寫'}[row.queries] }}</td>{% for m in ['P@10', 'MRR', 'MAP', 'nDCG@10'] %}<td>{{ '%.3f'|format(row[m]|float) }}</td>{% endfor %}</tr>{% endfor %}
+<div class="table-wrap"><table class="data-table"><thead><tr><th>方法</th><th>查詢</th><th class="num">P@10</th><th class="num">MRR</th><th class="num">MAP</th><th class="num">nDCG@10</th></tr></thead><tbody>
+{% for row in news.summary %}<tr><td>{{ row.method }}</td><td>{{ {'all': '全部', 'keyword': '關鍵字', 'paraphrase': '改寫'}[row.queries] }}</td>{% for m in ['P@10', 'MRR', 'MAP', 'nDCG@10'] %}<td class="num">{{ '%.3f'|format(row[m]|float) }}</td>{% endfor %}</tr>{% endfor %}
 </tbody></table></div>
-<p class="hint">B = TF-IDF 加權平均詞向量；mean = 不加權平均（對照組）；A+B = 0.5 × A + 0.5 × B（α 事先固定）。</p>
-{% if news.comparisons %}<h3>與方法 A 逐題比較（nDCG@10）</h3>
-<div class="table-wrap"><table><thead><tr><th>方法</th><th>A → 方法</th><th>變好／變差</th><th>p 值</th></tr></thead><tbody>
-{% for row in news.comparisons if row.metric == 'nDCG@10' %}<tr><td>{{ row.method }}</td><td>{{ '%.3f'|format(row.baseline_mean|float) }} → {{ '%.3f'|format(row.method_mean|float) }}</td><td>{{ row.better }}／{{ row.worse }}</td><td>{{ '%.3f'|format(row.p_value|float) }}</td></tr>{% endfor %}
-</tbody></table></div>
-<p class="hint">p 值為精確配對置換檢定；只有 {{ news.queries|length }} 個查詢，作為參考，不宣稱顯著。</p>{% endif %}
-{% if news.zero %}<h3>方法 B 前 10 名中「和查詢沒有共同詞」的文章</h3>
-<div class="table-wrap"><table><thead><tr><th>方法</th><th>無共同詞的文章</th><th>其中相關</th></tr></thead><tbody>
-{% for method in news.zero|map(attribute='method')|unique %}{% set rows = news.zero|selectattr('method', 'equalto', method)|list %}
-<tr><td>{{ method }}</td><td>{{ rows|map(attribute='top10_no_query_word')|map('int')|sum }}</td><td>{{ rows|map(attribute='of_which_relevant')|map('int')|sum }}</td></tr>{% endfor %}
-</tbody></table></div>
-<p class="hint">這些文章在方法 A 的分數一定是 0：方法 B 靠詞向量才找到它們。</p>{% endif %}
+<p class="hint">MAP 看整份排名，TF-IDF 排不到不含查詢詞的文章，所以差距（約 0.37 對 0.65）比前 10 名大，主要反映「找不到」而不是「排得差」。</p>
+</details>
 </section>{% endif %}
 
 {% if news.pairs %}<section class="panel" id="words">
