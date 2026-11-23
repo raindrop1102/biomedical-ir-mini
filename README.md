@@ -2,7 +2,8 @@
 
 PubMed 摘要搜尋引擎的最小可執行版本：位置倒排索引、布林查詢（AND / OR / NOT / 括號 / 片語）、BM25 排序、拼字建議，
 A–D 四種前處理條件的 Zipf 分析、從零訓練的 CBOW / Skip-gram 詞向量，以及 SMART 詞項加權的
-向量空間模型與 MeSH 相關性評估（作業 3），以及 Reuters-21578 上 TF-IDF 與詞向量檢索的比較（作業 4）。
+向量空間模型與 MeSH 相關性評估（作業 3）、Reuters-21578 上 TF-IDF 與詞向量檢索的比較（作業 4），
+以及 BSBI 與 SPIMI 兩種倒排索引建構法的實作與比較（作業 5）。
 檢索與 Zipf 統計只用 Python 3.10+ 標準函式庫；Zipf 畫圖（`--plot`）需要 matplotlib，詞向量（`embed`）需要 numpy，
 網頁介面（`serve`）需要 flask。
 
@@ -28,6 +29,9 @@ python -m bioir embed project cbow.npz sg.npz --out proj --plot   # PCA / t-SNE 
 python -m bioir vsm search pancreatic cancer risk --scheme lnc.ltc --explain   # 向量空間前 10 名＋各詞貢獻
 python -m bioir vsm evaluate --out results/vsm_glp1 --plot   # 14 種加權 × 15 個查詢的對照實驗（約 10 秒）
 python -m bioir news evaluate --plot                     # 作業 4：Reuters-21578 上 TF-IDF 對詞向量
+python -m bioir index build SPIMI --out my_index          # 作業 5：建一個最終索引並列出每個 block
+python -m bioir index query crude oil prices              # 單一詞、AND、OR（預設讀已收錄的 SPIMI 索引）
+python -m bioir index evaluate                           # BSBI 對 SPIMI 完整實驗，約 35 分鐘
 python -m bioir serve                                    # 網頁介面 http://127.0.0.1:5000（搜尋、Zipf、詞向量、向量空間、新聞檢索）
 python -m bioir fetch pmids.txt --email you@example.com -o abstracts.jsonl
 python -m bioir fetch --query '"GLP-1"[tiab] AND hasabstract' -n 1000 --email you@example.com
@@ -91,8 +95,9 @@ bioir/
   embed/   train.py  model.py  evaluate.py     詞向量（需要 numpy）
   vsm/     weighting.py  engine.py  evaluate.py  experiment.py  plot.py   向量空間模型（只用標準函式庫）
   news/    reuters.py  queries.py  retrieval.py  semantic.py  words.py  experiment.py  plot.py   Reuters 新聞檢索（作業 4）
+  indexing/  collection.py  basic.py  bsbi.py  spimi.py  storage.py  experiment.py  plot.py   BSBI 與 SPIMI（作業 5）
   web/     app.py  templates/  static/         網頁介面（需要 flask）
-  __main__.py                                  命令列：search / zipf / embed / vsm / news / serve / fetch
+  __main__.py                                  命令列：search / zipf / embed / vsm / news / index / serve / fetch
 ```
 
 依賴只能單向：`search`、`zipf`、`embed` 都只 import 共用基礎，彼此不互相 import；`web` 是唯一同時使用三者的
@@ -125,6 +130,12 @@ bioir/
 | `bioir/news/semantic.py` | 方法 B：TF-IDF 加權（或不加權）平均詞向量、cosine 排名；A+B 混合 |
 | `bioir/news/words.py` | 詞層次分析的詞、詞對與投影詞組 |
 | `bioir/news/experiment.py` | 作業 4 的完整實驗與所有輸出檔 |
+| `bioir/indexing/collection.py` | 讀入全部 21,578 篇、共用前處理、放大規模用的複製文件 |
+| `bioir/indexing/basic.py` | 基本倒排索引（比對標準）、postings 交集／聯集、AND／OR 查詢 |
+| `bioir/indexing/bsbi.py` | BSBI：分 block、(termID, docID) pairs、排序、局部索引、k-way 合併 |
+| `bioir/indexing/spimi.py` | SPIMI：直接建 dictionary 與 postings、記憶體容量、寫出、k-way 合併 |
+| `bioir/indexing/storage.py` | 局部索引與最終索引的檔案格式、只把 dictionary 載入記憶體的 `IndexReader` |
+| `bioir/indexing/experiment.py` | 作業 5 的計時、tracemalloc 記憶體、block 大小與規模實驗、查詢比對 |
 | `bioir/__main__.py` | 命令列介面 |
 
 ## Zipf 分析
@@ -420,6 +431,79 @@ python -m bioir news evaluate --plot                         # 全部方法 × 1
 - 加權平均會丟失詞序與否定，`not profitable` 與 `profitable` 幾乎是同一個向量。
 - Reuters-21578 是 1987 年的新聞、約 130 萬詞，詞向量品質遠不及在大型語料預訓練的模型；本作業比較的是方法，不是追求最佳數字。
 
+## 作業 5：倒排索引的建構，BSBI 對 SPIMI（indexing）
+
+**資料與前處理**：Reuters-21578 全部 21,578 篇（不分 ModApte，建索引不需要 topics），docID = NEWID。
+前處理沿用搜尋引擎的 `bioir.text.analyze`：斷詞、小寫、去 41 個停用詞、Porter stemming，得到 2,087,629 個
+term 出現、35,924 個不重複 term、1,338,302 筆 postings。前處理只做一次（約 7 秒），兩種方法讀同一份 term 序列，
+所以計時只算建索引本身。
+
+**三種索引**（`bioir/indexing/`）：
+
+| | 做法 | 記憶體限制 |
+|---|---|---|
+| 基本索引 | 在記憶體中一篇一篇建：term → 遞增 docID，同篇不重複；當作比對的標準答案 | 無 |
+| BSBI | 每 block 2,000 篇 → 每次出現一個 `(termID, docID)` → 排序 → 合成局部索引寫入磁碟；termID 表全程共用；最後 heap k-way merge | 每 block 文件數 |
+| SPIMI | 一篇一篇讀，term 直接加到 dictionary 的 postings（同篇只記一次）；達 200,000 筆 postings 就排序 term、寫入磁碟、清空；最後 k-way merge | 每 block postings 筆數 |
+
+兩者的最終索引格式相同：`dictionary.tsv`（term、df、postings 的 byte offset，依 term 排序，查詢時載入記憶體）與
+`postings.bin`（uint32 docID，查詢時才讀需要的 term）。`results/indexing_reuters/index/` 收錄兩者的最終索引。
+BSBI 和 SPIMI 建出的 35,924 個 postings list 與基本索引**逐筆完全相同**，任何 block 大小都一樣（`tests/test_indexing.py`）。
+
+```bash
+python -m bioir index build BSBI --block 2000 --out bsbi_index     # 列出各階段時間與每個 block
+python -m bioir index query "information retrieval" --index bsbi_index
+python -m bioir index evaluate                                     # 寫出 results/indexing_reuters/
+```
+
+**效能比較**（`results/indexing_reuters/main.csv`；時間為 3 次中位數，記憶體為另一次在 tracemalloc 下的 Python 配置峰值）：
+
+| 比較項目 | BSBI | SPIMI |
+|---|---|---|
+| Index construction time | 4.59 s | **1.74 s** |
+| Memory usage：建 block 階段 | 18.4 MB | **3.3 MB** |
+| Memory usage：合併階段 | 5.8 MB | 5.5 MB |
+| Number of blocks | 11 | 7 |
+| 產生的 (termID, docID) pairs | 2,087,629 | 0 |
+| Intermediate files | 12 個（含 terms.tsv）· 6.3 MB | 7 個 · 6.2 MB |
+| Final index size | 5.7 MB | 5.7 MB（postings.bin 位元組數相同） |
+| Implementation complexity | 94 行；termID 表、pairs 產生與排序、對照檔 | 77 行；dictionary 直接長 postings |
+
+BSBI 的時間：產生 pairs 0.72 s、排序 1.39 s、建局部索引 1.02 s、寫入 0.30 s、合併 0.55 s；SPIMI：建 dictionary 0.79 s、
+排序 terms 0.04 s、寫入 0.23 s、合併 0.66 s。
+
+**block 大小**（`blocks.csv`）：BSBI 一個 block 裝全部文件要 145.8 MB，每 block 500 篇（44 個 block）只要 7.7 MB；
+SPIMI 一個 block 裝全部也只要 14.7 MB。block 越小，中間檔與合併的檔案越多，時間略增。
+
+**文件數增加**（`scaling.csv`，把 collection 重複、重新編號；vocabulary 不會增加，所以 dictionary 相關成本被低估）：
+
+| 文件數 | BSBI | SPIMI | blocks | 建 block 記憶體 | 合併記憶體 | 中間檔＋最終索引 |
+|---|---|---|---|---|---|---|
+| 10,000 | 1.7 s | 0.5 s | 5／4 | 17.5／3.2 MB | 4.0／3.5 MB | 6／6 MB |
+| 100,000 | 18.6 s | 6.6 s | 50／32 | 18.5／3.4 MB | 6.1／7.6 MB | 53／53 MB |
+| 1,000,000 | 211.6 s | 67.6 s | 500／311 | 19.1／3.7 MB | 37.7／37.7 MB | 516／522 MB |
+
+**檢索測試**：information retrieval、artificial intelligence、financial market、medical research、computer science，
+另加 crude oil prices、interest rates、trade deficit；各做單一詞、AND、OR，在基本、BSBI、SPIMI 三個索引上結果逐筆相同
+（例如 crude oil prices：AND 233 篇、OR 4,390 篇）。
+
+**問題與分析**（網頁 `/indexing` 有完整版，數字直接取自實驗結果）：
+
+1. **最大差異**：BSBI 把每次出現變成 (termID, docID) pair，再靠排序把同一個 term 聚在一起（需要全域 termID 表）；
+   SPIMI 不產生 pair，直接把 docID 加進 term 的 postings。實驗中 2,087,629 個 pairs 只對應 1,338,302 筆 postings。
+2. **BSBI 為什麼要排序**：pairs 依文件順序產生，索引卻要依 term 分組；排序一次讓同一 term 相鄰、docID 遞增、
+   同篇重複也相鄰。排序是 BSBI 最耗時的一步（1.39 s，約 35%）。
+3. **SPIMI 怎麼避開排序**：dictionary 是 hash table；文件依 docID 遞增讀入，postings 天生有序；看最後一個 docID 即可去重。
+   每個 block 只排序不重複的 term（13,676 個，0.04 s）。
+4. **記憶體有限時**：兩者都分 block 建、寫到磁碟、最後串流 k-way merge。BSBI 依文件數切，記憶體隨文件長度變動，
+   termID 表全程常駐；SPIMI 直接以 postings 筆數當容量，記憶體幾乎固定。
+5. **誰比較快**：SPIMI，快 2.6 倍（規模實驗中 2.8–3.8 倍），建 block 記憶體約 18%。原因是 BSBI 多產生並排序一份含重複的
+   pairs，而且在 Python 中每個 pair 都是一個物件；合併階段兩者相近。
+6. **擴大到 10 萬、100 萬篇**：時間大致線性但略超過（×100 文件：BSBI ×122、SPIMI ×147，排序 O(p log p)、合併 O(log k)）；
+   建 block 記憶體固定，但**合併變成記憶體瓶頸**（100 萬篇時 37.7 MB，最長的 postings list——`said` 約 72 萬筆——要在記憶體裡組起來）；
+   中間檔約等於最終索引，磁碟 I/O 加倍；k-way merge 要同時開 500 個檔，接近作業系統的開檔上限，需要更大的 block 或多輪合併；
+   BSBI 的 termID 表會隨真實 vocabulary 成長。
+
 ## 網頁介面（web）
 
 `python -m bioir serve`（`--corpus`、`--results`、`--host`、`--port`）啟動 Flask 開發伺服器，各頁面：
@@ -429,6 +513,7 @@ python -m bioir news evaluate --plot                         # 全部方法 × 1
 | 文獻搜尋 `/` | 單一查詢框（AND / OR / NOT / 括號 / 片語）、BM25 排名、命中片語高亮（摘錄＋完整摘要）、拼字建議、分頁、跳至文章側欄 |
 | Zipf 分析 `/zipf` | 基準條件、`--no-numbers`、`--compound` 與加入詞的表單；A–D 總表、10/80/10 分區、前 50 名、CF/DF/IDF 對照、三格圖；CSV 下載 |
 | 向量空間 `/vsm` | 自由文字查詢，兩種 SMART 加權並排的前 10 名、查詢向量、各詞貢獻；評估查詢會標出 MeSH 相關文件並即時計算指標；對照實驗結果表、控制變因比較與圖 |
+| 作業 5 `/indexing` | 在 BSBI 與 SPIMI 的最終索引上做單一詞／AND／OR 查詢並比對結果；dictionary 與 postings 的說明、BSBI 與 SPIMI 每一步的中間結果、效能比較表與圖、block 大小與規模實驗、檢索測試、六個問題的分析 |
 | 新聞檢索 `/news` | 方法 A 與方法 B 的前 10 名並排，標出相關文章與「無共同詞」的文章；實驗結果圖表、詞對與 Top-5 近鄰、投影圖。需要 `data/reuters21578/` 與 `results/news_reuters/models/`（都已收錄），缺少時頁面會說明要執行的指令 |
 | 詞向量 `/embedding` | 模型健全性、CBOW 與 Skip-gram 近鄰並排（可調近鄰最少出現次數）、兩詞相似度與 z 值、投影圖與 trustworthiness、比較實驗摘要 |
 

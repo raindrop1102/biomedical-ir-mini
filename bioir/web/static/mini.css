@@ -307,3 +307,30 @@ html[data-theme="dark"] .exp td.up { color: #7fd29a; }
 html[data-theme="dark"] .exp td.down { color: #f08f8f; }
 .exp-details { margin-top: 24px; }
 .exp-details summary { cursor: pointer; font-weight: 600; color: var(--navy); }
+
+/* Homework 5: BSBI and SPIMI */
+.ix-cards { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 760px) { .ix-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.ix-ids { font-size: 12px; white-space: normal; word-break: break-word; }
+.ix-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.ix-steps.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 900px) { .ix-steps, .ix-steps.two { grid-template-columns: minmax(0, 1fr); } }
+.ix h3 { display: flex; align-items: center; gap: 8px; }
+.ix-steps h3 { font-size: 14px; }
+.ix-mini { font-size: 13px; width: 100%; }
+.ix-mini td, .ix-mini th { padding: 3px 8px; }
+.ix-blocks { margin-top: 14px; }
+.ix-blocks summary { cursor: pointer; font-weight: 600; color: var(--navy); }
+.ix-verdict.ok { color: #2f7d4a; font-weight: 600; }
+.ix-verdict.bad { color: #b23b3b; font-weight: 700; }
+html[data-theme="dark"] .ix-verdict.ok { color: #7fd29a; }
+html[data-theme="dark"] .ix-verdict.bad { color: #f08f8f; }
+.ix-docs { columns: 2; column-gap: 28px; font-size: 13px; padding-left: 0; list-style: none; }
+@media (max-width: 760px) { .ix-docs { columns: 1; } }
+.ix-docs li { break-inside: avoid; margin: 3px 0; display: flex; }
+.ix-doc { flex: none; min-width: 52px; margin-right: 6px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.ix-compare td:first-child { font-weight: 600; white-space: nowrap; }
+.ix .muted { color: var(--muted); }
+.ix tr.ix-first td { border-top: 2px solid var(--border); }
+.ix-answers h3 { margin-top: 22px; }
+.ix-answers p, .ix-answers li { line-height: 1.75; }

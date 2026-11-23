@@ -1,0 +1,3 @@
+﻿method,setting,documents,seconds,peak_mb,build_peak_mb,merge_peak_mb,blocks,intermediate_files,intermediate_mb,final_mb,pairs,postings,terms,peak_items
+BSBI,"2,000 篇／block",21578,4.586,18.38,18.38,5.79,11,12,6.28,5.69,2087629,1338302,35924,222233
+SPIMI,"200,000 postings／block",21578,1.739,5.45,3.26,5.45,7,7,6.15,5.69,0,1338302,35924,200169

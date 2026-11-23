@@ -1,0 +1,54 @@
+{% set s = indexing.summary %}{% set A = s.main.BSBI %}{% set B = s.main.SPIMI %}
+{% set k10a, k10b = indexing.scale[(10000, 'BSBI')], indexing.scale[(10000, 'SPIMI')] %}
+{% set k100a, k100b = indexing.scale[(100000, 'BSBI')], indexing.scale[(100000, 'SPIMI')] %}
+{% set m1a, m1b = indexing.scale[(1000000, 'BSBI')], indexing.scale[(1000000, 'SPIMI')] %}
+{% set oneA, oneB = indexing.sweep_one.BSBI, indexing.sweep_one.SPIMI %}
+{% set smallA = indexing.sweep.BSBI %}
+{% macro f(x, d=1) %}{{ ('%.' ~ d ~ 'f')|format(x|float) }}{% endmacro %}
+{% macro n(x) %}{{ '{:,}'.format(x|int) }}{% endmacro %}
+<section class="panel ix-answers" id="answers">
+<h2>問題與分析（依實驗數據）</h2>
+
+<h3>1. BSBI 與 SPIMI 建立 Inverted Index 時，最大的差異是什麼？</h3>
+<p>差在<strong>中間表示</strong>：BSBI 先把每個 term 的每次出現都變成 <code>(termID, docID)</code> pair，靠排序把同一個 term 聚在一起；SPIMI 不產生 pair，讀到 term 就直接把 docID 加到它的 postings list。實驗中 BSBI 產生 {{ n(A.row.pairs) }} 個 pairs，再收斂成 {{ n(A.row.postings) }} 筆 postings；SPIMI 從頭到尾只有那 {{ n(B.row.postings) }} 筆。另一個差別是 BSBI 需要一張全程放在記憶體、所有 block 共用的 term → termID 表（{{ n(s.vocabulary) }} 個 term），SPIMI 每個 block 用自己的 dictionary，以 term 字串本身合併，不需要 termID。</p>
+
+<h3>2. 為什麼 BSBI 需要先產生並排序 term-document pairs？</h3>
+<p>文件是一篇一篇讀的，pairs 產生時是<strong>依文件</strong>的順序（上方 Part 2 的第一張表：<code>bahia, cocoa, review …</code>），倒排索引卻要<strong>依 term</strong>分組。依 (termID, docID) 排序一次就同時做到兩件事：同一個 term 的 pairs 變成相鄰（才能合成 postings list），而且 docID 已經遞增（postings 必須有序才能做 AND／OR 的合併）。同一篇的重複出現也變成相鄰，掃一次就能去掉。排序本身是 BSBI 最花時間的一步：{{ f(A.phases['排序 pairs'], 2) }} 秒，佔 BSBI 該次執行的 {{ f(100 * A.phases['排序 pairs'] / A.phases.values()|sum, 0) }}%。用 termID（整數）而不是字串排序，比較比較便宜，這也是 BSBI 要先建 termID 表的原因。</p>
+
+<h3>3. SPIMI 如何避免大量 term-document pairs 的排序？</h3>
+<p>SPIMI 讓 postings 直接長在 term 底下：dictionary 是 hash table（Python <code>dict</code>），查 term 是 O(1)；文件依 docID 遞增讀入，所以 append 進去的 docID <strong>天生有序</strong>；只要看 postings 最後一個是不是目前這篇，就能避免重複。寫出 block 前唯一要排的是這個 block 的<strong>不重複 term</strong>（block 1 是 {{ n(B.blocks[0].terms) }} 個），而不是 BSBI 一個 block 的 {{ n(A.blocks[0].pairs) }} 個 pairs。實測 SPIMI 的「排序 terms」只花 {{ f(B.phases['排序 terms'], 2) }} 秒，BSBI 的「排序 pairs」是 {{ f(A.phases['排序 pairs'], 2) }} 秒。</p>
+
+<h3>4. 在記憶體有限的情況下，兩種方法如何處理大型文件集合？</h3>
+<p>兩者都是<strong>分段建、寫到磁碟、最後合併</strong>：記憶體裡永遠只有一個 block，寫出局部索引後就清空；合併時同時打開所有局部索引，依序串流讀取，用 heap 做 k-way merge，所以合併也不必把整個索引讀進記憶體。差別在怎麼限制一個 block：</p>
+<ul>
+<li><strong>BSBI</strong> 依文件數切 block，記憶體取決於這些文件有多少 pairs（長文件多的 block 就比較大）。block 越大越吃記憶體：全部放一個 block 要 {{ f(oneA.build_peak_mb) }} MB，切成 {{ smallA.blocks }} 個 block（每 block 500 篇）只要 {{ f(smallA.build_peak_mb) }} MB。另外 termID 表要從頭到尾留在記憶體，vocabulary 越大越吃緊。</li>
+<li><strong>SPIMI</strong> 直接以「記憶體中的 postings 筆數」當容量，滿了就寫出，所以每個 block 的記憶體幾乎固定（這裡設 {{ n(s.settings.SPIMI) }} 筆，建 block 階段峰值 {{ f(B.row.build_peak_mb) }} MB）。即使整個 collection 一次放進記憶體也只要 {{ f(oneB.build_peak_mb) }} MB——同樣的資料，BSBI 一個 block 要 {{ f(oneA.build_peak_mb) }} MB，因為每個 pair 是一個 Python tuple（約 70–90 bytes），一筆 posting 只是 list 裡的一個指標（8 bytes）。</li>
+</ul>
+<p>代價是 block 越小、block 越多：中間檔數變多、合併要同時開更多檔案。BSBI 從 1 個 block 切到 {{ smallA.blocks }} 個，時間從 {{ f(oneA.seconds, 2) }} 秒變 {{ f(smallA.seconds, 2) }} 秒；SPIMI 從 1 個到 {{ indexing.sweep.SPIMI.blocks }} 個，{{ f(oneB.seconds, 2) }} 秒變 {{ f(indexing.sweep.SPIMI.seconds, 2) }} 秒。</p>
+
+<h3>5. 哪一種方法在你的實驗中具有較好的執行效率？可能的原因是什麼？</h3>
+<p><strong>SPIMI。</strong>全部 {{ n(s.documents) }} 篇時 SPIMI {{ f(A.row.seconds / B.row.seconds) }} 倍快（{{ f(B.row.seconds, 2) }} 對 {{ f(A.row.seconds, 2) }} 秒，{{ s.repeats }} 次中位數），從 1 萬篇到 100 萬篇每個規模都快 {{ f(indexing.speedup[0]) }}–{{ f(indexing.speedup[1]) }} 倍；建 block 階段的記憶體峰值也只有 BSBI 的約 {{ f(100 * B.row.build_peak_mb / A.row.build_peak_mb, 0) }}%。原因：</p>
+<ul>
+<li>BSBI 多做了兩件 SPIMI 不做的事：產生 {{ n(A.row.pairs) }} 個 pair（{{ f(A.phases['產生 pairs'], 2) }} 秒）和排序它們（{{ f(A.phases['排序 pairs'], 2) }} 秒，O(n log n)）；SPIMI 的 dictionary 更新是每次 O(1)。</li>
+<li>pairs 含重複出現（{{ n(A.row.pairs) }} 個 pairs 只對應 {{ n(A.row.postings) }} 筆 postings，多了 {{ f(100 * (A.row.pairs / A.row.postings - 1), 0) }}%），SPIMI 在讀的當下就去重。</li>
+<li>在 Python 裡每個 pair 都是一個新物件，配置和回收都要時間；SPIMI 只多一個指標。</li>
+</ul>
+<p>合併階段兩者差不多（BSBI {{ f(A.phases['合併'], 2) }} 秒、SPIMI {{ f(B.phases['合併'], 2) }} 秒），最終索引大小相同（{{ f(A.row.final_mb) }} MB）。注意這是 Python 的結果：教科書中 BSBI 在 C 裡把 pair 編成 8 bytes 的整數再排序，差距會比這裡小；但「多產生、多排序一份含重複的 pairs」這個成本在任何語言都存在。</p>
+
+<h3>6. 文件數從 10,000 增加到 100,000，甚至 1,000,000，兩種方法可能面臨哪些效能問題？</h3>
+<div class="table-wrap"><table class="data-table">
+<thead><tr><th class="num">文件數</th><th class="num">BSBI 時間</th><th class="num">SPIMI 時間</th><th class="num">blocks（BSBI／SPIMI）</th><th class="num">建 block 記憶體（BSBI／SPIMI）</th><th class="num">合併記憶體</th><th class="num">中間檔＋最終索引</th></tr></thead><tbody>
+{% for a, b in [(k10a, k10b), (k100a, k100b), (m1a, m1b)] %}<tr><td class="num">{{ n(a.n) }}</td><td class="num">{{ f(a.seconds) }} s</td><td class="num">{{ f(b.seconds) }} s</td><td class="num">{{ a.blocks }}／{{ b.blocks }}</td><td class="num">{{ f(a.build_peak_mb) }}／{{ f(b.build_peak_mb) }} MB</td><td class="num">{{ f(a.merge_peak_mb) }}／{{ f(b.merge_peak_mb) }} MB</td><td class="num">{{ f(a.intermediate_mb|float + a.final_mb|float, 0) }}／{{ f(b.intermediate_mb|float + b.final_mb|float, 0) }} MB</td></tr>{% endfor %}
+</tbody></table></div>
+<ul>
+<li><strong>時間大致線性，但略超過線性。</strong>文件數 ×100，BSBI 時間 ×{{ f(m1a.seconds|float / k10a.seconds|float, 0) }}、SPIMI ×{{ f(m1b.seconds|float / k10b.seconds|float, 0) }}。建 block 與文件數成正比，但 BSBI 每個 block 的排序是 O(p log p)；合併時 heap 要在 k 個 block 間比較（每筆 O(log k)），k 隨文件數增加（100 萬篇時 BSBI {{ m1a.blocks }} 個、SPIMI {{ m1b.blocks }} 個）。真實的 100 萬篇還會多出大量新詞（Heaps' law），這裡的複製資料沒有這個效應，所以 dictionary 相關成本被低估。</li>
+<li><strong>建 block 的記憶體不隨文件數增加</strong>（BSBI 一直約 {{ f(k10a.build_peak_mb, 0) }}–{{ f(m1a.build_peak_mb, 0) }} MB、SPIMI 約 {{ f(k10b.build_peak_mb, 0) }}–{{ f(m1b.build_peak_mb, 0) }} MB）——這正是分 block 的目的。</li>
+<li><strong>合併變成記憶體瓶頸。</strong>100 萬篇時兩者的峰值都出現在合併（{{ f(m1a.merge_peak_mb) }} MB），超過建 block 的記憶體。原因是合併時一個 term 的完整 postings list 會在記憶體中組起來：最常見的 <code>said</code> 在 21,578 篇中出現在 15,465 篇，放大到 100 萬篇約 72 萬筆。真正的大型系統要改成邊合併邊寫出、或壓縮 postings（gap + variable byte）。</li>
+<li><strong>中間檔與磁碟 I/O。</strong>中間檔約和最終索引一樣大（100 萬篇：{{ f(m1a.intermediate_mb, 0) }} MB 中間檔＋{{ f(m1a.final_mb, 0) }} MB 最終索引），等於每筆 posting 都寫兩次、讀一次；資料再大，磁碟空間和 I/O 會比 CPU 先成為瓶頸。</li>
+<li><strong>同時開啟的檔案數。</strong>單次 k-way merge 要同時開 {{ m1a.blocks }} 個檔（BSBI），作業系統對開檔數有上限（Windows C runtime 預設 512、Linux 常見 1,024）；再大就要加大 block 或改成多輪合併（每輪合併一部分 block）。</li>
+<li><strong>BSBI 特有：</strong>termID 表全程留在記憶體，vocabulary 隨真實文件數成長時會一起變大；pairs 的數量（100 萬篇時 {{ n(m1a.pairs) }} 個）比 postings 多 {{ f(100 * (m1a.pairs|float / m1a.postings|float - 1), 0) }}%，排序成本也跟著增加。<strong>SPIMI 特有：</strong>block 依記憶體自動切，block 數比 BSBI 少（{{ m1b.blocks }} 對 {{ m1a.blocks }}），但每個 block 寫出 term 字串，中間檔略大（{{ f(m1b.intermediate_mb, 0) }} 對 {{ f(m1a.intermediate_mb, 0) }} MB）。</li>
+</ul>
+
+<h3>結論</h3>
+<p>兩種方法建出完全相同的倒排索引（{{ n(s.vocabulary) }} 個 term、{{ n(s.postings) }} 筆 postings，每個 postings list 和每個查詢結果都逐筆一致）。SPIMI 在時間（約 {{ f(A.row.seconds / B.row.seconds) }} 倍快）、建 block 記憶體與程式複雜度（{{ indexing.lines.spimi }} 行對 {{ indexing.lines.bsbi }} 行）都優於 BSBI；BSBI 的優點是每個 block 的流程規則簡單（產生、排序、合成），而且整數 termID 的排序與合併在低階語言中很有效率。規模放大後，兩者共同的瓶頸會從建 block 轉移到合併：記憶體中最長的 postings list、同時開啟的檔案數，以及中間檔的磁碟 I/O。</p>
+</section>

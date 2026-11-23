@@ -28,6 +28,7 @@ DEFAULT_VSM_CORPUS = ROOT / "data" / "glp1_mesh_3000" / "abstracts.jsonl"
 DEFAULT_VSM_RESULTS = ROOT / "results" / "vsm_glp1"
 DEFAULT_NEWS_DATA = ROOT / "data" / "reuters21578"
 DEFAULT_NEWS_RESULTS = ROOT / "results" / "news_reuters"
+DEFAULT_INDEX_RESULTS = ROOT / "results" / "indexing_reuters"
 EMBED_MODELS = {"cbow_w5_s42": "CBOW", "skipgram_w5_s42": "Skip-gram"}
 PAGE_SIZES = (10, 20, 50)
 SNIPPET_CHARS, SNIPPET_LEAD = 260, 40
@@ -434,9 +435,61 @@ def _load_news(data: Path, results: Path):
     return news, None if news["models"] else "找不到詞向量模型；請先執行 python -m bioir news train"
 
 
+def _load_indexing(results: Path):
+    """Homework 5: the BSBI and SPIMI final indexes, story titles and the experiment's results."""
+    import json
+    from ..indexing import IndexReader
+    from ..indexing.collection import read_titles
+    if not (results / "summary.json").exists():
+        return None, f"找不到作業 5 的實驗結果（{results}）；請先執行 python -m bioir index evaluate"
+    summary = json.loads((results / "summary.json").read_text(encoding="utf-8"))
+    indexing = {"summary": summary, "results": results,
+                "main": _read_csv(results / "main.csv"), "blocks": _read_csv(results / "blocks.csv"),
+                "scaling": _read_csv(results / "scaling.csv"),
+                "indexes": {name: IndexReader(results / "index" / name.lower()) for name in ("BSBI", "SPIMI")},
+                "titles": read_titles(results / "titles.tsv") if (results / "titles.tsv").exists() else {}}
+    indexing["scale"] = {(int(r["n"]), r["method"]): r for r in indexing["scaling"]}
+    ratios = [float(indexing["scale"][(n, "BSBI")]["seconds"]) / float(r["seconds"])
+              for (n, method), r in indexing["scale"].items() if method == "SPIMI" and (n, "BSBI") in indexing["scale"]]
+    indexing["speedup"] = (min(ratios), max(ratios)) if ratios else (0, 0)
+    indexing["sweep"] = {r["method"]: r for r in reversed(indexing["blocks"])}          # the smallest block
+    indexing["sweep_one"] = {r["method"]: r for r in indexing["blocks"] if r["blocks"] == "1"}
+    indexing["lines"] = {name: _code_lines(Path(__file__).parents[1] / "indexing" / f"{name}.py")
+                         for name in ("bsbi", "spimi")}
+    return indexing, None
+
+
+def _code_lines(path: Path) -> int:
+    """Lines of code: not blank, not a comment, not inside the module docstring."""
+    text = path.read_text(encoding="utf-8")
+    if text.startswith('"""'):
+        text = text[text.index('"""', 3) + 3:]
+    return sum(1 for line in text.splitlines() if line.strip() and not line.strip().startswith("#"))
+
+
+def _indexing_query(indexing: dict, query: str, operator: str) -> dict:
+    """The query on both final indexes: each term's postings, then AND or OR, and whether they agree."""
+    from ..indexing import boolean, query_terms
+    readers = indexing["indexes"]
+    terms = []
+    for term in query_terms(query):
+        lists = {name: reader.postings(term) for name, reader in readers.items()}
+        entry = readers["SPIMI"].dictionary.get(term)
+        terms.append({"term": term, "df": len(lists["SPIMI"]), "postings": lists["SPIMI"],
+                      "offsets": {name: reader.dictionary.get(term, (0, None))[1] for name, reader in readers.items()},
+                      "same": lists["BSBI"] == lists["SPIMI"], "known": entry is not None})
+    found = {}
+    if operator in ("AND", "OR"):
+        found = {name: boolean(reader, query, operator) for name, reader in readers.items()}
+    documents = found.get("SPIMI") if found else (terms[0]["postings"] if terms else [])
+    return {"terms": terms, "operator": operator, "found": found, "documents": documents,
+            "same": all(t["same"] for t in terms) and (not found or found["BSBI"] == found["SPIMI"]),
+            "titles": [(doc, indexing["titles"].get(doc, "")) for doc in documents[:30]]}
+
+
 def create_app(corpus=DEFAULT_CORPUS, results=DEFAULT_RESULTS, vsm_corpus=DEFAULT_VSM_CORPUS,
                vsm_results=DEFAULT_VSM_RESULTS, news_data=DEFAULT_NEWS_DATA,
-               news_results=DEFAULT_NEWS_RESULTS) -> Flask:
+               news_results=DEFAULT_NEWS_RESULTS, index_results=DEFAULT_INDEX_RESULTS) -> Flask:
     corpus, results = Path(corpus), Path(results)
     app = Flask(__name__)
     app.add_template_filter(lecture_order, "lecture")
@@ -447,6 +500,7 @@ def create_app(corpus=DEFAULT_CORPUS, results=DEFAULT_RESULTS, vsm_corpus=DEFAUL
     embeddings, embed_error = _load_embeddings(results)
     vsm, vsm_error = _load_vsm(Path(vsm_corpus), Path(vsm_results))
     news, news_error = _load_news(Path(news_data), Path(news_results))
+    indexing, indexing_error = _load_indexing(Path(index_results))
     site = {"corpus": corpus.name, "documents": len(documents), "vocabulary": len(index.postings),
             "seconds": time.perf_counter() - started}
     plot_lock = threading.Lock()
@@ -719,6 +773,22 @@ def create_app(corpus=DEFAULT_CORPUS, results=DEFAULT_RESULTS, vsm_corpus=DEFAUL
         if not news or name not in ("metrics", "projections") or not (news["results"] / f"{name}.png").exists():
             abort(404)
         return send_file(news["results"] / f"{name}.png", mimetype="image/png", max_age=3600)
+
+    @app.get("/indexing")
+    def indexing_page():
+        query = request.args.get("query", "").strip()[:200]
+        operator = request.args.get("op", "AND")
+        if operator not in ("term", "AND", "OR"):
+            operator = "AND"
+        result = _indexing_query(indexing, query, operator) if indexing and query else None
+        return render_template("indexing.html", indexing=indexing, error=indexing_error, query=query,
+                               operator=operator, result=result)
+
+    @app.get("/indexing/chart.png")
+    def indexing_chart():
+        if not indexing or not (indexing["results"] / "indexing.png").exists():
+            abort(404)
+        return send_file(indexing["results"] / "indexing.png", mimetype="image/png", max_age=3600)
 
     @app.get("/healthz")
     def health():

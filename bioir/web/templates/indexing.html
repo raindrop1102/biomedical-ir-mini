@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+{% block title %}{% if query %}{{ query }} - {% endif %}作業 5：BSBI 與 SPIMI 倒排索引{% endblock %}
+{% block body %}
+{% macro block_table(blocks, bsbi) %}
+<details class="ix-blocks"><summary>每個 block 的內容與寫出的檔案（{{ blocks|length }} 個）</summary>
+<div class="table-wrap"><table class="data-table">
+<thead><tr><th class="num">block</th><th class="num">docID 範圍</th><th class="num">文件</th>{% if bsbi %}<th class="num">pairs</th>{% endif %}<th class="num">不重複 term</th><th class="num">postings</th><th class="num">檔案大小</th></tr></thead><tbody>
+{% for b in blocks %}<tr><td class="num">{{ b.block }}</td><td class="num">{{ b.first }}–{{ b.last }}</td><td class="num">{{ '{:,}'.format(b.documents) }}</td>{% if bsbi %}<td class="num">{{ '{:,}'.format(b.pairs) }}</td>{% endif %}<td class="num">{{ '{:,}'.format(b.terms) }}</td><td class="num">{{ '{:,}'.format(b.postings) }}</td><td class="num">{{ '%.0f'|format(b.bytes / 1024) }} KB</td></tr>{% endfor %}
+</tbody></table></div>
+</details>
+{% endmacro %}
+{% macro n(x) %}{{ '{:,}'.format(x|int) }}{% endmacro %}
+{% macro mb(x) %}{{ '%.1f'|format(x|float) }} MB{% endmacro %}
+{% macro ids(values, total) %}<code class="ix-ids">{{ values|join(', ') }}{% if total > values|length %}, …{% endif %}</code>{% endmacro %}
+<header class="site-header hw3-header"><div class="container"><h1>倒排索引的建構：BSBI 對 SPIMI</h1>
+<p class="hint">Reuters-21578 全部 21,578 篇新聞，同一套前處理；兩種方法各自建出最終索引，再用同樣的查詢比對結果。</p></div></header>
+<main class="container ix">
+{% if not indexing %}<section class="panel"><div class="alert warning">{{ error }}</div></section>
+{% else %}{% set s = indexing.summary %}{% set A = s.main.BSBI %}{% set B = s.main.SPIMI %}
+<section class="panel" id="query">
+<h2>查詢</h2>
+<form method="get" action="{{ url_for('indexing_page') }}#result" class="neighbor-form vsm-form">
+  <div class="field"><label for="ix-query">查詢詞</label><input id="ix-query" name="query" value="{{ query }}" placeholder="例如 crude oil prices" maxlength="200" required></div>
+  <div class="field narrow-wide"><label for="ix-op">查詢方式</label><select id="ix-op" name="op">
+    {% for value, label in [('term', '單一詞（第一個詞）'), ('AND', 'AND：所有詞都出現'), ('OR', 'OR：任一詞出現')] %}<option value="{{ value }}" {% if operator == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+  </select></div>
+  <button type="submit">查詢</button>
+</form>
+<p class="hint">查詢詞經過和文件相同的前處理（斷詞、小寫、去停用詞、Porter stemming），所以 <code>prices</code> 會變成 <code>price</code>。同一個查詢會同時在 BSBI 和 SPIMI 建出的索引上執行。範例：{% for q in s.queries %}<a href="{{ url_for('indexing_page', query=q.query, op='AND') }}#result">{{ q.query }}</a>{{ '、' if not loop.last }}{% endfor %}</p>
+{% if result %}
+<div id="result" class="ix-result">
+{% if not result.terms %}<div class="alert warning">查詢經過前處理後沒有剩下任何詞（可能全是停用詞）。</div>
+{% else %}
+<h3>Dictionary 查到的詞</h3>
+<div class="table-wrap"><table class="data-table">
+<thead><tr><th>term</th><th class="num">df</th><th class="num">postings 位置：BSBI</th><th class="num">SPIMI</th><th>postings list（docID）</th><th>兩邊相同</th></tr></thead><tbody>
+{% for t in result.terms %}<tr><td><code>{{ t.term }}</code></td><td class="num">{{ n(t.df) }}</td>
+<td class="num">{{ n(t.offsets.BSBI) if t.offsets.BSBI is not none else '—' }}</td><td class="num">{{ n(t.offsets.SPIMI) if t.offsets.SPIMI is not none else '—' }}</td>
+<td>{% if t.known %}{{ ids(t.postings[:12], t.df) }}{% else %}<span class="muted">不在 dictionary 裡</span>{% endif %}</td><td>{{ '✓' if t.same else '✗' }}</td></tr>{% endfor %}
+</tbody></table></div>
+<p class="hint">postings 位置是 postings.bin 的 byte offset。兩個索引的位置不同（BSBI 依 termID、SPIMI 依字母順序寫出 postings），但 postings list 內容必須完全一樣。</p>
+<h3>{% if operator == 'term' %}單一詞 <code>{{ result.terms[0].term }}</code>{% else %}{{ operator }}：{% for t in result.terms %}<code>{{ t.term }}</code>{{ (' ' ~ operator ~ ' ') if not loop.last }}{% endfor %}{% endif %} → {{ n(result.documents|length) }} 篇</h3>
+<p class="ix-verdict {{ 'ok' if result.same else 'bad' }}">{{ 'BSBI 與 SPIMI 的結果完全相同' if result.same else 'BSBI 與 SPIMI 的結果不一致！' }}{% if result.found %}（BSBI {{ n(result.found.BSBI|length) }} 篇、SPIMI {{ n(result.found.SPIMI|length) }} 篇）{% endif %}</p>
+{% if result.titles %}<ol class="ix-docs">{% for doc, title in result.titles %}<li><span class="ix-doc">{{ doc }}</span>{{ title }}</li>{% endfor %}</ol>
+{% if result.documents|length > 30 %}<p class="hint">只列前 30 篇（依 docID）。布林檢索不排序：文件只有「符合」或「不符合」。</p>{% endif %}{% endif %}
+{% endif %}
+</div>
+{% endif %}
+</section>
+
+<section class="panel" id="data">
+<h2>資料與前處理</h2>
+<div class="exp-cards ix-cards">
+<div class="exp-card"><small>文件</small><div class="exp-big">{{ n(s.documents) }}</div><p>docID = NEWID</p></div>
+<div class="exp-card"><small>term 出現次數</small><div class="exp-big">{{ n(s.tokens) }}</div><p>前處理後</p></div>
+<div class="exp-card"><small>Vocabulary</small><div class="exp-big">{{ n(s.vocabulary) }}</div><p>不重複的 term</p></div>
+<div class="exp-card"><small>Postings</small><div class="exp-big">{{ n(s.postings) }}</div><p>(term, doc) 不重複組合</p></div>
+</div>
+<p class="hint">前處理：字母或數字連續字元為一個 token → 小寫 → 去掉 41 個停用詞 → Porter stemming，和前幾次作業的搜尋引擎相同。前處理只做一次（{{ '%.1f'|format(s.preprocessing_seconds) }} 秒），BSBI 和 SPIMI 讀同一份 term 序列，所以底下的時間都只算建索引本身。</p>
+</section>
+
+<section class="panel" id="part1">
+<h2>Part 1：倒排索引的結構</h2>
+<div class="model-columns">
+<div>
+<h3>Dictionary</h3>
+<p class="exp-text">所有不重複 term 的清單（vocabulary），每個 term 記著 <strong>df</strong>（幾篇文件含它）和 <strong>它的 postings list 在磁碟上的位置</strong>。Dictionary 很小（{{ n(s.vocabulary) }} 個 term），整個放在記憶體裡；查詢時先在 dictionary 找到 term，才知道去哪裡讀 postings。</p>
+</div>
+<div>
+<h3>Postings list</h3>
+<p class="exp-text">每個 term 對應一串 <strong>依 docID 遞增排序</strong> 的文件編號，同一篇只出現一次。Postings 很大（{{ n(s.postings) }} 筆），存在磁碟的 postings.bin，查詢時只讀需要的那幾個 term。排好序才能用「兩個指標一起往前走」在 O(m + n) 內做 AND（交集）和 OR（聯集）。</p>
+</div>
+</div>
+<div class="table-wrap"><table class="data-table">
+<thead><tr><th>term（dictionary）</th><th class="num">df</th><th>postings list</th></tr></thead><tbody>
+{% for term, df, first in s.basic_sample %}<tr><td><code>{{ term }}</code></td><td class="num">{{ n(df) }}</td><td>{{ ids(first, df) }}</td></tr>{% endfor %}
+</tbody></table></div>
+<p class="hint">基本索引直接在記憶體裡一篇一篇建：遇到 term 就把 docID 加到它的 postings 尾端（尾端已經是這篇就不加）。它是比對的標準答案：BSBI 和 SPIMI 建出的 {{ n(s.vocabulary) }} 個 postings list 和它<strong>{{ '每一個都完全相同' if s.equal else '有不一致' }}</strong>。最終索引的檔案格式兩種方法相同：<code>dictionary.tsv</code>（term、df、offset，依 term 排序）和 <code>postings.bin</code>（docID，uint32）。</p>
+</section>
+
+{% set ta, tb = s.trace.BSBI, s.trace.SPIMI %}
+<section class="panel" id="bsbi">
+<h2>Part 2：BSBI（Blocked Sort-Based Indexing）</h2>
+<p class="exp-text">每 {{ n(s.settings.BSBI) }} 篇一個 block，共 {{ A.row.blocks }} 個 block。每個 block：把每個 term 出現換成 <code>(termID, docID)</code> → 排序 → 合成局部索引 → 寫入磁碟。termID 由一張所有 block 共用的 term → termID 表發出，所以 termID 17 在每個 block 都是同一個 term，最後才能直接依 termID 合併。</p>
+<div class="ix-steps">
+<div><h3><span class="exp-step">2</span>產生 pairs（block 1 的前 {{ ta.pairs|length }} 個）</h3>
+<table class="data-table ix-mini"><thead><tr><th class="num">termID</th><th class="num">docID</th><th>term</th></tr></thead><tbody>
+{% for t, d, term in ta.pairs %}<tr><td class="num">{{ t }}</td><td class="num">{{ d }}</td><td><code>{{ term }}</code></td></tr>{% endfor %}</tbody></table>
+<p class="hint">依文件中出現的順序，每次出現一個 pair（重複的也算）。</p></div>
+<div><h3><span class="exp-step">3</span>排序後</h3>
+<table class="data-table ix-mini"><thead><tr><th class="num">termID</th><th class="num">docID</th><th>term</th><th class="num">重複</th></tr></thead><tbody>
+{% for t, d, term, count in ta.sorted %}<tr><td class="num">{{ t }}</td><td class="num">{{ d }}</td><td><code>{{ term }}</code></td><td class="num">{% if count > 1 %}×{{ count }}{% endif %}</td></tr>{% endfor %}</tbody></table>
+<p class="hint">依 (termID, docID) 排序：同一個 term 聚在一起，docID 也排好了；同一篇的重複 pair 變成相鄰。</p></div>
+<div><h3><span class="exp-step">4</span>局部索引</h3>
+<table class="data-table ix-mini"><thead><tr><th class="num">termID</th><th>term</th><th class="num">df</th><th>postings</th></tr></thead><tbody>
+{% for t, term, docs, df in ta.partial %}<tr><td class="num">{{ t }}</td><td><code>{{ term }}</code></td><td class="num">{{ df }}</td><td>{{ ids(docs, df) }}</td></tr>{% endfor %}</tbody></table>
+<p class="hint">相鄰重複的 pair 合併成一筆，得到 block 1 的 postings。</p></div>
+</div>
+<h3><span class="exp-step">5</span>{{ A.row.blocks }} 個局部索引合併</h3>
+<div class="table-wrap"><table class="data-table ix-mini">
+<thead><tr><th class="num">termID</th><th>term</th><th class="num">df（全部）</th><th>合併後的 postings</th></tr></thead><tbody>
+{% for t, term, docs, df in ta.merged %}<tr><td class="num">{{ t }}</td><td><code>{{ term }}</code></td><td class="num">{{ n(df) }}</td><td>{{ ids(docs, df) }}</td></tr>{% endfor %}</tbody></table></div>
+<p class="hint">同時打開所有 block 檔，用 heap 每次取出最小的 termID（k-way merge），把各 block 的 postings 依 block 順序接起來；block 的 docID 本來就遞增，所以接起來仍然有序。</p>
+{{ block_table(A.blocks, true) }}
+</section>
+
+<section class="panel" id="spimi">
+<h2>Part 3：SPIMI（Single-Pass In-Memory Indexing）</h2>
+<p class="exp-text">一篇一篇讀；遇到 term 就直接加到它在 dictionary 裡的 postings list（新 term 先建 entry，同一篇的重複出現只記一次）。記憶體中的 postings 達到 {{ n(s.settings.SPIMI) }} 筆就把 dictionary 的 term 排序、整個寫入磁碟，清空記憶體繼續，共 {{ B.row.blocks }} 個 block。沒有 termID，也沒有 (termID, docID) pairs。</p>
+<div class="ix-steps two">
+<div><h3><span class="exp-step">2</span>寫出前，記憶體中的 dictionary（block 1，加入順序）</h3>
+<table class="data-table ix-mini"><thead><tr><th>term</th><th class="num">df</th><th>postings</th></tr></thead><tbody>
+{% for term, docs, df in tb.dictionary %}<tr><td><code>{{ term }}</code></td><td class="num">{{ df }}</td><td>{{ ids(docs, df) }}</td></tr>{% endfor %}</tbody></table>
+<p class="hint">postings 從第一篇就直接長在 term 底下，docID 自然遞增。</p></div>
+<div><h3><span class="exp-step">3</span>只排序 term，寫入磁碟</h3>
+<table class="data-table ix-mini"><thead><tr><th>term</th><th class="num">df</th><th>postings</th></tr></thead><tbody>
+{% for term, docs, df in tb.sorted %}<tr><td><code>{{ term }}</code></td><td class="num">{{ df }}</td><td>{{ ids(docs, df) }}</td></tr>{% endfor %}</tbody></table>
+<p class="hint">要排序的只有這個 block 的 {{ n(B.blocks[0].terms) }} 個不重複 term，不是 {{ n(A.blocks[0].pairs) }} 個 pairs。</p></div>
+</div>
+<h3><span class="exp-step">4</span>{{ B.row.blocks }} 個局部索引合併</h3>
+<div class="table-wrap"><table class="data-table ix-mini">
+<thead><tr><th>term</th><th class="num">df（全部）</th><th>合併後的 postings</th></tr></thead><tbody>
+{% for term, docs, df in tb.merged %}<tr><td><code>{{ term }}</code></td><td class="num">{{ n(df) }}</td><td>{{ ids(docs, df) }}</td></tr>{% endfor %}</tbody></table></div>
+{{ block_table(B.blocks, false) }}
+</section>
+
+<section class="panel" id="compare">
+<h2>BSBI 與 SPIMI 的效能比較</h2>
+<p class="exp-text">同樣 {{ n(s.documents) }} 篇、同樣的前處理；BSBI 每 block {{ n(s.settings.BSBI) }} 篇，SPIMI 每 block {{ n(s.settings.SPIMI) }} 筆 postings。時間是 {{ s.repeats }} 次的中位數；記憶體是另外一次在 tracemalloc 下執行量到的 Python 配置峰值（不含已載入的文件）。</p>
+<div class="table-wrap"><table class="data-table ix-compare">
+<thead><tr><th>比較項目</th><th class="num">BSBI</th><th class="num">SPIMI</th><th>說明</th></tr></thead><tbody>
+<tr><td>Index construction time</td><td class="num">{{ '%.2f'|format(A.row.seconds) }} s</td><td class="num">{{ '%.2f'|format(B.row.seconds) }} s</td><td>SPIMI 約快 {{ '%.1f'|format(A.row.seconds / B.row.seconds) }} 倍</td></tr>
+<tr><td>Memory usage（建 block 階段峰值）</td><td class="num">{{ mb(A.row.build_peak_mb) }}</td><td class="num">{{ mb(B.row.build_peak_mb) }}</td><td>BSBI 同時握著一整個 block 的 pairs；SPIMI 只有 postings</td></tr>
+<tr><td>Memory usage（合併階段峰值）</td><td class="num">{{ mb(A.row.merge_peak_mb) }}</td><td class="num">{{ mb(B.row.merge_peak_mb) }}</td><td>兩者相同的 k-way merge</td></tr>
+<tr><td>一次放在記憶體的項目</td><td class="num">{{ n(A.row.peak_items) }} pairs</td><td class="num">{{ n(B.row.peak_items) }} postings</td><td>BSBI 的 pairs 含重複出現</td></tr>
+<tr><td>產生的 (termID, docID) pairs</td><td class="num">{{ n(A.row.pairs) }}</td><td class="num">0</td><td>SPIMI 不產生 pairs</td></tr>
+<tr><td>Number of blocks</td><td class="num">{{ A.row.blocks }}</td><td class="num">{{ B.row.blocks }}</td><td>由 block 大小決定（見下方）</td></tr>
+<tr><td>Intermediate files</td><td class="num">{{ A.row.intermediate_files }} 個 · {{ mb(A.row.intermediate_mb) }}</td><td class="num">{{ B.row.intermediate_files }} 個 · {{ mb(B.row.intermediate_mb) }}</td><td>BSBI 另有 terms.tsv（termID → term）</td></tr>
+<tr><td>Final index size</td><td class="num">{{ mb(A.row.final_mb) }}</td><td class="num">{{ mb(B.row.final_mb) }}</td><td>postings.bin 兩邊同為 {{ n(A.final['postings.bin']) }} bytes；dictionary 只差 offset 的位數</td></tr>
+<tr><td>Implementation complexity</td><td class="num">{{ indexing.lines.bsbi }} 行</td><td class="num">{{ indexing.lines.spimi }} 行</td><td>BSBI 多一張全域 termID 表、pairs 的產生與排序、termID → term 的對照檔</td></tr>
+</tbody></table></div>
+<h3>時間花在哪裡（秒）</h3>
+<div class="table-wrap"><table class="data-table">
+<thead><tr><th>方法</th>{% for phase in A.phases %}<th class="num">{{ phase }}</th>{% endfor %}<th class="num">合計</th></tr></thead><tbody>
+<tr><td>BSBI</td>{% for phase, v in A.phases.items() %}<td class="num">{{ '%.2f'|format(v) }}</td>{% endfor %}<td class="num">{{ '%.2f'|format(A.phases.values()|sum) }}</td></tr>
+</tbody></table></div>
+<div class="table-wrap"><table class="data-table">
+<thead><tr><th>方法</th>{% for phase in B.phases %}<th class="num">{{ phase }}</th>{% endfor %}<th class="num">合計</th></tr></thead><tbody>
+<tr><td>SPIMI</td>{% for phase, v in B.phases.items() %}<td class="num">{{ '%.2f'|format(v) }}</td>{% endfor %}<td class="num">{{ '%.2f'|format(B.phases.values()|sum) }}</td></tr>
+</tbody></table></div>
+<p class="hint">各階段時間取自其中一次執行，所以合計和上表的中位數略有差距（三次計時：BSBI {{ A.times|join('、') }} 秒；SPIMI {{ B.times|join('、') }} 秒）。</p>
+<figure class="projection"><img src="{{ url_for('indexing_chart') }}" alt="建索引時間組成、block 大小與文件數增加時的時間和記憶體" loading="lazy"></figure>
+
+<h3>block 大小的影響（{{ n(s.documents) }} 篇）</h3>
+<div class="table-wrap"><table class="data-table">
+<thead><tr><th>方法</th><th>block 大小</th><th class="num">blocks</th><th class="num">時間</th><th class="num">記憶體（建 block）</th><th class="num">記憶體（合併）</th><th class="num">中間檔</th></tr></thead><tbody>
+{% for r in indexing.blocks %}<tr><td>{{ r.method }}</td><td>{{ r.setting }}</td><td class="num">{{ r.blocks }}</td><td class="num">{{ '%.2f'|format(r.seconds|float) }} s</td><td class="num">{{ mb(r.build_peak_mb) }}</td><td class="num">{{ mb(r.merge_peak_mb) }}</td><td class="num">{{ r.intermediate_files }} · {{ mb(r.intermediate_mb) }}</td></tr>{% endfor %}
+</tbody></table></div>
+
+<h3>文件數增加</h3>
+<div class="table-wrap"><table class="data-table">
+<thead><tr><th class="num">文件數</th><th>方法</th><th class="num">時間</th><th class="num">記憶體（建 block）</th><th class="num">記憶體（合併）</th><th class="num">blocks</th><th class="num">中間檔</th><th class="num">最終索引</th><th class="num">pairs／postings</th></tr></thead><tbody>
+{% for r in indexing.scaling %}<tr{% if r.method == 'BSBI' %} class="ix-first"{% endif %}><td class="num">{% if r.method == 'BSBI' %}{{ n(r.n) }}{% endif %}</td><td>{{ r.method }}</td><td class="num">{{ '%.1f'|format(r.seconds|float) }} s</td><td class="num">{{ mb(r.build_peak_mb) }}</td><td class="num">{{ mb(r.merge_peak_mb) }}</td><td class="num">{{ r.blocks }}</td><td class="num">{{ mb(r.intermediate_mb) }}</td><td class="num">{{ mb(r.final_mb) }}</td><td class="num">{{ n(r.pairs) if r.method == 'BSBI' else n(r.postings) }}</td></tr>{% endfor %}
+</tbody></table></div>
+<p class="hint">超過 21,578 篇的文件數是把整個 collection 重複、重新編號得到的：postings 和 pairs 照比例增加，但 vocabulary 不會變大（真實資料會依 Heaps' law 持續增加新詞），所以和 dictionary 有關的成本會被低估。</p>
+</section>
+
+<section class="panel" id="retrieval">
+<h2>索引成果的檢索測試</h2>
+<p class="exp-text">{{ s.queries|length }} 組查詢，各做單一詞、AND、OR，分別在基本索引、BSBI 索引、SPIMI 索引上執行並比對。</p>
+<div class="table-wrap"><table class="data-table ix-queries">
+<thead><tr><th>查詢</th><th>單一詞：term（df）</th><th class="num">AND</th><th class="num">OR</th><th>三個索引一致</th></tr></thead><tbody>
+{% for q in s.queries %}{% set same = (q.terms|selectattr('same')|list|length == q.terms|length) and q.operators.AND.same and q.operators.OR.same %}
+<tr><td><a href="{{ url_for('indexing_page', query=q.query, op='AND') }}#result">{{ q.query }}</a></td>
+<td>{% for t in q.terms %}<a href="{{ url_for('indexing_page', query=t.term, op='term') }}#result"><code>{{ t.term }}</code></a>（{{ n(t.df) }}）{{ ' ' if not loop.last }}{% endfor %}</td>
+<td class="num"><a href="{{ url_for('indexing_page', query=q.query, op='AND') }}#result">{{ n(q.operators.AND.count) }}</a></td>
+<td class="num"><a href="{{ url_for('indexing_page', query=q.query, op='OR') }}#result">{{ n(q.operators.OR.count) }}</a></td>
+<td class="ix-verdict {{ 'ok' if same else 'bad' }}">{{ '✓ 相同' if same else '✗ 不一致' }}</td></tr>{% endfor %}
+</tbody></table></div>
+<p class="hint">一致是逐筆比對 postings list 與 AND／OR 結果的每個 docID，不只比篇數。AND 從 df 最小的詞開始交集，中間結果只會變小。</p>
+</section>
+
+{% include 'indexing_answers.html' ignore missing %}
+{% endif %}
+</main>
+{% endblock %}
+

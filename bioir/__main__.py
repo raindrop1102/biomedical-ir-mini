@@ -1,6 +1,7 @@
 """Command line: `python -m bioir search [QUERY]`, `python -m bioir zipf`,
 `python -m bioir embed (train | similar | compare | project)`, `python -m bioir vsm (search | evaluate)`,
-`python -m bioir news (train | search | evaluate)`, `python -m bioir serve`,
+`python -m bioir news (train | search | evaluate)`,
+`python -m bioir index (build | evaluate | query)`, `python -m bioir serve`,
 `python -m bioir fetch (PMID_FILE | --query Q)`."""
 import argparse
 import sys
@@ -18,6 +19,7 @@ VSM_CORPUS = Path(__file__).resolve().parents[1] / "data" / "glp1_mesh_3000" / "
 REUTERS = Path(__file__).resolve().parents[1] / "data" / "reuters21578"
 REUTERS_QUERIES = Path(__file__).resolve().parents[1] / "data" / "reuters_queries.json"
 NEWS_RESULTS = Path(__file__).resolve().parents[1] / "results" / "news_reuters"
+INDEX_RESULTS = Path(__file__).resolve().parents[1] / "results" / "indexing_reuters"
 
 
 def snippet(text: str, spans, width: int = 220) -> str:
@@ -322,6 +324,49 @@ def fetch(args) -> int:
     return 0
 
 
+def index_build(args) -> int:
+    import tempfile
+    from .indexing import analyze_stories, bsbi, load_stories, spimi
+    documents = analyze_stories(load_stories(args.data))
+    print(f"{len(documents):,} 篇；{args.method}")
+    work = Path(tempfile.mkdtemp(prefix="bioir_blocks_"))
+    trace = {}
+    if args.block is None:
+        args.block = 2000 if args.method == "BSBI" else 200_000
+    if args.method == "BSBI":
+        stats = bsbi(documents, args.out, work, block_docs=args.block, trace=trace)
+    else:
+        stats = spimi(documents, args.out, work, capacity=args.block, trace=trace)
+    print(f"{stats.blocks} 個 block、{stats.terms:,} 個詞、{stats.postings:,} 筆 postings、{stats.seconds:.2f} s")
+    for phase, seconds in stats.phases.items():
+        print(f"  {phase:<16}{seconds:7.2f} s")
+    for block in stats.blocks_info:
+        print(f"  block {block['block']:>3}: doc {block['first']:>6}–{block['last']:<6} {block['terms']:>7,} 詞 "
+              f"{block['postings']:>9,} postings {block['bytes'] / 1024:>8.1f} KB")
+    print(f"局部索引在 {work}；最終索引在 {args.out}")
+    return 0
+
+
+def index_evaluate(args) -> int:
+    from .indexing.experiment import SIZES, run
+    sizes = [int(n) for n in args.sizes.split(",")] if args.sizes else SIZES
+    run(args.data, args.out, sizes=sizes, repeats=args.repeats, log=lambda line: print(line, flush=True))
+    return 0
+
+
+def index_query(args) -> int:
+    from .indexing import IndexReader, boolean, query_terms
+    index = IndexReader(args.index)
+    text = " ".join(args.query)
+    for term in query_terms(text):
+        postings = index.postings(term)
+        print(f"{term:<16} df {len(postings):>6,}  {postings[:15]}{' …' if len(postings) > 15 else ''}")
+    for operator in ("AND", "OR"):
+        found = boolean(index, text, operator)
+        print(f"{operator:<4} {len(found):>6,} 篇  {found[:15]}{' …' if len(found) > 15 else ''}")
+    return 0
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(prog="bioir", description="Minimal biomedical abstract search.")
     commands = parser.add_subparsers(dest="command", required=True)
@@ -417,6 +462,26 @@ def main(argv=None) -> int:
     ne.add_argument("--out", type=Path, default=NEWS_RESULTS)
     ne.add_argument("--plot", action="store_true", help="also draw metrics.png and projections.png (needs matplotlib)")
     ne.set_defaults(run=news_evaluate)
+
+    x = commands.add_parser("index", help="Reuters-21578: BSBI versus SPIMI index construction (homework 5)")
+    index_commands = x.add_subparsers(dest="index_command", required=True)
+    xb = index_commands.add_parser("build", help="build one final index and print its blocks")
+    xb.add_argument("method", choices=["BSBI", "SPIMI"])
+    xb.add_argument("--block", type=int, default=None,
+                    help="documents per block (BSBI, default 2000) or postings per block (SPIMI, default 200000)")
+    xb.add_argument("--data", type=Path, default=REUTERS)
+    xb.add_argument("--out", type=Path, required=True)
+    xb.set_defaults(run=index_build)
+    xe = index_commands.add_parser("evaluate", help="the full BSBI / SPIMI experiment (takes about 30 minutes)")
+    xe.add_argument("--data", type=Path, default=REUTERS)
+    xe.add_argument("--out", type=Path, default=INDEX_RESULTS)
+    xe.add_argument("--sizes", help="comma-separated document counts for the scaling runs")
+    xe.add_argument("--repeats", type=int, default=3, help="timed runs of the main comparison (median kept)")
+    xe.set_defaults(run=index_evaluate)
+    xq = index_commands.add_parser("query", help="single-term, AND and OR results from a final index")
+    xq.add_argument("query", nargs="+")
+    xq.add_argument("--index", type=Path, default=INDEX_RESULTS / "index" / "spimi")
+    xq.set_defaults(run=index_query)
 
     w = commands.add_parser("serve", help="read-only web interface (needs flask)")
     w.add_argument("--corpus", type=Path, default=DEFAULT_CORPUS)

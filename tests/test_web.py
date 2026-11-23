@@ -222,6 +222,49 @@ class NewsPageTest(unittest.TestCase):
         self.assertNotIn('id="steps"', unknown)
 
 
+class IndexingPageTest(unittest.TestCase):
+    """Homework 5's page over the committed BSBI and SPIMI indexes."""
+
+    @classmethod
+    def setUpClass(cls):
+        from bioir.web import create_app
+        cls.folder = tempfile.TemporaryDirectory()
+        cls.client = create_app(_tiny_corpus(cls.folder.name), Path(cls.folder.name, "no-results"),
+                                Path(cls.folder.name, "no-mesh.jsonl"),
+                                news_data=Path(cls.folder.name, "no-reuters")).test_client()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.folder.cleanup()
+
+    def test_and_query_agrees_on_both_indexes(self):
+        page = self.client.get("/indexing?query=crude+oil+prices&op=AND").get_data(as_text=True)
+        self.assertIn("→ 233 篇", page)
+        self.assertIn("BSBI 與 SPIMI 的結果完全相同（BSBI 233 篇、SPIMI 233 篇）", page)
+        self.assertIn("<code>price</code>", page)                              # the documents' stemming
+        self.assertIn("DIAMOND SHAMROCK (DIA) CUTS CRUDE PRICES", page)        # titles of the matches
+        self.assertNotIn("不一致", page)
+
+    def test_or_and_single_term(self):
+        page = self.client.get("/indexing?query=crude+oil+prices&op=OR").get_data(as_text=True)
+        self.assertIn("→ 4,390 篇", page)
+        page = self.client.get("/indexing?query=oil&op=term").get_data(as_text=True)
+        self.assertIn("→ 1,544 篇", page)
+        page = self.client.get("/indexing?query=the+of&op=AND").get_data(as_text=True)
+        self.assertIn("沒有剩下任何詞", page)
+
+    def test_steps_comparison_and_answers(self):
+        page = self.client.get("/indexing").get_data(as_text=True)
+        for text in ("Part 1：倒排索引的結構", "Part 2：BSBI", "Part 3：SPIMI", "Index construction time",
+                     "Implementation complexity", "6. 文件數從 10,000 增加到 100,000", "bahia"):
+            self.assertIn(text, page)
+        self.assertIn(">35,924<", page)
+        self.assertIn("每一個都完全相同", page)
+        self.assertEqual(page.count("✓ 相同"), 8)                             # every test query agrees
+        with self.client.get("/indexing/chart.png") as chart:
+            self.assertEqual(chart.status_code, 200)
+
+
 def _tiny_corpus(folder):
     path = Path(folder, "c.jsonl")
     save_jsonl([Document("1", "t", "Some text.")], path)
